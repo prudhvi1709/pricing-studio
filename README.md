@@ -1,6 +1,5 @@
-# Discovery+ Price Elasticity & Revenue Optimization POC
+# Streaming Service Price Elasticity & Revenue Optimization POC
 
-**Client:** Warner Bros. Discovery (WBD)
 **Market:** United States (Phase 1)
 **Status:** 🟢 Data Complete - Ready for UI Development
 **Version:** 1.0
@@ -10,7 +9,7 @@
 
 ## 📋 Project Overview
 
-This POC demonstrates a **Price Elasticity & Revenue Optimization Model** for Discovery+ in the US market. The application enables pricing stakeholders to:
+This POC demonstrates a **Price Elasticity & Revenue Optimization Model** for a streaming service in the US market. The application enables pricing stakeholders to:
 
 - 📊 Visualize price elasticity across subscription tiers and customer segments
 - 🎯 Simulate pricing scenarios and forecast KPI impacts
@@ -242,7 +241,7 @@ Includes:
 5. Introduce Basic Tier at $2.99
 6. Remove Free Trial
 7. Decrease Ad-supported to $4.99
-8. Bundle Discovery+ & Max at $14.99
+8. Bundle with Premium Service at $14.99
 9. Annual Plan Discount: $59.99
 10. Platform-Specific: iOS +$0.99
 11. Do Nothing (Baseline)
@@ -291,7 +290,7 @@ Each scenario includes:
 
 ### Phase 5: Styling & Polish ⏳ PENDING
 - [ ] Create CSS files (Bootstrap + custom)
-- [ ] WBD branding and colors
+- [ ] Custom branding and colors
 - [ ] Responsive design
 - [ ] Accessibility compliance
 
@@ -385,7 +384,7 @@ The POC will be considered successful if it demonstrates:
 2. ✅ **Scenario Functionality:** Ability to simulate 10+ scenarios with clear KPI forecasts
 3. ⏳ **Usability:** Non-technical pricing managers can use the tool independently
 4. ⏳ **Insights:** Outputs provide actionable pricing recommendations
-5. ⏳ **Visual Quality:** Professional, polished UI matching WBD brand
+5. ⏳ **Visual Quality:** Professional, polished UI with consistent branding
 6. ⏳ **Performance:** Fast, responsive, no lag on user interactions
 
 ---
@@ -395,8 +394,8 @@ The POC will be considered successful if it demonstrates:
 ⚠️ **IMPORTANT:** This project contains sensitive business data.
 
 - All data is **synthetic** (not real subscriber data)
-- Document is marked **WBD Confidential & Proprietary**
-- Do not share without written approval from WBD
+- Document is marked **Confidential & Proprietary**
+- Do not share without written approval
 - Do not use data for training ML models or other purposes
 
 ---
@@ -470,7 +469,7 @@ The POC will be considered successful if it demonstrates:
 
 4. **Add Styling**
    - Bootstrap integration
-   - WBD branding
+   - Custom branding
    - Custom CSS
 
 5. **Test & Deploy**
@@ -486,7 +485,7 @@ All data files are complete and validated. The POC UI development can now procee
 
 ---
 
-**Project Team:** WBD POC Development
+**Project Team:** POC Development Team
 **Last Updated:** January 13, 2026
 **Version:** 1.0
-**Confidentiality:** WBD Confidential & Proprietary
+**Confidentiality:** Confidential & Proprietary
