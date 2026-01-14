@@ -71,7 +71,7 @@ async function loadScenarioCards() {
   try {
     allScenarios = await loadScenarios();
 
-    // Filter to most interesting scenarios for Phase 1 (including bundle scenario)
+    // Filter to most interesting scenarios for  (including bundle scenario)
     const featuredScenarios = allScenarios.filter(s =>
       ['scenario_001', 'scenario_002', 'scenario_003', 'scenario_008', 'scenario_baseline'].includes(s.id)
     );
@@ -231,6 +231,9 @@ function displayResults(result) {
 
   // Render charts
   renderForecastChart(result);
+
+  // Update elasticity analysis with scenario data
+  updateElasticityAnalysis(result);
   renderTierMixChart(result);
   renderTradeoffsChart(result);
 }
@@ -364,6 +367,61 @@ function renderTradeoffsChart(result) {
   }];
 
   renderTradeoffsScatter('tradeoffs-chart', data, { width: 550, height: 380 });
+}
+
+// Update elasticity analysis with scenario data
+async function updateElasticityAnalysis(result) {
+  try {
+    const params = await loadElasticityParams();
+    const weeklyData = await getWeeklyData('all');
+
+    // Get baseline data
+    const latestWeek = {};
+    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+      const tierData = weeklyData.filter(d => d.tier === tier);
+      latestWeek[tier] = tierData[tierData.length - 1];
+    });
+
+    // Determine which tier was affected by the scenario
+    const affectedTier = result.tier || selectedScenario?.config?.tier;
+    const scenarioPrice = result.new_price || selectedScenario?.config?.new_price;
+
+    const demandCurveData = {
+      tiers: [
+        {
+          name: 'Ad-Supported',
+          elasticity: params.tiers.ad_supported.base_elasticity,
+          currentPrice: 5.99,
+          currentSubs: latestWeek.ad_supported.active_subscribers,
+          newPrice: affectedTier === 'ad_supported' ? scenarioPrice : null,
+          newSubs: affectedTier === 'ad_supported' ? result.forecasted.subscribers : null,
+          color: '#dc3545'
+        },
+        {
+          name: 'Ad-Free',
+          elasticity: params.tiers.ad_free.base_elasticity,
+          currentPrice: 8.99,
+          currentSubs: latestWeek.ad_free.active_subscribers,
+          newPrice: affectedTier === 'ad_free' ? scenarioPrice : null,
+          newSubs: affectedTier === 'ad_free' ? result.forecasted.subscribers : null,
+          color: '#ffc107'
+        },
+        {
+          name: 'Annual',
+          elasticity: params.tiers.annual.base_elasticity,
+          currentPrice: 5.99,
+          currentSubs: latestWeek.annual.active_subscribers,
+          newPrice: affectedTier === 'annual' ? scenarioPrice : null,
+          newSubs: affectedTier === 'annual' ? result.forecasted.subscribers : null,
+          color: '#28a745'
+        }
+      ]
+    };
+
+    renderDemandCurve('demand-curve-chart', demandCurveData, { width: 1100, height: 500 });
+  } catch (error) {
+    console.error('Error updating elasticity analysis:', error);
+  }
 }
 
 // Load and render elasticity analytics

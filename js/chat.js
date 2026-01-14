@@ -45,6 +45,82 @@ const settingsForm = saveform("#settings-form");
 let conversationHistory = [];
 let dataContext = null;
 
+// Default system prompt template
+const DEFAULT_SYSTEM_PROMPT = `You are the Scenario Analysis Assistant for the Discovery+ Price Elasticity Dashboard.
+
+**Your Role:**
+- Interpret scenario simulation results and provide business insights
+- Analyze visualizations and explain what they mean
+- Suggest optimal scenarios based on business goals
+- Compare multiple scenarios and highlight trade-offs
+- Help users understand price elasticity and its impact
+
+**Current Business Context:**
+- Total Subscribers: {currentSubscribers}
+- Monthly Revenue: {currentRevenue}
+- Average Churn Rate: {currentChurn}
+
+**Price Elasticity by Tier:**
+- Ad-Supported ($5.99/mo): {elasticityAdSupported} (Most price-sensitive)
+- Ad-Free ($8.99/mo): {elasticityAdFree} (Moderately elastic)
+- Annual ($71.88/yr): {elasticityAnnual} (Least elastic)
+
+**Available Scenarios:**
+{availableScenarios}
+
+**Current Simulation:**
+{currentSimulation}
+
+**Saved Scenarios for Comparison:**
+{savedScenarios}
+
+**Available Tools:**
+1. **interpret_scenario** - Analyze a scenario's results with detailed metrics and trade-offs
+2. **suggest_scenario** - Get scenario suggestions based on business goals (maximize_revenue, grow_subscribers, reduce_churn, maximize_arpu)
+3. **analyze_chart** - Explain what a specific visualization shows (demand_curve, tier_mix, forecast, heatmap)
+4. **compare_outcomes** - Deep comparison of 2 or more scenarios with trade-off analysis
+5. **create_scenario** - Generate a new custom scenario from parameters
+
+**How to Use Tools:**
+- When users ask to interpret results: Use interpret_scenario with the scenario_id
+- When users ask "which scenario is best for X": Use suggest_scenario with the goal
+- When users ask about a chart: Use analyze_chart with the chart name
+- When users want to compare 2+ scenarios: Use compare_outcomes with array of scenario_ids
+- When users want to create new scenarios: Use create_scenario with parameters
+
+**Response Guidelines:**
+- Focus on scenario interpretation and business insights
+- Explain trade-offs clearly (revenue vs subscribers, short-term vs long-term)
+- Highlight risks and warnings from simulations
+- Use business-friendly language, avoid technical jargon
+- Provide actionable recommendations
+- Format numbers with proper currency/percentage symbols
+- Cite elasticity values when explaining price sensitivity
+- When users save scenarios, you can compare them using the compare_outcomes tool
+- Saved scenarios represent different pricing strategies the user is evaluating
+
+**Example Interactions:**
+User: "Interpret the current scenario"
+→ Use interpret_scenario with the current scenario_id
+
+User: "What scenario maximizes revenue?"
+→ Use suggest_scenario with goal: "maximize_revenue"
+
+User: "Explain the demand curve"
+→ Use analyze_chart with chartName: "demand_curve"
+
+User: "Compare scenario_001 and scenario_002"
+→ Use compare_outcomes with scenario_ids: ["scenario_001", "scenario_002"]
+
+User: "Compare scenario_001, scenario_002, and scenario_003"
+→ Use compare_outcomes with scenario_ids: ["scenario_001", "scenario_002", "scenario_003"]
+
+User: "Compare all saved scenarios"
+→ Use compare_outcomes with the IDs from the saved scenarios list (can be 2, 3, 4+ scenarios)
+
+User: "Which saved scenario is best for revenue?"
+→ Use compare_outcomes with saved scenario IDs and explain which optimizes revenue`;
+
 /**
  * Initialize chat module with data context
  * @param {Object} context - Application data context
@@ -52,10 +128,43 @@ let dataContext = null;
 export function initializeChat(context) {
   dataContext = context;
 
-  // Set up settings form reset handler
+  // Set up settings form handlers
   const resetButton = document.querySelector("#settings-form [type=reset]");
+  const saveButton = document.getElementById("settings-save-btn");
+  const systemPromptInput = document.getElementById("systemPrompt");
+
+  // Load default prompt only on first visit (when no saved value exists)
+  // Check localStorage directly to avoid overwriting restored values
+  if (systemPromptInput) {
+    const savedData = localStorage.getItem('saveform:#settings-form');
+    const hasSavedPrompt = savedData && JSON.parse(savedData).systemPrompt;
+
+    // Only populate default if there's no saved value AND textarea is empty
+    if (!hasSavedPrompt && !systemPromptInput.value.trim()) {
+      systemPromptInput.value = DEFAULT_SYSTEM_PROMPT;
+      // Trigger saveform to save this initial value
+      settingsForm.save();
+    }
+  }
+
+  // Explicitly save form data when Save button is clicked
+  if (saveButton) {
+    saveButton.addEventListener("click", () => {
+      settingsForm.save();
+      console.log('Settings saved to localStorage');
+    });
+  }
+
   if (resetButton) {
-    resetButton.addEventListener("click", () => settingsForm.clear());
+    resetButton.addEventListener("click", () => {
+      settingsForm.clear();
+      // Show default prompt in textarea after reset
+      if (systemPromptInput) {
+        systemPromptInput.value = DEFAULT_SYSTEM_PROMPT;
+        // Save the reset values
+        settingsForm.save();
+      }
+    });
   }
 }
 
@@ -107,67 +216,33 @@ function buildSystemPrompt() {
   const allScenarios = dataContext.allScenarios || [];
   const businessContext = dataContext.businessContext || {};
   const currentSim = dataContext.getCurrentSimulation ? dataContext.getCurrentSimulation() : null;
+  const savedScenarios = dataContext.getSavedScenarios ? dataContext.getSavedScenarios() : [];
 
-  return `You are the Scenario Analysis Assistant for the Discovery+ Price Elasticity Dashboard.
+  // Check if user has provided a custom system prompt
+  const customPromptInput = document.getElementById("systemPrompt");
+  const customPrompt = customPromptInput?.value?.trim();
 
-**Your Role:**
-- Interpret scenario simulation results and provide business insights
-- Analyze visualizations and explain what they mean
-- Suggest optimal scenarios based on business goals
-- Compare multiple scenarios and highlight trade-offs
-- Help users understand price elasticity and its impact
+  // Use custom prompt if provided, otherwise use default
+  let promptTemplate = customPrompt || DEFAULT_SYSTEM_PROMPT;
 
-**Current Business Context:**
-- Total Subscribers: ${businessContext.currentSubscribers?.toLocaleString() || 'N/A'}
-- Monthly Revenue: $${businessContext.currentRevenue?.toLocaleString() || 'N/A'}
-- Average Churn Rate: ${businessContext.currentChurn ? (businessContext.currentChurn * 100).toFixed(2) + '%' : 'N/A'}
+  // Format saved scenarios for the prompt
+  const savedScenariosText = savedScenarios.length > 0
+    ? savedScenarios.map(s => `- ${s.scenario_id}: ${s.scenario_name} (Revenue ${s.delta.revenue_pct >= 0 ? '+' : ''}${s.delta.revenue_pct.toFixed(1)}%, Subscribers ${s.delta.subscribers_pct >= 0 ? '+' : ''}${s.delta.subscribers_pct.toFixed(1)}%)`).join('\n')
+    : 'No scenarios saved for comparison yet';
 
-**Price Elasticity by Tier:**
-- Ad-Supported ($5.99/mo): ${businessContext.elasticityByTier?.ad_supported || -2.1} (Most price-sensitive)
-- Ad-Free ($8.99/mo): ${businessContext.elasticityByTier?.ad_free || -1.9} (Moderately elastic)
-- Annual ($71.88/yr): ${businessContext.elasticityByTier?.annual || -1.6} (Least elastic)
+  // Replace placeholders with actual values
+  const prompt = promptTemplate
+    .replace('{currentSubscribers}', businessContext.currentSubscribers?.toLocaleString() || 'N/A')
+    .replace('{currentRevenue}', businessContext.currentRevenue ? `$${businessContext.currentRevenue.toLocaleString()}` : 'N/A')
+    .replace('{currentChurn}', businessContext.currentChurn ? `${(businessContext.currentChurn * 100).toFixed(2)}%` : 'N/A')
+    .replace('{elasticityAdSupported}', (businessContext.elasticityByTier?.ad_supported || -2.1).toString())
+    .replace('{elasticityAdFree}', (businessContext.elasticityByTier?.ad_free || -1.9).toString())
+    .replace('{elasticityAnnual}', (businessContext.elasticityByTier?.annual || -1.6).toString())
+    .replace('{availableScenarios}', allScenarios.slice(0, 8).map(s => `- ${s.id}: ${s.name}`).join('\n') || 'None loaded yet')
+    .replace('{currentSimulation}', currentSim ? `Active: "${currentSim.scenario_name}" - Revenue ${currentSim.delta.revenue_pct >= 0 ? '+' : ''}${currentSim.delta.revenue_pct.toFixed(1)}%, Subscribers ${currentSim.delta.subscribers_pct >= 0 ? '+' : ''}${currentSim.delta.subscribers_pct.toFixed(1)}%` : 'No scenario simulated yet')
+    .replace('{savedScenarios}', savedScenariosText);
 
-**Available Scenarios:**
-${allScenarios.slice(0, 8).map(s => `- ${s.id}: ${s.name}`).join('\n') || 'None loaded yet'}
-
-**Current Simulation:**
-${currentSim ? `Active: "${currentSim.scenario_name}" - Revenue ${currentSim.delta.revenue_pct >= 0 ? '+' : ''}${currentSim.delta.revenue_pct.toFixed(1)}%, Subscribers ${currentSim.delta.subscribers_pct >= 0 ? '+' : ''}${currentSim.delta.subscribers_pct.toFixed(1)}%` : 'No scenario simulated yet'}
-
-**Available Tools:**
-1. **interpret_scenario** - Analyze a scenario's results with detailed metrics and trade-offs
-2. **suggest_scenario** - Get scenario suggestions based on business goals (maximize_revenue, grow_subscribers, reduce_churn, maximize_arpu)
-3. **analyze_chart** - Explain what a specific visualization shows (demand_curve, tier_mix, forecast, heatmap)
-4. **compare_outcomes** - Deep comparison of multiple scenarios with trade-off analysis
-5. **create_scenario** - Generate a new custom scenario from parameters
-
-**How to Use Tools:**
-- When users ask to interpret results: Use interpret_scenario with the scenario_id
-- When users ask "which scenario is best for X": Use suggest_scenario with the goal
-- When users ask about a chart: Use analyze_chart with the chart name
-- When users want to compare: Use compare_outcomes with array of scenario_ids
-- When users want to create new scenarios: Use create_scenario with parameters
-
-**Response Guidelines:**
-- Focus on scenario interpretation and business insights
-- Explain trade-offs clearly (revenue vs subscribers, short-term vs long-term)
-- Highlight risks and warnings from simulations
-- Use business-friendly language, avoid technical jargon
-- Provide actionable recommendations
-- Format numbers with proper currency/percentage symbols
-- Cite elasticity values when explaining price sensitivity
-
-**Example Interactions:**
-User: "Interpret the current scenario"
-→ Use interpret_scenario with the current scenario_id
-
-User: "What scenario maximizes revenue?"
-→ Use suggest_scenario with goal: "maximize_revenue"
-
-User: "Explain the demand curve"
-→ Use analyze_chart with chartName: "demand_curve"
-
-User: "Compare scenario_001 and scenario_002"
-→ Use compare_outcomes with scenario_ids: ["scenario_001", "scenario_002"]`;
+  return prompt;
 }
 
 /**
@@ -232,14 +307,14 @@ function getToolDefinitions() {
       type: "function",
       function: {
         name: "compare_outcomes",
-        description: "Deep comparison of multiple scenarios with trade-off analysis. Shows which scenario is best for each metric and explains the business implications.",
+        description: "Deep comparison of 2 or more scenarios with trade-off analysis. Shows which scenario is best for each metric and explains the business implications.",
         parameters: {
           type: "object",
           properties: {
             scenario_ids: {
               type: "array",
               items: { type: "string" },
-              description: "Array of 2+ scenario IDs to compare (e.g., ['scenario_001', 'scenario_002'])",
+              description: "Array of 2 or more scenario IDs to compare (e.g., ['scenario_001', 'scenario_002', 'scenario_003'])",
               minItems: 2
             }
           },
@@ -320,9 +395,7 @@ export async function sendMessage(userMessage) {
       ],
       tools: getToolDefinitions(),
       tool_choice: "auto",
-      stream: false,  // ✨ Non-streaming to avoid partial "thinking" text
-      temperature: 0.7,
-      max_tokens: 2000
+      stream: false  // ✨ Non-streaming to avoid partial "thinking" text
     };
 
     // Make non-streaming request to get tool calls immediately
@@ -453,9 +526,7 @@ async function getContinuationResponse() {
         { role: "system", content: buildSystemPrompt() },
         ...conversationHistory
       ],
-      stream: true,
-      temperature: 0.7,
-      max_tokens: 2000
+      stream: true
     };
 
     let assistantMessage = '';

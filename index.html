@@ -316,7 +316,7 @@
 
   <div class="container mt-4">
     <h1 class="display-4 mb-2">Price Elasticity & Revenue Optimization</h1>
-    <p class="lead text-muted">United States Market - Phase 1 POC</p>
+    <p class="lead text-muted">United States Market -  POC</p>
     <div class="alert alert-info mb-4">
       <i class="bi bi-info-circle me-2"></i>
       <strong>Data Timeline:</strong> 3 years of historical data (January 2, 2022 - December 29, 2024) with weekly granularity. 156 weeks across 3 subscription tiers.
@@ -611,7 +611,7 @@
         <p class="mb-3">Select a pricing scenario to simulate its impact on key metrics.</p>
         <div class="alert alert-info alert-dismissible fade show small" role="alert">
           <i class="bi bi-info-circle me-2"></i>
-          <strong>Phase 1 POC:</strong> Includes scenarios for ad-supported, ad-free, annual, and bundle tiers. Bundle scenarios use estimated baseline derived from ad-free tier data.
+          <strong> POC:</strong> Includes scenarios for ad-supported, ad-free, annual, and bundle tiers. Bundle scenarios use estimated baseline derived from ad-free tier data.
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
@@ -813,7 +813,7 @@
       <div class="card-header">
         <h2 class="h5 mb-0">
           <i class="bi bi-chat-dots me-2"></i>
-          Ask Questions About Your Data
+          Ask Questions About Scenarios
         </h2>
       </div>
       <div class="card-body">
@@ -957,7 +957,7 @@
   <!-- Footer -->
   <footer class="container my-5 text-center text-muted">
     <small>
-      Streaming Service Price Elasticity POC - Phase 1 |
+      Streaming Service Price Elasticity POC -  |
       Confidential & Proprietary
     </small>
   </footer>
@@ -1007,9 +1007,14 @@
               <input type="text" class="form-control" id="model" name="model" value="gpt-4.1-mini" placeholder="e.g., gpt-4.1-mini, claude-3-5-sonnet-20241022">
               <div class="form-text">The LLM model to use for chat responses</div>
             </div>
+            <div class="mb-3">
+              <label for="systemPrompt" class="form-label">System Prompt</label>
+              <textarea class="form-control font-monospace" id="systemPrompt" name="systemPrompt" rows="15" placeholder="Enter custom system prompt..."></textarea>
+              <div class="form-text">Customize the AI assistant's behavior and instructions. Leave empty to use the default prompt.</div>
+            </div>
             <div class="d-flex justify-content-end gap-2">
               <button type="reset" class="btn btn-outline-secondary">Reset to Defaults</button>
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+              <button type="button" id="settings-save-btn" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
             </div>
           </form>
         </div>
