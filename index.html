@@ -8,6 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTUiIGZpbGw9IiMyNTYzZWIiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJtMTYgNyAyIDcgNyAyLTcgMi0yIDctMi03LTctMiA3LTJaIi8+PC9zdmc+">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
   <style>
     /* Keep custom styles minimal, prefer Bootstrap classes */
     .kpi-card {
@@ -26,6 +27,98 @@
     .scenario-card.selected {
       border-color: #0d6efd;
       border-width: 2px;
+    }
+    /* Chat message styles */
+    .chat-message.system {
+      opacity: 0.7;
+      font-size: 0.875rem;
+    }
+    .chat-message.tool {
+      color: #0d6efd;
+    }
+    .chat-message.tool-error {
+      color: #dc3545;
+    }
+    .chat-message.error {
+      color: #dc3545;
+    }
+
+    /* Markdown content styling */
+    .message-content {
+      line-height: 1.6;
+    }
+    .message-content p {
+      margin-bottom: 0.75rem;
+    }
+    .message-content p:last-child {
+      margin-bottom: 0;
+    }
+    .message-content ul, .message-content ol {
+      margin-bottom: 0.75rem;
+      padding-left: 1.5rem;
+    }
+    .message-content li {
+      margin-bottom: 0.25rem;
+    }
+    .message-content code {
+      background-color: #f8f9fa;
+      padding: 0.125rem 0.25rem;
+      border-radius: 0.25rem;
+      font-size: 0.875em;
+      color: #d63384;
+    }
+    .message-content pre {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 0.375rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      overflow-x: auto;
+    }
+    .message-content pre code {
+      background-color: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: 0.875rem;
+    }
+    .message-content strong {
+      font-weight: 600;
+    }
+    .message-content em {
+      font-style: italic;
+    }
+    .message-content blockquote {
+      border-left: 4px solid #dee2e6;
+      padding-left: 1rem;
+      margin-left: 0;
+      margin-bottom: 0.75rem;
+      color: #6c757d;
+    }
+    .message-content h1, .message-content h2, .message-content h3,
+    .message-content h4, .message-content h5, .message-content h6 {
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .message-content h1 { font-size: 1.5rem; }
+    .message-content h2 { font-size: 1.35rem; }
+    .message-content h3 { font-size: 1.2rem; }
+    .message-content h4 { font-size: 1.1rem; }
+    .message-content h5 { font-size: 1rem; }
+    .message-content h6 { font-size: 0.95rem; }
+    .message-content table {
+      width: 100%;
+      margin-bottom: 0.75rem;
+      border-collapse: collapse;
+    }
+    .message-content table th,
+    .message-content table td {
+      padding: 0.5rem;
+      border: 1px solid #dee2e6;
+    }
+    .message-content table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -47,11 +140,15 @@
               <i class="bi bi-speedometer2 me-1"></i> Dashboard
             </a>
           </li>
-          <li class="nav-item">
-            <span class="nav-link text-muted"></span>
-          </li>
         </ul>
-        <div class="nav-item dropdown ms-2" role="group" aria-label="Toggle dark mode" title="Toggle Dark Mode">
+        <div class="d-flex align-items-center">
+          <button id="configure-llm" class="btn btn-outline-light btn-sm me-2">
+            <i class="bi bi-key me-1"></i> Configure LLM
+          </button>
+          <button class="btn btn-outline-light btn-sm me-2" data-bs-toggle="modal" data-bs-target="#settingsModal">
+            <i class="bi bi-gear me-1"></i> Settings
+          </button>
+          <div class="nav-item dropdown" role="group" aria-label="Toggle dark mode" title="Toggle Dark Mode">
           <button class="dark-theme-toggle btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle theme (auto)">
             <i class="bi bi-circle-half"></i> <span class="d-lg-none ms-2">Toggle theme</span>
           </button>
@@ -376,15 +473,11 @@
   <div id="chat-section" style="display: none;">
   <div class="container my-4">
     <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
+      <div class="card-header">
         <h2 class="h5 mb-0">
           <i class="bi bi-chat-dots me-2"></i>
           Ask Questions About Your Data
         </h2>
-        <button id="configure-llm-btn" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-gear me-1"></i>
-          Configure LLM
-        </button>
       </div>
       <div class="card-body">
         <!-- Chat Messages -->
@@ -450,11 +543,39 @@
       "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3/lit-html.js",
       "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3/",
       "marked": "https://cdn.jsdelivr.net/npm/marked@11/lib/marked.esm.js",
-      "partial-json": "https://cdn.jsdelivr.net/npm/partial-json@0.1.7/+esm"
+      "partial-json": "https://cdn.jsdelivr.net/npm/partial-json@0.1.7/+esm",
+      "saveform": "https://cdn.jsdelivr.net/npm/saveform@1/dist/saveform.min.js"
     }
   }
   </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
+
+  <!-- Settings Modal -->
+  <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="settingsModalLabel">
+            <i class="bi bi-gear me-2"></i> Settings
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="settings-form">
+            <div class="mb-3">
+              <label for="model" class="form-label">Model</label>
+              <input type="text" class="form-control" id="model" name="model" value="gpt-4.1-mini" placeholder="e.g., gpt-4.1-mini, claude-3-5-sonnet-20241022">
+              <div class="form-text">The LLM model to use for chat responses</div>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+              <button type="reset" class="btn btn-outline-secondary">Reset to Defaults</button>
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Application Script -->
   <script type="module" src="./js/app.js"></script>

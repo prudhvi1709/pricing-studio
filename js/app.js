@@ -437,15 +437,28 @@ async function initializeChatContext() {
 
         // Calculate aggregations
         const result = {};
+        const detailedResults = {};
+
         for (const metric of metrics) {
           const values = filteredData.map(d => d[metric]).filter(v => v !== undefined && v !== null);
 
           switch (aggregation) {
             case 'avg':
               result[metric] = values.reduce((sum, v) => sum + v, 0) / values.length;
+              detailedResults[metric] = {
+                average: result[metric],
+                min: Math.min(...values),
+                max: Math.max(...values),
+                first: values[0],
+                last: values[values.length - 1]
+              };
               break;
             case 'sum':
               result[metric] = values.reduce((sum, v) => sum + v, 0);
+              detailedResults[metric] = {
+                total: result[metric],
+                average: result[metric] / values.length
+              };
               break;
             case 'min':
               result[metric] = Math.min(...values);
@@ -455,6 +468,11 @@ async function initializeChatContext() {
               break;
             case 'latest':
               result[metric] = values[values.length - 1];
+              detailedResults[metric] = {
+                latest: result[metric],
+                previous: values[values.length - 2],
+                change: values[values.length - 1] - values[values.length - 2]
+              };
               break;
             case 'trend':
               // Simple trend: compare first quarter to last quarter
@@ -465,19 +483,36 @@ async function initializeChatContext() {
               result[metric] = {
                 trend: q4Avg > q1Avg ? 'increasing' : 'decreasing',
                 change: q4Avg - q1Avg,
-                change_pct: ((q4Avg - q1Avg) / q1Avg) * 100
+                change_pct: ((q4Avg - q1Avg) / q1Avg) * 100,
+                first_period_avg: q1Avg,
+                last_period_avg: q4Avg
               };
+              detailedResults[metric] = result[metric];
               break;
           }
         }
 
+        // Include sample data points for context
+        const sampleData = filteredData.slice(0, 3).map(d => ({
+          date: d.date,
+          tier: d.tier,
+          ...metrics.reduce((acc, m) => ({ ...acc, [m]: d[m] }), {})
+        }));
+
         return {
-          filters,
-          metrics,
-          aggregation,
+          query: {
+            filters,
+            metrics,
+            aggregation,
+            tier,
+            date_range: filters.date_start || filters.date_end ?
+              `${filters.date_start || 'start'} to ${filters.date_end || 'end'}` : 'all dates'
+          },
           data_points: filteredData.length,
           results: result,
-          summary: `Analyzed ${filteredData.length} data points for ${tier} tier`
+          detailed_results: detailedResults,
+          sample_data: sampleData,
+          summary: `Analyzed ${filteredData.length} weekly data points for ${tier === 'all' ? 'all tiers' : tier + ' tier'}${filters.date_start ? ' from ' + filters.date_start : ''}${filters.date_end ? ' to ' + filters.date_end : ''}`
         };
       },
 
@@ -703,7 +738,7 @@ async function init() {
   document.getElementById('clear-scenarios-btn').addEventListener('click', clearScenarios);
 
   // Chat event listeners
-  document.getElementById('configure-llm-btn').addEventListener('click', configureLLM);
+  document.getElementById('configure-llm').addEventListener('click', configureLLM);
   document.getElementById('chat-send-btn').addEventListener('click', handleChatSend);
   document.getElementById('chat-input').addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {

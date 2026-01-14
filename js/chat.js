@@ -13,6 +13,7 @@ import { html, render } from "lit-html";
 import { unsafeHTML } from "lit-html/directives/unsafe-html.js";
 import { Marked } from "marked";
 import { parse } from "partial-json";
+import saveform from "saveform";
 
 // Initialize Markdown renderer with code highlighting
 const marked = new Marked();
@@ -27,9 +28,21 @@ marked.use({
   },
 });
 
+// Default LLM provider endpoints
+const DEFAULT_BASE_URLS = [
+  // OpenAI endpoints
+  "https://api.openai.com/v1",
+  "https://aipipe.org/openai/v1",
+  // OpenRouter endpoints
+  "https://openrouter.ai/api/v1",
+  "https://aipipe.org/openrouter/v1",
+];
+
+// Settings form persistence
+const settingsForm = saveform("#settings-form");
+
 // Conversation history
 let conversationHistory = [];
-let llmConfig = null;
 let dataContext = null;
 
 /**
@@ -38,44 +51,45 @@ let dataContext = null;
  */
 export function initializeChat(context) {
   dataContext = context;
-  console.log('Chat module initialized with data context');
+
+  // Set up settings form reset handler
+  const resetButton = document.querySelector("#settings-form [type=reset]");
+  if (resetButton) {
+    resetButton.addEventListener("click", () => settingsForm.clear());
+  }
 }
 
 /**
- * Configure LLM settings
+ * Get the model name from settings form
+ * @returns {string} The model name
+ */
+function getModelName() {
+  const modelInput = document.getElementById("model");
+  return modelInput?.value || "gpt-4.1-mini";
+}
+
+/**
+ * Configure LLM settings - Shows the configuration modal
  */
 export async function configureLLM() {
   try {
-    llmConfig = await openaiConfig({
+    await openaiConfig({
       show: true,
-      defaultBaseUrls: [
-        // OpenAI endpoints
-        "https://api.openai.com/v1",
-        "https://aipipe.org/openai/v1",
-        "https://llmfoundry.straive.com/openai/v1",
-        // OpenRouter endpoints
-        "https://openrouter.ai/api/v1",
-        "https://aipipe.org/openrouter/v1",
-        "https://llmfoundry.straive.com/openrouter/v1",
-      ]
+      defaultBaseUrls: DEFAULT_BASE_URLS
     });
 
-    if (llmConfig) {
-      // Enable chat UI
-      document.getElementById('chat-input').disabled = false;
-      document.getElementById('chat-send-btn').disabled = false;
-      document.querySelectorAll('.suggested-query').forEach(btn => {
-        btn.disabled = false;
-      });
+    // Enable chat UI after configuration
+    document.getElementById('chat-input').disabled = false;
+    document.getElementById('chat-send-btn').disabled = false;
+    document.querySelectorAll('.suggested-query').forEach(btn => {
+      btn.disabled = false;
+    });
 
-      bootstrapAlert({
-        color: "success",
-        title: "LLM Configured",
-        body: "You can now start asking questions!"
-      });
-    }
-
-    return llmConfig;
+    bootstrapAlert({
+      color: "success",
+      title: "LLM Configured",
+      body: "You can now start asking questions!"
+    });
   } catch (error) {
     console.error('Error configuring LLM:', error);
     bootstrapAlert({
@@ -83,7 +97,6 @@ export async function configureLLM() {
       title: "Configuration Error",
       body: error.message
     });
-    return null;
   }
 }
 
@@ -106,12 +119,19 @@ function buildSystemPrompt() {
 - Explain elasticity concepts in simple, business-friendly terms
 
 **Available Data:**
-- Date range: January 2, 2022 to December 29, 2024 (3 years, weekly data)
+- Date range: January 2, 2022 to December 29, 2024 (3 years, 156 weeks per tier = 468 total records)
 - Subscription Tiers:
   - Ad-Supported: $5.99/month (price-sensitive, elasticity ~-2.1)
   - Ad-Free: $8.99/month (moderately elastic, elasticity ~-1.7)
   - Annual: $71.88/year ($5.99/month equiv, less elastic, elasticity ~-1.5)
-- Metrics available: subscribers, churn_rate, revenue, ARPU, engagement, new_subscribers, etc.
+  - Bundle: Discovery+ & Max at $14.99 (estimated baseline)
+
+**Data Schema (weekly_aggregated.csv):**
+Columns available: date, tier, new_subscribers, active_subscribers, churned_subscribers, churn_rate,
+net_adds, revenue, arpu, price, base_price, is_promo, promo_discount_pct, avg_engagement_score,
+avg_watch_time_30d, total_marketing_spend, paid_social, paid_search, major_content_releases,
+net_content_score, unemployment_rate, cpi, consumer_sentiment, competitor_avg_price, netflix_price,
+netflix_major_release, price_lag1, price_lag4, new_subs_lag1, time_index, month, quarter, is_holiday_season
 
 **Current Dashboard State:**
 - Total Subscribers: ${typeof currentSubs === 'number' ? currentSubs.toLocaleString() : currentSubs}
@@ -119,22 +139,26 @@ function buildSystemPrompt() {
 - Average Churn Rate: ${typeof currentChurn === 'number' ? (currentChurn * 100).toFixed(2) + '%' : currentChurn}
 
 **Available Scenarios:**
-${scenarios.map(s => `- ${s.id}: ${s.name} (${s.category})`).join('\n') || 'None loaded'}
+${scenarios.slice(0, 10).map(s => `- ${s.id}: ${s.name} (${s.category})`).join('\n') || 'None loaded'}
 
-**Available Tools:**
-Use the provided tools to:
-1. Query historical data with filters and aggregations
-2. Run pricing scenario simulations
-3. Compare multiple scenarios side-by-side
-4. Generate visualizations (charts, graphs)
+**IMPORTANT - Tool Usage:**
+When users ask data questions, you MUST use the query_data tool to retrieve actual data from the CSV.
+DO NOT make up numbers or estimates - always query the data first, then answer based on the results.
+
+Example:
+User: "What was churn in Q4 2024?"
+You: Call query_data with filters: {tier: "all", date_start: "2024-10-01", date_end: "2024-12-31"}, metrics: ["churn_rate"], aggregation: "avg"
+Tool returns: {results: {churn_rate: 0.0142}, data_points: 39}
+You: "The average churn rate in Q4 2024 across all tiers was 1.42% (based on 39 weekly data points)."
 
 **Response Guidelines:**
-- Be concise but informative
+- Always use tools to query data before answering
+- Cite the tool results in your answer (e.g., "Based on 39 data points...")
 - Use business-friendly language
-- Always explain the implications of pricing changes
+- Explain implications of pricing changes
 - Highlight trade-offs between revenue, growth, and churn
-- When showing numbers, format them clearly (use commas, currency symbols, percentages)
-- If you use a tool, explain what the results mean in business terms`;
+- Format numbers clearly (use commas, currency symbols, percentages)
+- When you receive tool results, analyze them and provide insights, not just raw numbers`;
 }
 
 /**
@@ -244,15 +268,6 @@ function getToolDefinitions() {
  * @returns {Promise<void>}
  */
 export async function sendMessage(userMessage) {
-  if (!llmConfig) {
-    bootstrapAlert({
-      color: "warning",
-      title: "LLM Not Configured",
-      body: "Please configure the LLM provider first."
-    });
-    return;
-  }
-
   if (!dataContext) {
     bootstrapAlert({
       color: "warning",
@@ -273,91 +288,71 @@ export async function sendMessage(userMessage) {
   const loadingId = appendMessage('assistant', '...', true);
 
   try {
-    // Prepare API request
-    const { baseUrl, apiKey } = llmConfig;
+    // Get LLM config from localStorage (or show config modal if not set)
+    const { baseUrl, apiKey } = await openaiConfig({
+      defaultBaseUrls: DEFAULT_BASE_URLS
+    });
+
+    // Prepare API request (NON-STREAMING first to get tool calls immediately)
     const requestBody = {
-      model: "gpt-4.1-mini",
+      model: getModelName(),
       messages: [
         { role: "system", content: buildSystemPrompt() },
         ...conversationHistory
       ],
       tools: getToolDefinitions(),
       tool_choice: "auto",
-      stream: true
+      stream: false,  // ✨ Non-streaming to avoid partial "thinking" text
+      temperature: 0.7,
+      max_tokens: 2000
     };
 
-    let assistantMessage = '';
-    let toolCalls = [];
-    let currentToolCall = null;
-
-    // Stream response
-    for await (const chunk of asyncLLM(`${baseUrl}/chat/completions`, {
+    // Make non-streaming request to get tool calls immediately
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
-      body: JSON.stringify(requestBody),
-    })) {
-      if (chunk.error) {
-        throw new Error(chunk.error);
-      }
+      body: JSON.stringify(requestBody)
+    });
 
-      if (!chunk.choices || chunk.choices.length === 0) continue;
-
-      const choice = chunk.choices[0];
-      const delta = choice.delta;
-
-      // Handle text content
-      if (delta.content) {
-        assistantMessage += delta.content;
-        updateMessage(loadingId, assistantMessage, false);
-      }
-
-      // Handle tool calls
-      if (delta.tool_calls) {
-        for (const toolCall of delta.tool_calls) {
-          if (toolCall.index !== undefined) {
-            if (!toolCalls[toolCall.index]) {
-              toolCalls[toolCall.index] = {
-                id: toolCall.id || '',
-                type: 'function',
-                function: { name: toolCall.function?.name || '', arguments: '' }
-              };
-            }
-
-            if (toolCall.function?.arguments) {
-              toolCalls[toolCall.index].function.arguments += toolCall.function.arguments;
-            }
-          }
-        }
-      }
-
-      // Check if streaming is done
-      if (choice.finish_reason === 'tool_calls' || choice.finish_reason === 'stop') {
-        break;
-      }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // Remove loading indicator
-    if (assistantMessage) {
-      updateMessage(loadingId, assistantMessage, false);
-    } else {
+    const data = await response.json();
+    const choice = data.choices[0];
+    const message = choice.message;
+
+    // Handle response based on whether tools were called
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      // Remove loading indicator (no partial text to show)
       removeMessage(loadingId);
-    }
 
-    // Add assistant message to history
-    if (assistantMessage || toolCalls.length > 0) {
+      // Add assistant message with tool calls to history
       conversationHistory.push({
         role: "assistant",
-        content: assistantMessage || null,
-        tool_calls: toolCalls.length > 0 ? toolCalls : undefined
+        content: message.content || null,
+        tool_calls: message.tool_calls
       });
-    }
 
-    // Execute tool calls if any
-    if (toolCalls.length > 0) {
-      await executeToolCalls(toolCalls);
+      // Execute tool calls and get STREAMING final response
+      await executeToolCalls(message.tool_calls);
+    } else {
+      // No tool calls - got direct answer
+      if (message.content) {
+        // Update with final message
+        updateMessage(loadingId, message.content, false);
+
+        // Add to history
+        conversationHistory.push({
+          role: "assistant",
+          content: message.content
+        });
+      } else {
+        removeMessage(loadingId);
+      }
     }
 
   } catch (error) {
@@ -389,10 +384,11 @@ async function executeToolCalls(toolCalls) {
       args = {};
     }
 
-    appendMessage('system', `🔧 Executing: ${toolName}(${JSON.stringify(args)})`, false, 'tool');
+    appendMessage('system', `🔧 Executing: ${toolName}`, false, 'tool');
 
     try {
       const result = await executeTool(toolName, args);
+
       toolResults.push({
         tool_call_id: toolCall.id,
         role: "tool",
@@ -428,17 +424,25 @@ async function getContinuationResponse() {
   const loadingId = appendMessage('assistant', '...', true);
 
   try {
-    const { baseUrl, apiKey } = llmConfig;
+    // Get LLM config from localStorage
+    const { baseUrl, apiKey } = await openaiConfig({
+      defaultBaseUrls: DEFAULT_BASE_URLS
+    });
+
     const requestBody = {
-      model: "gpt-4.1-mini",
+      model: getModelName(),
       messages: [
         { role: "system", content: buildSystemPrompt() },
         ...conversationHistory
       ],
-      stream: true
+      stream: true,
+      temperature: 0.7,
+      max_tokens: 2000
     };
 
     let assistantMessage = '';
+    let lastUpdateTime = 0;
+    const updateInterval = 50; // Update UI every 50ms max (20 FPS)
 
     for await (const chunk of asyncLLM(`${baseUrl}/chat/completions`, {
       method: "POST",
@@ -448,23 +452,61 @@ async function getContinuationResponse() {
       },
       body: JSON.stringify(requestBody),
     })) {
-      if (chunk.error) throw new Error(chunk.error);
-      if (!chunk.choices || chunk.choices.length === 0) continue;
 
-      const delta = chunk.choices[0].delta;
-      if (delta.content) {
-        assistantMessage += delta.content;
-        updateMessage(loadingId, assistantMessage, false);
+      if (chunk.error) {
+        throw new Error(chunk.error);
       }
 
-      if (chunk.choices[0].finish_reason === 'stop') break;
+      // asyncLLM returns chunks with {content, message} format
+      // IMPORTANT: chunk.content contains FULL accumulated text, not delta!
+      // Handle both formats: asyncLLM's simplified format and OpenAI's standard format
+      let content = null;
+      let finishReason = null;
+
+      if (chunk.choices && chunk.choices.length > 0) {
+        // Standard OpenAI format (delta - incremental content)
+        const delta = chunk.choices[0].delta;
+        if (delta?.content) {
+          assistantMessage += delta.content;  // Accumulate deltas
+          content = assistantMessage;
+        }
+        finishReason = chunk.choices[0].finish_reason;
+      } else if (chunk.content !== undefined) {
+        // asyncLLM simplified format (full accumulated content)
+        content = chunk.content;  // Use directly, don't accumulate!
+        assistantMessage = content;  // Store for history
+        finishReason = chunk.message?.finish_reason;
+      }
+
+      if (content) {
+        // Throttle UI updates for better performance
+        const now = Date.now();
+        if (now - lastUpdateTime > updateInterval || finishReason) {
+          updateMessage(loadingId, content, false);
+          lastUpdateTime = now;
+        }
+      }
+
+      if (finishReason && finishReason === 'stop') {
+        break;
+      }
     }
 
-    // Add final response to history
-    conversationHistory.push({
-      role: "assistant",
-      content: assistantMessage
-    });
+    // Final update to ensure all content is rendered
+    if (assistantMessage) {
+      updateMessage(loadingId, assistantMessage, false);
+    }
+
+    if (assistantMessage) {
+      // Add final response to history
+      conversationHistory.push({
+        role: "assistant",
+        content: assistantMessage
+      });
+    } else {
+      removeMessage(loadingId);
+      appendMessage('assistant', 'No response received from the model.', false, 'error');
+    }
 
   } catch (error) {
     console.error('Error getting continuation:', error);
@@ -500,7 +542,7 @@ async function executeTool(toolName, args) {
  */
 function appendMessage(role, content, isLoading = false, customClass = '') {
   const messagesDiv = document.getElementById('chat-messages');
-  const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
   const messageDiv = document.createElement('div');
   messageDiv.id = messageId;
