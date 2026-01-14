@@ -6,20 +6,63 @@
  */
 
 /**
- * Render Demand Curve by Tier
- * Shows price vs quantity demanded for each tier
+ * Render Interactive Demand Curve by Tier
+ * Shows price vs quantity demanded for each tier with before/after animation
  *
  * @param {string} containerId - DOM element ID
- * @param {Object} data - { tiers: [{ name, elasticity, currentPrice, currentSubs }] }
+ * @param {Object} data - { tiers: [{ name, elasticity, currentPrice, currentSubs, newPrice?, newSubs? }] }
  * @param {Object} options - Chart configuration
  */
 export function renderDemandCurve(containerId, data, options = {}) {
   const container = d3.select(`#${containerId}`);
   container.html(''); // Clear previous
 
-  const margin = { top: 40, right: 150, bottom: 60, left: 80 };
+  const margin = { top: 80, right: 150, bottom: 100, left: 80 };
   const width = (options.width || 800) - margin.left - margin.right;
   const height = (options.height || 400) - margin.top - margin.bottom;
+
+  // State management
+  let currentState = 'baseline'; // 'baseline' or 'scenario'
+
+  // Create control panel container
+  const controlPanel = container.append('div')
+    .attr('class', 'demand-curve-controls')
+    .style('margin-bottom', '10px')
+    .style('display', 'flex')
+    .style('justify-content', 'space-between')
+    .style('align-items', 'center');
+
+  // Toggle buttons
+  const toggleButtons = controlPanel.append('div');
+
+  toggleButtons.append('button')
+    .attr('class', 'btn btn-sm btn-outline-primary active')
+    .attr('id', 'baseline-btn')
+    .text('Baseline')
+    .style('margin-right', '5px')
+    .on('click', function() {
+      currentState = 'baseline';
+      d3.select('#baseline-btn').classed('active', true).classed('btn-outline-primary', true).classed('btn-primary', false);
+      d3.select('#scenario-btn').classed('active', false).classed('btn-outline-primary', true).classed('btn-primary', false);
+      updateChart();
+    });
+
+  toggleButtons.append('button')
+    .attr('class', 'btn btn-sm btn-outline-primary')
+    .attr('id', 'scenario-btn')
+    .text('With Scenario')
+    .on('click', function() {
+      currentState = 'scenario';
+      d3.select('#baseline-btn').classed('active', false).classed('btn-outline-primary', true).classed('btn-primary', false);
+      d3.select('#scenario-btn').classed('active', true).classed('btn-outline-primary', false).classed('btn-primary', true);
+      updateChart();
+    });
+
+  // Info text
+  controlPanel.append('div')
+    .style('font-size', '12px')
+    .style('color', '#6c757d')
+    .html('<i class="bi bi-info-circle me-1"></i>Hover over curves for details • Click points to highlight');
 
   const svg = container.append('svg')
     .attr('width', width + margin.left + margin.right)
@@ -29,24 +72,36 @@ export function renderDemandCurve(containerId, data, options = {}) {
 
   // Generate demand curves for each tier
   const demandData = data.tiers.map(tier => {
-    const pricePoints = [];
+    const baselinePoints = [];
+    const scenarioPoints = [];
     const minPrice = tier.currentPrice * 0.5;
     const maxPrice = tier.currentPrice * 1.5;
-    const steps = 20;
+    const steps = 30;
 
     for (let i = 0; i <= steps; i++) {
       const price = minPrice + (maxPrice - minPrice) * (i / steps);
       const priceRatio = price / tier.currentPrice;
       // Q = Q0 * (P1/P0)^elasticity
       const quantity = tier.currentSubs * Math.pow(priceRatio, tier.elasticity);
-      pricePoints.push({ price, quantity });
+      baselinePoints.push({ price, quantity });
+
+      // If scenario exists, calculate new curve
+      if (tier.newPrice && tier.newSubs) {
+        const newPriceRatio = price / tier.newPrice;
+        const newQuantity = tier.newSubs * Math.pow(newPriceRatio, tier.elasticity);
+        scenarioPoints.push({ price, quantity: newQuantity });
+      }
     }
 
     return {
       name: tier.name,
-      points: pricePoints,
+      baselinePoints: baselinePoints,
+      scenarioPoints: scenarioPoints.length > 0 ? scenarioPoints : baselinePoints,
       currentPrice: tier.currentPrice,
       currentSubs: tier.currentSubs,
+      newPrice: tier.newPrice,
+      newSubs: tier.newSubs,
+      elasticity: tier.elasticity,
       color: tier.color || '#0d6efd'
     };
   });
@@ -54,17 +109,38 @@ export function renderDemandCurve(containerId, data, options = {}) {
   // Scales
   const xScale = d3.scaleLinear()
     .domain([
-      d3.min(demandData, d => d3.min(d.points, p => p.price)),
-      d3.max(demandData, d => d3.max(d.points, p => p.price))
+      d3.min(demandData, d => d3.min(d.baselinePoints, p => p.price)),
+      d3.max(demandData, d => d3.max(d.baselinePoints, p => p.price))
     ])
     .range([0, width]);
 
   const yScale = d3.scaleLinear()
     .domain([
       0,
-      d3.max(demandData, d => d3.max(d.points, p => p.quantity)) * 1.1
+      d3.max(demandData, d => Math.max(
+        d3.max(d.baselinePoints, p => p.quantity),
+        d3.max(d.scenarioPoints, p => p.quantity)
+      )) * 1.1
     ])
     .range([height, 0]);
+
+  // Add grid lines
+  svg.append('g')
+    .attr('class', 'grid')
+    .attr('opacity', 0.1)
+    .call(d3.axisLeft(yScale)
+      .ticks(8)
+      .tickSize(-width)
+      .tickFormat(''));
+
+  svg.append('g')
+    .attr('class', 'grid')
+    .attr('opacity', 0.1)
+    .attr('transform', `translate(0,${height})`)
+    .call(d3.axisBottom(xScale)
+      .ticks(10)
+      .tickSize(-height)
+      .tickFormat(''));
 
   // Line generator
   const line = d3.line()
@@ -72,25 +148,191 @@ export function renderDemandCurve(containerId, data, options = {}) {
     .y(d => yScale(d.quantity))
     .curve(d3.curveMonotoneX);
 
+  // Create tooltip
+  const tooltip = svg.append('g')
+    .attr('class', 'tooltip')
+    .style('display', 'none');
+
+  tooltip.append('rect')
+    .attr('width', 180)
+    .attr('height', 80)
+    .attr('fill', 'rgba(0, 0, 0, 0.9)')
+    .attr('rx', 5);
+
+  tooltip.append('text')
+    .attr('class', 'tooltip-text')
+    .attr('x', 10)
+    .attr('y', 20)
+    .attr('fill', 'white')
+    .attr('font-size', '12px');
+
   // Draw lines for each tier
-  demandData.forEach((tier, i) => {
-    // Line
-    svg.append('path')
-      .datum(tier.points)
+  const tierGroups = svg.selectAll('.tier-group')
+    .data(demandData)
+    .join('g')
+    .attr('class', 'tier-group');
+
+  // Draw demand curves
+  tierGroups.each(function(tier, i) {
+    const group = d3.select(this);
+
+    // Curve path
+    const path = group.append('path')
+      .attr('class', 'demand-curve')
+      .datum(tier.baselinePoints)
       .attr('fill', 'none')
       .attr('stroke', tier.color)
-      .attr('stroke-width', 2)
-      .attr('d', line);
+      .attr('stroke-width', 3)
+      .attr('d', line)
+      .attr('opacity', 0.8)
+      .style('cursor', 'pointer')
+      .on('mouseenter', function(event) {
+        d3.select(this)
+          .attr('stroke-width', 5)
+          .attr('opacity', 1);
 
-    // Current price marker
-    svg.append('circle')
+        const [mx, my] = d3.pointer(event);
+        const price = xScale.invert(mx);
+        const priceRatio = price / (currentState === 'baseline' ? tier.currentPrice : tier.newPrice);
+        const quantity = (currentState === 'baseline' ? tier.currentSubs : tier.newSubs) * Math.pow(priceRatio, tier.elasticity);
+
+        tooltip.style('display', null);
+        tooltip.attr('transform', `translate(${mx + 10},${my - 40})`);
+        tooltip.select('.tooltip-text')
+          .html('')
+          .selectAll('tspan')
+          .data([
+            `${tier.name}`,
+            `Price: $${price.toFixed(2)}`,
+            `Demand: ${(quantity/1000).toFixed(1)}K`,
+            `Elasticity: ${tier.elasticity.toFixed(2)}`
+          ])
+          .join('tspan')
+          .attr('x', 10)
+          .attr('dy', (d, i) => i === 0 ? 0 : 16)
+          .text(d => d);
+      })
+      .on('mouseleave', function() {
+        d3.select(this)
+          .attr('stroke-width', 3)
+          .attr('opacity', 0.8);
+        tooltip.style('display', 'none');
+      });
+
+    // Current/New price markers
+    const currentMarker = group.append('circle')
+      .attr('class', 'current-marker')
       .attr('cx', xScale(tier.currentPrice))
       .attr('cy', yScale(tier.currentSubs))
-      .attr('r', 5)
+      .attr('r', 7)
       .attr('fill', tier.color)
       .attr('stroke', 'white')
-      .attr('stroke-width', 2);
+      .attr('stroke-width', 3)
+      .style('cursor', 'pointer')
+      .on('mouseenter', function(event) {
+        d3.select(this).attr('r', 10);
+        tooltip.style('display', null);
+        tooltip.attr('transform', `translate(${xScale(tier.currentPrice) + 15},${yScale(tier.currentSubs) - 40})`);
+        tooltip.select('.tooltip-text')
+          .html('')
+          .selectAll('tspan')
+          .data([
+            `${tier.name} - ${currentState === 'baseline' ? 'Current' : 'Baseline'}`,
+            `Price: $${tier.currentPrice.toFixed(2)}`,
+            `Subscribers: ${(tier.currentSubs/1000).toFixed(1)}K`,
+            `Elasticity: ${tier.elasticity.toFixed(2)}`
+          ])
+          .join('tspan')
+          .attr('x', 10)
+          .attr('dy', (d, i) => i === 0 ? 0 : 16)
+          .text(d => d);
+      })
+      .on('mouseleave', function() {
+        d3.select(this).attr('r', 7);
+        tooltip.style('display', 'none');
+      });
+
+    if (tier.newPrice && tier.newSubs) {
+      const newMarker = group.append('circle')
+        .attr('class', 'new-marker')
+        .attr('cx', xScale(tier.newPrice))
+        .attr('cy', yScale(tier.newSubs))
+        .attr('r', 7)
+        .attr('fill', tier.color)
+        .attr('stroke', '#ffc107')
+        .attr('stroke-width', 3)
+        .style('cursor', 'pointer')
+        .style('display', 'none')
+        .on('mouseenter', function(event) {
+          d3.select(this).attr('r', 10);
+          tooltip.style('display', null);
+          tooltip.attr('transform', `translate(${xScale(tier.newPrice) + 15},${yScale(tier.newSubs) - 40})`);
+          tooltip.select('.tooltip-text')
+            .html('')
+            .selectAll('tspan')
+            .data([
+              `${tier.name} - Scenario`,
+              `Price: $${tier.newPrice.toFixed(2)}`,
+              `Subscribers: ${(tier.newSubs/1000).toFixed(1)}K`,
+              `Change: ${((tier.newSubs - tier.currentSubs)/tier.currentSubs * 100).toFixed(1)}%`
+            ])
+            .join('tspan')
+            .attr('x', 10)
+            .attr('dy', (d, i) => i === 0 ? 0 : 16)
+            .text(d => d);
+        })
+        .on('mouseleave', function() {
+          d3.select(this).attr('r', 7);
+          tooltip.style('display', 'none');
+        });
+    }
   });
+
+  // Update function for animation
+  function updateChart() {
+    tierGroups.each(function(tier) {
+      const group = d3.select(this);
+      const points = currentState === 'baseline' ? tier.baselinePoints : tier.scenarioPoints;
+
+      // Animate curve
+      group.select('.demand-curve')
+        .transition()
+        .duration(800)
+        .ease(d3.easeCubicInOut)
+        .attr('d', line(points));
+
+      // Animate/show markers
+      if (currentState === 'baseline') {
+        group.select('.current-marker')
+          .style('display', null)
+          .transition()
+          .duration(800)
+          .attr('cx', xScale(tier.currentPrice))
+          .attr('cy', yScale(tier.currentSubs));
+
+        group.select('.new-marker')
+          .transition()
+          .duration(400)
+          .style('opacity', 0)
+          .on('end', function() { d3.select(this).style('display', 'none'); });
+      } else {
+        group.select('.current-marker')
+          .transition()
+          .duration(800)
+          .attr('cx', xScale(tier.newPrice || tier.currentPrice))
+          .attr('cy', yScale(tier.newSubs || tier.currentSubs));
+
+        if (tier.newPrice && tier.newSubs) {
+          group.select('.new-marker')
+            .style('display', null)
+            .style('opacity', 0)
+            .transition()
+            .duration(800)
+            .style('opacity', 1);
+        }
+      }
+    });
+  }
 
   // Aligned Legend
   const legend = svg.append('g')
@@ -98,7 +340,7 @@ export function renderDemandCurve(containerId, data, options = {}) {
 
   demandData.forEach((tier, i) => {
     const legendRow = legend.append('g')
-      .attr('transform', `translate(0, ${i * 25})`);
+      .attr('transform', `translate(0, ${i * 30})`);
 
     // Line sample
     legendRow.append('line')
@@ -107,55 +349,87 @@ export function renderDemandCurve(containerId, data, options = {}) {
       .attr('y1', 10)
       .attr('y2', 10)
       .attr('stroke', tier.color)
-      .attr('stroke-width', 2);
+      .attr('stroke-width', 3);
 
     // Marker sample
     legendRow.append('circle')
       .attr('cx', 15)
       .attr('cy', 10)
-      .attr('r', 4)
+      .attr('r', 5)
       .attr('fill', tier.color)
       .attr('stroke', 'white')
-      .attr('stroke-width', 1);
+      .attr('stroke-width', 2);
 
     // Label
     legendRow.append('text')
       .attr('x', 36)
       .attr('y', 10)
       .attr('dy', '0.35em')
-      .attr('font-size', '12px')
+      .attr('font-size', '13px')
+      .attr('font-weight', '500')
       .text(tier.name);
+
+    // Elasticity label
+    legendRow.append('text')
+      .attr('x', 36)
+      .attr('y', 24)
+      .attr('font-size', '10px')
+      .attr('fill', '#666')
+      .text(`ε = ${tier.elasticity.toFixed(2)}`);
   });
 
   // Axes
   svg.append('g')
     .attr('transform', `translate(0,${height})`)
     .call(d3.axisBottom(xScale).ticks(10).tickFormat(d => `$${d.toFixed(2)}`))
+    .style('font-size', '12px')
     .append('text')
     .attr('x', width / 2)
-    .attr('y', 40)
+    .attr('y', 45)
     .attr('fill', 'currentColor')
     .attr('text-anchor', 'middle')
+    .attr('font-size', '14px')
+    .attr('font-weight', '500')
     .text('Price ($)');
 
   svg.append('g')
     .call(d3.axisLeft(yScale).ticks(8).tickFormat(d => (d / 1000).toFixed(0) + 'K'))
+    .style('font-size', '12px')
     .append('text')
     .attr('transform', 'rotate(-90)')
     .attr('x', -height / 2)
     .attr('y', -60)
     .attr('fill', 'currentColor')
     .attr('text-anchor', 'middle')
+    .attr('font-size', '14px')
+    .attr('font-weight', '500')
     .text('Subscribers');
 
   // Title
   svg.append('text')
     .attr('x', width / 2)
-    .attr('y', -20)
+    .attr('y', -50)
     .attr('text-anchor', 'middle')
-    .attr('font-size', '16px')
+    .attr('font-size', '18px')
     .attr('font-weight', 'bold')
-    .text('Demand Curve by Tier');
+    .text('Interactive Demand Curve by Tier');
+
+  // Subtitle with state indicator
+  const subtitle = svg.append('text')
+    .attr('class', 'chart-subtitle')
+    .attr('x', width / 2)
+    .attr('y', -30)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '13px')
+    .attr('fill', '#666')
+    .text('Showing: Baseline State');
+
+  // Update subtitle on state change
+  const originalUpdateChart = updateChart;
+  updateChart = function() {
+    originalUpdateChart();
+    subtitle.text(`Showing: ${currentState === 'baseline' ? 'Baseline' : 'Scenario'} State`);
+  };
 }
 
 /**
@@ -375,6 +649,15 @@ export function renderTierMixShift(containerId, data, options = {}) {
 
   const stackedData = stack(chartData.map(d => d.values));
 
+  // Add grid lines
+  svg.append('g')
+    .attr('class', 'grid')
+    .attr('opacity', 0.1)
+    .call(d3.axisLeft(yScale)
+      .ticks(8)
+      .tickSize(-width)
+      .tickFormat(''));
+
   // Draw stacked bars
   svg.selectAll('.tier-group')
     .data(stackedData)
@@ -482,6 +765,24 @@ export function renderTradeoffsScatter(containerId, data, options = {}) {
   const colorScale = d3.scaleSequential()
     .domain([d3.max(data, d => Math.abs(d.churnChange)), 0])
     .interpolator(d3.interpolateRdYlGn);
+
+  // Add grid lines
+  svg.append('g')
+    .attr('class', 'grid')
+    .attr('opacity', 0.1)
+    .call(d3.axisLeft(yScale)
+      .ticks(8)
+      .tickSize(-width)
+      .tickFormat(''));
+
+  svg.append('g')
+    .attr('class', 'grid')
+    .attr('opacity', 0.1)
+    .attr('transform', `translate(0,${height})`)
+    .call(d3.axisBottom(xScale)
+      .ticks(10)
+      .tickSize(-height)
+      .tickFormat(''));
 
   // Quadrant lines
   svg.append('line')
@@ -646,6 +947,15 @@ export function renderComparisonBarChart(containerId, data, options = {}) {
   const colorScale = d3.scaleOrdinal()
     .domain(data.map(d => d.name))
     .range(d3.schemeCategory10);
+
+  // Add grid lines
+  svg.append('g')
+    .attr('class', 'grid')
+    .attr('opacity', 0.1)
+    .call(d3.axisLeft(yScale)
+      .ticks(8)
+      .tickSize(-width)
+      .tickFormat(''));
 
   // Zero line
   svg.append('line')

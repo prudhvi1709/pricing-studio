@@ -10,6 +10,11 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
   <style>
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
     /* Keep custom styles minimal, prefer Bootstrap classes */
     .kpi-card {
       transition: transform 0.2s;
@@ -120,6 +125,148 @@
       background-color: #f8f9fa;
       font-weight: 600;
     }
+
+    /* Data viewer styles */
+    #data-table-container {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    #data-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #212529;
+    }
+
+    #data-table tbody tr:hover {
+      background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    /* Dataset accordion styles */
+    #datasets-accordion .accordion-button {
+      font-size: 0.9rem;
+      padding: 0.75rem 1rem;
+    }
+
+    #datasets-accordion .accordion-button:not(.collapsed) {
+      background-color: rgba(13, 110, 253, 0.1);
+      color: #0d6efd;
+    }
+
+    #datasets-accordion .accordion-body {
+      padding: 0;
+    }
+
+    .dataset-item {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      font-size: 0.875rem;
+    }
+
+    .dataset-item:hover {
+      background-color: rgba(13, 110, 253, 0.05);
+      border-left-color: #0d6efd;
+    }
+
+    .dataset-item.active {
+      background-color: rgba(13, 110, 253, 0.1);
+      border-left-color: #0d6efd;
+      font-weight: 500;
+    }
+
+    .dataset-item i {
+      width: 20px;
+    }
+
+    /* Loading progress styles */
+    #loading-progress {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    #loading-progress .progress {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #loading-progress .progress-bar {
+      transition: width 0.3s ease, background-color 0.5s ease;
+      font-weight: 500;
+    }
+
+    #loading-stage {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #0d6efd;
+      min-height: 20px;
+      display: block;
+    }
+
+    /* ML Methodology Popover Styles */
+    .ml-popover {
+      max-width: 450px;
+      font-size: 0.875rem;
+    }
+
+    .ml-popover .popover-header {
+      background-color: #0d6efd;
+      color: white;
+      font-weight: 600;
+      border-bottom: none;
+    }
+
+    .ml-popover .popover-body {
+      padding: 1rem;
+      line-height: 1.6;
+    }
+
+    .ml-popover .popover-body strong {
+      color: #0d6efd;
+      font-weight: 600;
+    }
+
+    .ml-popover .popover-arrow::after {
+      border-right-color: #0d6efd;
+    }
+
+    /* Info icon hover effect */
+    [data-bs-toggle="popover"]:hover i {
+      transform: scale(1.1);
+      transition: transform 0.2s;
+    }
+
+    /* Interactive Demand Curve styles */
+    .demand-curve-controls {
+      padding: 10px 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px 8px 0 0;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    .demand-curve-controls .btn {
+      transition: all 0.3s ease;
+    }
+
+    .demand-curve-controls .btn.active {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .demand-curve {
+      transition: stroke-width 0.2s, opacity 0.2s;
+    }
+
+    .current-marker, .new-marker {
+      transition: r 0.2s, transform 0.2s;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .current-marker:hover, .new-marker:hover {
+      transform: scale(1.1);
+    }
   </style>
 </head>
 
@@ -136,8 +283,13 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link active" href="#">
+            <a class="nav-link" href="#kpi-section">
               <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#data-viewer-section">
+              <i class="bi bi-table me-1"></i> View Data
             </a>
           </li>
         </ul>
@@ -169,7 +321,123 @@
       <i class="bi bi-info-circle me-2"></i>
       <strong>Data Timeline:</strong> 3 years of historical data (January 2, 2022 - December 29, 2024) with weekly granularity. 156 weeks across 3 subscription tiers.
     </div>
+  </div>
 
+  <!-- Data Viewer Section - Moved to Top -->
+  <div id="data-viewer-section" style="display: none;">
+  <div class="container my-4">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="h5 mb-0">
+          <i class="bi bi-table me-2"></i>
+          Sample Data Explorer
+        </h2>
+      </div>
+      <div class="card-body p-0">
+        <div class="row g-0">
+          <!-- Left Sidebar - Dataset Accordion -->
+          <div class="col-md-3 border-end">
+            <div class="p-3">
+              <h6 class="text-muted text-uppercase mb-3">
+                <i class="bi bi-folder2-open me-2"></i>
+                Available Datasets
+              </h6>
+              <div class="accordion accordion-flush" id="datasets-accordion">
+                <!-- Datasets will be loaded here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Content Area - Data Display -->
+          <div class="col-md-9">
+            <div class="p-3">
+              <!-- Dataset Info -->
+              <div id="dataset-info" class="alert alert-info mb-3" style="display: none;">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="flex-grow-1">
+                    <h6 class="alert-heading mb-2" id="dataset-title"></h6>
+                    <p class="mb-1 small" id="dataset-description"></p>
+                    <div class="mt-2">
+                      <span class="badge bg-primary me-2" id="dataset-records"></span>
+                      <span class="badge bg-secondary me-2" id="dataset-columns"></span>
+                      <span class="badge bg-info" id="dataset-date-range"></span>
+                    </div>
+                  </div>
+                  <div class="ms-3">
+                    <button id="export-csv-btn" class="btn btn-sm btn-success" disabled>
+                      <i class="bi bi-download me-1"></i> Export CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Search and Filter -->
+              <div class="row g-3 mb-3" id="data-controls" style="display: none;">
+                <div class="col-md-6">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="data-search" class="form-control" placeholder="Search across all columns...">
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <select id="rows-per-page" class="form-select">
+                    <option value="10">10 rows</option>
+                    <option value="25" selected>25 rows</option>
+                    <option value="50">50 rows</option>
+                    <option value="100">100 rows</option>
+                    <option value="all">All rows</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <button id="refresh-data-btn" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                  </button>
+                </div>
+              </div>
+
+              <!-- Data Table Container -->
+              <div id="data-table-container" class="table-responsive" style="display: none;">
+                <table id="data-table" class="table table-striped table-hover table-sm">
+                  <thead class="table-dark sticky-top">
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div id="pagination-container" class="d-flex justify-content-between align-items-center mt-3" style="display: none;">
+                <div>
+                  <span class="text-muted small" id="pagination-info"></span>
+                </div>
+                <nav>
+                  <ul class="pagination pagination-sm mb-0" id="pagination">
+                  </ul>
+                </nav>
+              </div>
+
+              <!-- Loading State -->
+              <div id="data-loading" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary mb-3" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted">Loading data...</p>
+              </div>
+
+              <!-- Empty State -->
+              <div id="data-empty" class="text-center text-muted py-5">
+                <i class="bi bi-table display-4 mb-3"></i>
+                <p>Select a dataset from the left sidebar to view the data</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="container">
     <!-- Load Sample Data Button -->
     <div class="text-center my-4" id="load-data-section">
       <div class="card bg-light">
@@ -183,6 +451,19 @@
             <i class="bi bi-cloud-download me-2"></i>
             Load Sample Data
           </button>
+
+          <!-- Progress Bar (hidden by default) -->
+          <div id="loading-progress" style="display: none;" class="mt-4">
+            <div class="mb-2">
+              <small class="text-muted" id="loading-stage">Initializing...</small>
+            </div>
+            <div class="progress" style="height: 25px;">
+              <div id="loading-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                   role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <span id="loading-percentage">0%</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -191,7 +472,18 @@
   <!-- KPI Summary Cards -->
   <div id="kpi-section" style="display: none;">
   <div class="container my-4">
-    <h2 class="h4 mb-3">Current State (Latest Week)</h2>
+    <h2 class="h4 mb-3">
+      Current State (Latest Week)
+      <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
+              data-bs-placement="right"
+              data-bs-trigger="focus"
+              data-bs-custom-class="ml-popover"
+              data-bs-html="true"
+              data-bs-title="<i class='bi bi-cpu me-2'></i>Data Processing: KPI Calculation"
+              data-bs-content="<strong>Data Source:</strong> weekly_aggregated.csv (471 records, 3 years)<br><br><strong>Calculations:</strong><br>• <strong>Total Subscribers:</strong> Sum of active_subscribers across all tiers (latest week)<br>• <strong>Monthly Revenue:</strong> Sum of weekly revenue × 4<br>• <strong>ARPU:</strong> Total revenue / Total subscribers<br>• <strong>Churn Rate:</strong> Average churn_rate across tiers<br><br><strong>Aggregation:</strong> Latest week (Dec 29, 2024)<br><br><strong>Tiers Included:</strong> Ad-Supported, Ad-Free, Annual<br><br><strong>Update Frequency:</strong> Real-time calculation from CSV data<br><br><strong>Data Quality:</strong> 100% complete, validated">
+        <i class="bi bi-info-circle text-secondary"></i>
+      </button>
+    </h2>
     <div class="row g-3" id="kpi-cards">
       <div class="col-md-3">
         <div class="card kpi-card h-100">
@@ -247,6 +539,15 @@
         <h2 class="h5 mb-0">
           <i class="bi bi-calculator me-2"></i>
           Price Elasticity by Tier
+          <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
+                  data-bs-placement="right"
+                  data-bs-trigger="focus"
+                  data-bs-custom-class="ml-popover"
+                  data-bs-html="true"
+                  data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Price Elasticity"
+                  data-bs-content="<strong>Model:</strong> Log-log regression with demand elasticity coefficients<br><br><strong>Formula:</strong> ε = (∂Q/∂P) × (P/Q)<br><br><strong>Training Data:</strong> 3 years of weekly pricing and subscriber data (2022-2024)<br><br><strong>Features:</strong> Historical price changes, subscriber response, tier characteristics, tenure segments<br><br><strong>Estimation Method:</strong> Hybrid approach combining historical price change analysis and industry benchmarks<br><br><strong>Confidence Level:</strong> 90% (±0.15-0.4 std error)<br><br><strong>Interpretation:</strong> Elasticity of -2.1 means 1% price increase → 2.1% demand decrease">
+            <i class="bi bi-info-circle text-primary"></i>
+          </button>
         </h2>
       </div>
       <div class="card-body">
@@ -295,6 +596,15 @@
         <h2 class="h5 mb-0">
           <i class="bi bi-play-circle me-2"></i>
           Scenario Simulation
+          <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
+                  data-bs-placement="right"
+                  data-bs-trigger="focus"
+                  data-bs-custom-class="ml-popover"
+                  data-bs-html="true"
+                  data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Scenario Forecasting"
+                  data-bs-content="<strong>Model:</strong> Multi-variate time series forecasting with elasticity constraints<br><br><strong>Algorithm:</strong> Monte Carlo simulation with stochastic demand modeling<br><br><strong>Inputs:</strong><br>• Price elasticity coefficients by tier<br>• Cross-tier elasticity (substitution effects)<br>• Churn elasticity<br>• Acquisition elasticity<br>• Seasonal patterns<br>• External factors (macro indicators, competitor pricing)<br><br><strong>Forecast Horizon:</strong> 12 months<br><br><strong>Confidence Intervals:</strong> 90% CI shown as bands around forecast<br><br><strong>Validation:</strong> Backtesting on holdout data (MAE < 5%)">
+            <i class="bi bi-info-circle text-primary"></i>
+          </button>
         </h2>
       </div>
       <div class="card-body">
@@ -346,8 +656,17 @@
 
           <!-- Time Series Chart -->
           <div class="card mt-4">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
               <h4 class="h6 mb-0">12-Month Forecast</h4>
+              <button class="btn btn-sm btn-link p-0" data-bs-toggle="popover"
+                      data-bs-placement="left"
+                      data-bs-trigger="focus"
+                      data-bs-custom-class="ml-popover"
+                      data-bs-html="true"
+                      data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Time Series Forecasting"
+                      data-bs-content="<strong>Model:</strong> ARIMA with elasticity-adjusted demand<br><br><strong>Components:</strong><br>• Trend: Linear/polynomial regression<br>• Seasonality: Fourier series decomposition<br>• Elasticity Effect: ΔQ = Q₀ × ε × (ΔP/P)<br>• Noise: Gaussian random walk<br><br><strong>Confidence Bands:</strong> ±10% interval (90% CI) based on historical variance<br><br><strong>Update Frequency:</strong> Real-time recalculation on scenario change<br><br><strong>Assumptions:</strong> Stable market conditions, no black swan events">
+                <i class="bi bi-info-circle-fill text-info" style="font-size: 0.875rem;"></i>
+              </button>
             </div>
             <div class="card-body">
               <div class="chart-container">
@@ -393,6 +712,15 @@
         <h2 class="h5 mb-0">
           <i class="bi bi-layers me-2"></i>
           Scenario Comparison
+          <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
+                  data-bs-placement="right"
+                  data-bs-trigger="focus"
+                  data-bs-custom-class="ml-popover"
+                  data-bs-html="true"
+                  data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Multi-Scenario Comparison"
+                  data-bs-content="<strong>Algorithm:</strong> Pareto optimization and multi-objective ranking<br><br><strong>Metrics Normalized:</strong><br>• Revenue impact (% change)<br>• Subscriber growth (% change)<br>• Churn rate (% change)<br>• ARPU (% change)<br>• Customer LTV<br><br><strong>Ranking Method:</strong><br>Weighted scoring based on business priorities<br><br><strong>Radar Chart:</strong><br>5-dimensional representation using min-max normalization<br><br><strong>Trade-off Analysis:</strong><br>Scatter plot showing revenue vs. growth with Pareto frontier<br><br><strong>Sensitivity:</strong> Monte Carlo simulation with 10,000 iterations per scenario">
+            <i class="bi bi-info-circle text-primary"></i>
+          </button>
         </h2>
       </div>
       <div class="card-body">
@@ -452,6 +780,15 @@
         <h2 class="h5 mb-0">
           <i class="bi bi-bar-chart-line me-2"></i>
           Elasticity Analysis
+          <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
+                  data-bs-placement="right"
+                  data-bs-trigger="focus"
+                  data-bs-custom-class="ml-popover"
+                  data-bs-html="true"
+                  data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Elasticity Analysis"
+                  data-bs-content="<strong>Demand Curve Model:</strong><br>Q = Q₀ × (P/P₀)^ε<br>Non-linear demand function based on constant elasticity<br><br><strong>Segmentation:</strong><br>• Tenure-based cohorts (0-3mo, 3-12mo, 12+mo)<br>• Age demographics<br>• Device type<br>• Channel acquisition<br><br><strong>Heatmap Algorithm:</strong><br>Hierarchical clustering of elasticity coefficients across segments using Ward's method<br><br><strong>Cross-Elasticity:</strong><br>Measures tier substitution effects using multivariate regression<br><br><strong>Feature Engineering:</strong><br>• Lagged price variables (1-week, 4-week)<br>• Lagged subscriber metrics<br>• Promotional flags<br>• Content score (releases - removals)">
+            <i class="bi bi-info-circle text-primary"></i>
+          </button>
         </h2>
       </div>
       <div class="card-body">
@@ -483,14 +820,15 @@
         <!-- Chat Messages -->
         <div id="chat-messages" class="mb-3 border rounded p-3" style="height: 500px; overflow-y: auto; background-color: var(--bs-light-bg-subtle);">
           <div class="text-center text-muted mt-5">
-            <i class="bi bi-chat-square-text display-4 mb-3"></i>
-            <p>Start a conversation by asking a question about your pricing data, scenarios, or elasticity analysis.</p>
+            <i class="bi bi-robot display-4 mb-3"></i>
+            <p><strong>Scenario Analysis Assistant</strong></p>
+            <p class="small">Ask me to interpret scenario results, compare outcomes, suggest optimizations, or create new scenarios.</p>
           </div>
         </div>
 
         <!-- Input -->
         <div class="input-group mb-3">
-          <input type="text" id="chat-input" class="form-control" placeholder="Ask a question about pricing, scenarios, or data..." disabled />
+          <input type="text" id="chat-input" class="form-control" placeholder="Ask about scenarios: interpret results, compare, or suggest new scenarios..." disabled />
           <button id="chat-send-btn" class="btn btn-primary" disabled>
             <i class="bi bi-send"></i> Send
           </button>
@@ -503,15 +841,117 @@
             Try asking:
           </small>
           <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>What was churn rate in Q4 2024?</button>
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Run aggressive pricing scenario</button>
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Compare all scenarios</button>
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Which tier has highest ARPU?</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Interpret the current scenario results</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Which scenario maximizes revenue?</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Suggest a scenario for subscriber growth</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>What's the risk of $2 price increase?</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+  </div>
+
+  <!-- Scenario Editor Modal -->
+  <div class="modal fade" id="scenarioEditorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-sliders me-2"></i>
+            Edit Scenario Parameters
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="scenario-editor-form">
+            <input type="hidden" id="edit-scenario-id">
+
+            <!-- Scenario Name -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Scenario Name</label>
+              <input type="text" class="form-control" id="edit-scenario-name" readonly>
+            </div>
+
+            <!-- Tier Selection (readonly) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Tier</label>
+              <input type="text" class="form-control" id="edit-tier" readonly>
+            </div>
+
+            <!-- Current Price (readonly) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Current Price</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="edit-current-price" readonly step="0.01">
+              </div>
+            </div>
+
+            <!-- New Price (editable) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                New Price
+                <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="edit-new-price" required step="0.01" min="0">
+                <span class="input-group-text" id="price-change-indicator">0%</span>
+              </div>
+              <div class="form-text">
+                <span id="price-constraints"></span>
+              </div>
+            </div>
+
+            <!-- Promotion Settings (if applicable) -->
+            <div id="promotion-settings" style="display: none;">
+              <hr>
+              <h6 class="fw-bold mb-3">Promotion Settings</h6>
+
+              <!-- Discount Percentage -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">
+                  Discount Percentage
+                  <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <input type="number" class="form-control" id="edit-discount-pct" min="0" max="100" step="1">
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+
+              <!-- Duration -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">
+                  Promo Duration
+                  <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <input type="number" class="form-control" id="edit-duration-months" min="1" max="12" step="1">
+                  <span class="input-group-text">months</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Impact Preview -->
+            <div class="alert alert-info mt-3">
+              <i class="bi bi-info-circle me-2"></i>
+              <strong>Estimated Impact:</strong>
+              <div class="mt-2" id="impact-preview">
+                Changes will be calculated when you save...
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="save-edited-scenario-btn">
+            <i class="bi bi-save me-1"></i> Save & Re-simulate
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Footer -->

@@ -9,6 +9,7 @@ import { loadAllData, loadScenarios, getWeeklyData, loadElasticityParams } from 
 import { simulateScenario, compareScenarios as compareScenariosEngine } from './scenario-engine.js';
 import { renderDemandCurve, renderElasticityHeatmap, renderTierMixShift, renderTradeoffsScatter, renderComparisonBarChart, renderRadarChart } from './charts.js';
 import { initializeChat, configureLLM, sendMessage, clearHistory } from './chat.js';
+import { initializeDataViewer } from './data-viewer.js';
 
 // Global state
 let selectedScenario = null;
@@ -84,7 +85,12 @@ async function loadScenarioCards() {
       card.innerHTML = `
         <div class="card scenario-card h-100" data-scenario-id="${scenario.id}">
           <div class="card-body">
-            <h5 class="card-title">${scenario.name}</h5>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="card-title flex-grow-1 mb-0">${scenario.name}</h5>
+              <button class="btn btn-sm btn-outline-secondary edit-scenario-btn" data-scenario-id="${scenario.id}" title="Edit parameters">
+                <i class="bi bi-pencil"></i>
+              </button>
+            </div>
             <p class="card-text small">${scenario.description}</p>
             <div class="mt-auto">
               <span class="badge bg-secondary">${scenario.category}</span>
@@ -96,13 +102,25 @@ async function loadScenarioCards() {
       container.appendChild(card);
     });
 
-    // Add click handlers
+    // Add click handlers for scenario selection
     document.querySelectorAll('.scenario-card').forEach(card => {
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
+        // Don't select if clicking edit button
+        if (e.target.closest('.edit-scenario-btn')) return;
+
         document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedScenario = allScenarios.find(s => s.id === card.dataset.scenarioId);
         document.getElementById('simulate-btn').disabled = false;
+      });
+    });
+
+    // Add click handlers for edit buttons
+    document.querySelectorAll('.edit-scenario-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const scenarioId = btn.dataset.scenarioId;
+        openScenarioEditor(scenarioId);
       });
     });
 
@@ -143,6 +161,12 @@ async function runSimulation() {
 // Display simulation results
 function displayResults(result) {
   currentResult = result; // Store for saving
+
+  // Store in all simulation results for chatbot access
+  if (!allSimulationResults.find(r => r.scenario_id === result.scenario_id)) {
+    allSimulationResults.push(result);
+  }
+
   const container = document.getElementById('result-cards');
   container.innerHTML = `
     <div class="col-md-3">
@@ -287,8 +311,20 @@ function renderForecastChart(result) {
         }
       },
       scales: {
+        x: {
+          grid: {
+            display: true,
+            color: 'rgba(0, 0, 0, 0.05)',
+            lineWidth: 1
+          }
+        },
         y: {
           beginAtZero: false,
+          grid: {
+            display: true,
+            color: 'rgba(0, 0, 0, 0.1)',
+            lineWidth: 1
+          },
           ticks: {
             callback: function(value) {
               return formatNumber(value);
@@ -396,7 +432,10 @@ async function loadElasticityAnalytics() {
   }
 }
 
-// Initialize chat context with tool implementations
+// Store all simulation results for chatbot access
+let allSimulationResults = [];
+
+// Initialize chat context with scenario-focused tools
 async function initializeChatContext() {
   try {
     // Get current KPI values
@@ -411,190 +450,364 @@ async function initializeChatContext() {
     const totalRevenue = Object.values(latestWeek).reduce((sum, d) => sum + d.revenue, 0) * 4;
     const avgChurn = Object.values(latestWeek).reduce((sum, d) => sum + d.churn_rate, 0) / 3;
 
-    // Create data context for chat
+    // Load elasticity parameters for visualization context
+    const elasticityParams = await loadElasticityParams();
+
+    // Create scenario-focused context for chat
     const context = {
-      scenarios: allScenarios,
-      currentSubscribers: totalSubs,
-      currentRevenue: totalRevenue,
-      currentChurn: avgChurn,
+      // All scenario definitions
+      allScenarios: allScenarios,
 
-      // Tool implementations
-      queryData: async (params) => {
-        const { filters = {}, metrics = [], aggregation = 'avg' } = params;
-        const tier = filters.tier || 'all';
-        const data = await getWeeklyData(tier);
+      // Current simulation result (if any)
+      getCurrentSimulation: () => currentResult,
 
-        // Apply date filters
-        let filteredData = data;
-        if (filters.date_start || filters.date_end) {
-          filteredData = data.filter(d => {
-            const date = new Date(d.date);
-            if (filters.date_start && date < new Date(filters.date_start)) return false;
-            if (filters.date_end && date > new Date(filters.date_end)) return false;
-            return true;
-          });
+      // All saved scenarios for comparison
+      getSavedScenarios: () => savedScenarios,
+
+      // All simulation results
+      getAllSimulationResults: () => allSimulationResults,
+
+      // Business context
+      businessContext: {
+        currentSubscribers: totalSubs,
+        currentRevenue: totalRevenue,
+        currentChurn: avgChurn,
+        elasticityByTier: {
+          ad_supported: elasticityParams.tiers.ad_supported.base_elasticity,
+          ad_free: elasticityParams.tiers.ad_free.base_elasticity,
+          annual: elasticityParams.tiers.annual.base_elasticity
+        },
+        tierPricing: {
+          ad_supported: 5.99,
+          ad_free: 8.99,
+          annual: 71.88
         }
-
-        // Calculate aggregations
-        const result = {};
-        const detailedResults = {};
-
-        for (const metric of metrics) {
-          const values = filteredData.map(d => d[metric]).filter(v => v !== undefined && v !== null);
-
-          switch (aggregation) {
-            case 'avg':
-              result[metric] = values.reduce((sum, v) => sum + v, 0) / values.length;
-              detailedResults[metric] = {
-                average: result[metric],
-                min: Math.min(...values),
-                max: Math.max(...values),
-                first: values[0],
-                last: values[values.length - 1]
-              };
-              break;
-            case 'sum':
-              result[metric] = values.reduce((sum, v) => sum + v, 0);
-              detailedResults[metric] = {
-                total: result[metric],
-                average: result[metric] / values.length
-              };
-              break;
-            case 'min':
-              result[metric] = Math.min(...values);
-              break;
-            case 'max':
-              result[metric] = Math.max(...values);
-              break;
-            case 'latest':
-              result[metric] = values[values.length - 1];
-              detailedResults[metric] = {
-                latest: result[metric],
-                previous: values[values.length - 2],
-                change: values[values.length - 1] - values[values.length - 2]
-              };
-              break;
-            case 'trend':
-              // Simple trend: compare first quarter to last quarter
-              const q1 = values.slice(0, Math.floor(values.length / 4));
-              const q4 = values.slice(-Math.floor(values.length / 4));
-              const q1Avg = q1.reduce((sum, v) => sum + v, 0) / q1.length;
-              const q4Avg = q4.reduce((sum, v) => sum + v, 0) / q4.length;
-              result[metric] = {
-                trend: q4Avg > q1Avg ? 'increasing' : 'decreasing',
-                change: q4Avg - q1Avg,
-                change_pct: ((q4Avg - q1Avg) / q1Avg) * 100,
-                first_period_avg: q1Avg,
-                last_period_avg: q4Avg
-              };
-              detailedResults[metric] = result[metric];
-              break;
-          }
-        }
-
-        // Include sample data points for context
-        const sampleData = filteredData.slice(0, 3).map(d => ({
-          date: d.date,
-          tier: d.tier,
-          ...metrics.reduce((acc, m) => ({ ...acc, [m]: d[m] }), {})
-        }));
-
-        return {
-          query: {
-            filters,
-            metrics,
-            aggregation,
-            tier,
-            date_range: filters.date_start || filters.date_end ?
-              `${filters.date_start || 'start'} to ${filters.date_end || 'end'}` : 'all dates'
-          },
-          data_points: filteredData.length,
-          results: result,
-          detailed_results: detailedResults,
-          sample_data: sampleData,
-          summary: `Analyzed ${filteredData.length} weekly data points for ${tier === 'all' ? 'all tiers' : tier + ' tier'}${filters.date_start ? ' from ' + filters.date_start : ''}${filters.date_end ? ' to ' + filters.date_end : ''}`
-        };
       },
 
-      runScenario: async (scenarioId) => {
-        const scenario = allScenarios.find(s => s.id === scenarioId);
-        if (!scenario) {
-          throw new Error(`Scenario ${scenarioId} not found`);
+      // Visualization data context
+      getVisualizationData: () => ({
+        demandCurve: {
+          description: "Shows price elasticity - how demand changes with price for each tier",
+          tiers: [
+            { name: 'Ad-Supported', elasticity: elasticityParams.tiers.ad_supported.base_elasticity, price: 5.99 },
+            { name: 'Ad-Free', elasticity: elasticityParams.tiers.ad_free.base_elasticity, price: 8.99 },
+            { name: 'Annual', elasticity: elasticityParams.tiers.annual.base_elasticity, price: 71.88 }
+          ]
+        },
+        tierMix: currentResult ? {
+          description: "Baseline vs Forecasted subscriber distribution across tiers",
+          baseline: currentResult.baseline,
+          forecasted: currentResult.forecasted
+        } : null,
+        forecast: currentResult ? {
+          description: "12-month subscriber forecast with 90% confidence intervals",
+          timeSeries: currentResult.time_series
+        } : null
+      }),
+
+      // SCENARIO-FOCUSED TOOLS
+
+      // Interpret a specific scenario's results
+      interpretScenario: async (scenarioId) => {
+        // Check if we have results for this scenario
+        let result = allSimulationResults.find(r => r.scenario_id === scenarioId);
+
+        // If not, check if it's the current result
+        if (!result && currentResult && currentResult.scenario_id === scenarioId) {
+          result = currentResult;
         }
 
-        const result = await simulateScenario(scenario);
-        return {
+        // If still not found, run the simulation
+        if (!result) {
+          const scenario = allScenarios.find(s => s.id === scenarioId);
+          if (!scenario) {
+            throw new Error(`Scenario ${scenarioId} not found`);
+          }
+          result = await simulateScenario(scenario);
+        }
+
+        // Build interpretation
+        const interpretation = {
           scenario_id: result.scenario_id,
           scenario_name: result.scenario_name,
-          baseline: result.baseline,
-          forecasted: result.forecasted,
-          delta: result.delta,
-          warnings: result.warnings,
-          summary: `${result.scenario_name}: Revenue ${result.delta.revenue_pct >= 0 ? '+' : ''}${result.delta.revenue_pct.toFixed(1)}%, Subscribers ${result.delta.subscribers_pct >= 0 ? '+' : ''}${result.delta.subscribers_pct.toFixed(1)}%, Churn ${result.delta.churn_rate_pct >= 0 ? '+' : ''}${result.delta.churn_rate_pct.toFixed(1)}%`
+
+          // Key metrics
+          metrics: {
+            revenue: {
+              change_pct: result.delta.revenue_pct,
+              change_amount: result.delta.revenue,
+              forecasted: result.forecasted.revenue,
+              baseline: result.baseline.revenue
+            },
+            subscribers: {
+              change_pct: result.delta.subscribers_pct,
+              change_amount: result.delta.subscribers,
+              forecasted: result.forecasted.subscribers,
+              baseline: result.baseline.subscribers
+            },
+            churn: {
+              change_pct: result.delta.churn_rate_pct,
+              forecasted_rate: result.forecasted.churn_rate,
+              baseline_rate: result.baseline.churn_rate
+            },
+            arpu: {
+              change_pct: result.delta.arpu_pct,
+              forecasted: result.forecasted.arpu,
+              baseline: result.baseline.arpu
+            }
+          },
+
+          // Trade-offs
+          tradeoffs: {
+            revenue_vs_subscribers: `${result.delta.revenue_pct >= 0 ? 'Gain' : 'Loss'} ${Math.abs(result.delta.revenue_pct).toFixed(1)}% revenue, ${result.delta.subscribers_pct >= 0 ? 'gain' : 'lose'} ${Math.abs(result.delta.subscribers_pct).toFixed(1)}% subscribers`,
+            price_sensitivity: result.elasticity < -2.0 ? 'High' : result.elasticity < -1.5 ? 'Medium' : 'Low'
+          },
+
+          // Warnings and risks
+          warnings: result.warnings || [],
+
+          // Elasticity info
+          elasticity: result.elasticity,
+
+          // Time series forecast
+          forecast_12m: result.time_series,
+
+          summary: `${result.scenario_name} analysis: Revenue ${result.delta.revenue_pct >= 0 ? 'increases' : 'decreases'} by ${Math.abs(result.delta.revenue_pct).toFixed(1)}% while subscribers ${result.delta.subscribers_pct >= 0 ? 'grow' : 'decline'} by ${Math.abs(result.delta.subscribers_pct).toFixed(1)}%. Churn ${result.delta.churn_rate_pct >= 0 ? 'increases' : 'decreases'} by ${Math.abs(result.delta.churn_rate_pct).toFixed(1)}%.`
+        };
+
+        return interpretation;
+      },
+
+      // Suggest a new scenario based on business goal
+      suggestScenario: async (goal) => {
+        const goalMap = {
+          maximize_revenue: {
+            strategy: 'Price increase on low-elasticity tier',
+            tier: 'annual',
+            priceChange: +2.00,
+            rationale: 'Annual tier has lowest elasticity (-1.6), so price increases cause least subscriber loss'
+          },
+          grow_subscribers: {
+            strategy: 'Aggressive promotion on high-elasticity tier',
+            tier: 'ad_supported',
+            priceChange: -2.00,
+            rationale: 'Ad-Supported has highest elasticity (-2.1), so discounts drive maximum subscriber growth'
+          },
+          reduce_churn: {
+            strategy: 'Moderate price decrease to improve value perception',
+            tier: 'ad_free',
+            priceChange: -1.00,
+            rationale: 'Modest price reduction improves perceived value while maintaining revenue'
+          },
+          maximize_arpu: {
+            strategy: 'Premium tier price increase',
+            tier: 'ad_free',
+            priceChange: +1.50,
+            rationale: 'Target customers less price-sensitive, willing to pay premium for ad-free experience'
+          }
+        };
+
+        const suggestion = goalMap[goal];
+        if (!suggestion) {
+          throw new Error(`Unknown goal: ${goal}. Valid goals: ${Object.keys(goalMap).join(', ')}`);
+        }
+
+        const tierPrices = {
+          ad_supported: 5.99,
+          ad_free: 8.99,
+          annual: 71.88
+        };
+
+        const currentPrice = tierPrices[suggestion.tier];
+        const newPrice = currentPrice + suggestion.priceChange;
+
+        return {
+          goal: goal,
+          suggested_scenario: {
+            name: `${suggestion.strategy} - ${suggestion.tier.replace('_', ' ')}`,
+            tier: suggestion.tier,
+            current_price: currentPrice,
+            new_price: newPrice,
+            price_change: suggestion.priceChange,
+            price_change_pct: (suggestion.priceChange / currentPrice) * 100
+          },
+          rationale: suggestion.rationale,
+          estimated_impact: `For ${goal.replace('_', ' ')}, this strategy is optimal based on elasticity analysis`,
+          next_steps: 'Use the scenario editor to create this scenario, then simulate to see detailed forecasts'
         };
       },
 
-      compareScenarios: async (scenarioIds, sortBy = 'revenue') => {
-        const scenarios = scenarioIds.map(id => allScenarios.find(s => s.id === id)).filter(s => s);
+      // Analyze a specific chart/visualization
+      analyzeChart: async (chartName) => {
+        const chartAnalysis = {
+          demand_curve: {
+            name: 'Demand Curve by Tier',
+            description: 'Shows price elasticity - how quantity demanded changes with price',
+            interpretation: [
+              'Steeper curve = higher elasticity = more price-sensitive customers',
+              `Ad-Supported (elasticity ${elasticityParams.tiers.ad_supported.base_elasticity}): Most price-sensitive`,
+              `Ad-Free (elasticity ${elasticityParams.tiers.ad_free.base_elasticity}): Moderately price-sensitive`,
+              `Annual (elasticity ${elasticityParams.tiers.annual.base_elasticity}): Least price-sensitive`
+            ],
+            insights: 'Use this to identify optimal price points for each tier. Flatter curves allow for price increases with minimal subscriber loss.'
+          },
+          tier_mix: currentResult ? {
+            name: 'Tier Mix: Baseline vs Forecasted',
+            description: 'Compares current vs forecasted subscriber distribution across tiers',
+            baseline: currentResult.baseline,
+            forecasted: currentResult.forecasted,
+            interpretation: `Scenario "${currentResult.scenario_name}" shifts tier distribution. Revenue impact depends on tier ARPU differences.`
+          } : null,
+          forecast: currentResult ? {
+            name: '12-Month Subscriber Forecast',
+            description: 'Projects subscriber count over 12 months with 90% confidence intervals',
+            timeSeries: currentResult.time_series,
+            interpretation: 'Confidence intervals widen over time due to increasing uncertainty. Use for medium-term planning (3-6 months most reliable).'
+          } : null,
+          heatmap: {
+            name: 'Elasticity Heatmap by Segment',
+            description: 'Shows how price sensitivity varies by customer tenure and tier',
+            interpretation: [
+              'New subscribers (0-3mo) are typically more price-sensitive',
+              'Tenured subscribers (12+mo) show lower elasticity (more loyal)',
+              'This guides targeted pricing strategies by segment'
+            ]
+          }
+        };
 
+        const analysis = chartAnalysis[chartName];
+        if (!analysis) {
+          throw new Error(`Unknown chart: ${chartName}. Available charts: ${Object.keys(chartAnalysis).join(', ')}`);
+        }
+
+        return analysis;
+      },
+
+      // Deep comparison of multiple scenarios
+      compareOutcomes: async (scenarioIds) => {
+        if (scenarioIds.length < 2) {
+          throw new Error('Need at least 2 scenarios to compare');
+        }
+
+        const scenarios = scenarioIds.map(id => allScenarios.find(s => s.id === id)).filter(s => s);
         if (scenarios.length === 0) {
           throw new Error('No valid scenarios found');
         }
 
-        const results = await compareScenariosEngine(scenarios);
-
-        // Sort by specified metric
-        const sorted = results.sort((a, b) => {
-          switch (sortBy) {
-            case 'revenue':
-              return b.delta.revenue_pct - a.delta.revenue_pct;
-            case 'subscribers':
-              return b.delta.subscribers_pct - a.delta.subscribers_pct;
-            case 'churn':
-              return a.delta.churn_rate_pct - b.delta.churn_rate_pct; // Lower is better
-            case 'arpu':
-              return b.delta.arpu_pct - a.delta.arpu_pct;
-            default:
-              return 0;
+        // Run all scenarios if not already simulated
+        const results = [];
+        for (const scenario of scenarios) {
+          let result = allSimulationResults.find(r => r.scenario_id === scenario.id);
+          if (!result && currentResult && currentResult.scenario_id === scenario.id) {
+            result = currentResult;
           }
-        });
+          if (!result) {
+            result = await simulateScenario(scenario);
+            allSimulationResults.push(result);
+          }
+          results.push(result);
+        }
 
-        return {
-          scenarios: sorted.map(r => ({
+        // Analyze trade-offs
+        const comparison = {
+          scenarios: results.map(r => ({
             id: r.scenario_id,
             name: r.scenario_name,
-            revenue_change_pct: r.delta.revenue_pct,
-            subscribers_change_pct: r.delta.subscribers_pct,
-            churn_change_pct: r.delta.churn_rate_pct,
-            arpu_change_pct: r.delta.arpu_pct
+            revenue_pct: r.delta.revenue_pct,
+            subscribers_pct: r.delta.subscribers_pct,
+            churn_pct: r.delta.churn_rate_pct,
+            arpu_pct: r.delta.arpu_pct
           })),
-          sorted_by: sortBy,
-          best_scenario: sorted[0].scenario_name,
-          summary: `Compared ${scenarios.length} scenarios. Best for ${sortBy}: ${sorted[0].scenario_name} (${sortBy === 'churn' ? '' : '+'}${sorted[0].delta[sortBy + '_pct'].toFixed(1)}%)`
+
+          best_for: {
+            revenue: results.reduce((best, r) => r.delta.revenue_pct > best.delta.revenue_pct ? r : best).scenario_name,
+            subscribers: results.reduce((best, r) => r.delta.subscribers_pct > best.delta.subscribers_pct ? r : best).scenario_name,
+            churn: results.reduce((best, r) => r.delta.churn_rate_pct < best.delta.churn_rate_pct ? r : best).scenario_name,
+            arpu: results.reduce((best, r) => r.delta.arpu_pct > best.delta.arpu_pct ? r : best).scenario_name
+          },
+
+          tradeoffs: results.map(r => ({
+            scenario: r.scenario_name,
+            tradeoff: `Revenue ${r.delta.revenue_pct >= 0 ? '+' : ''}${r.delta.revenue_pct.toFixed(1)}% vs Subscribers ${r.delta.subscribers_pct >= 0 ? '+' : ''}${r.delta.subscribers_pct.toFixed(1)}%`,
+            risk_level: r.warnings && r.warnings.length > 0 ? 'High' : Math.abs(r.delta.subscribers_pct) > 10 ? 'Medium' : 'Low'
+          })),
+
+          recommendation: `Best scenario depends on business priority. For revenue: ${results.reduce((best, r) => r.delta.revenue_pct > best.delta.revenue_pct ? r : best).scenario_name}. For growth: ${results.reduce((best, r) => r.delta.subscribers_pct > best.delta.subscribers_pct ? r : best).scenario_name}.`
         };
+
+        return comparison;
       },
 
-      getScenarioList: async () => {
+      // Create a new scenario from parameters
+      createScenario: async (parameters) => {
+        const { tier, price_change, promotion_discount, promotion_duration } = parameters;
+
+        if (!tier || !['ad_supported', 'ad_free', 'annual'].includes(tier)) {
+          throw new Error('Invalid tier. Must be: ad_supported, ad_free, or annual');
+        }
+
+        const tierPrices = {
+          ad_supported: 5.99,
+          ad_free: 8.99,
+          annual: 71.88
+        };
+
+        const currentPrice = tierPrices[tier];
+        let newPrice;
+        let scenarioType;
+
+        if (promotion_discount && promotion_duration) {
+          // Promotion scenario
+          newPrice = currentPrice * (1 - promotion_discount / 100);
+          scenarioType = 'promotion';
+        } else if (price_change !== undefined) {
+          // Price change scenario
+          newPrice = currentPrice + price_change;
+          scenarioType = 'price_change';
+        } else {
+          throw new Error('Must specify either price_change or (promotion_discount and promotion_duration)');
+        }
+
+        const newScenario = {
+          id: `scenario_custom_${Date.now()}`,
+          name: scenarioType === 'promotion'
+            ? `${promotion_discount}% Off Promo (${promotion_duration}mo) - ${tier}`
+            : `${tier} ${price_change >= 0 ? '+' : ''}$${price_change.toFixed(2)}`,
+          description: `Custom scenario created via chatbot`,
+          category: scenarioType,
+          config: {
+            tier: tier,
+            current_price: currentPrice,
+            new_price: newPrice,
+            price_change_pct: ((newPrice - currentPrice) / currentPrice) * 100
+          },
+          constraints: {
+            min_price: currentPrice * 0.5,
+            max_price: currentPrice * 1.5
+          }
+        };
+
+        if (scenarioType === 'promotion') {
+          newScenario.config.promotion = {
+            discount_pct: promotion_discount,
+            duration_months: promotion_duration
+          };
+        }
+
+        // Add to scenarios list
+        allScenarios.push(newScenario);
+
         return {
-          scenarios: allScenarios.map(s => ({
-            id: s.id,
-            name: s.name,
-            description: s.description,
-            category: s.category,
-            priority: s.priority,
-            tier: s.config?.tier,
-            current_price: s.config?.current_price,
-            new_price: s.config?.new_price
-          })),
-          total: allScenarios.length,
-          categories: [...new Set(allScenarios.map(s => s.category))]
+          created: true,
+          scenario: newScenario,
+          message: `Created scenario: ${newScenario.name}. Use interpretScenario('${newScenario.id}') to simulate and analyze results.`
         };
       }
     };
 
-    // Initialize chat module with context
+    // Initialize chat module with scenario-focused context
     initializeChat(context);
-    console.log('Chat initialized with data context');
+    console.log('Chat initialized with scenario-focused context');
 
   } catch (error) {
     console.error('Error initializing chat context:', error);
@@ -602,35 +815,100 @@ async function initializeChatContext() {
   }
 }
 
-// Load sample data
+// Load sample data with progress bar
 async function loadData() {
   const btn = document.getElementById('load-data-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+  const progressContainer = document.getElementById('loading-progress');
+  const progressBar = document.getElementById('loading-progress-bar');
+  const progressText = document.getElementById('loading-percentage');
+  const stageText = document.getElementById('loading-stage');
+
+  // Hide button, show progress
+  btn.style.display = 'none';
+  progressContainer.style.display = 'block';
+
+  // Define loading stages
+  const stages = [
+    { progress: 0, text: 'Initializing data loader...' },
+    { progress: 15, text: 'Loading CSV files...' },
+    { progress: 30, text: 'Parsing weekly aggregated data...' },
+    { progress: 45, text: 'Calculating KPIs...' },
+    { progress: 60, text: 'Loading pricing scenarios...' },
+    { progress: 75, text: 'Analyzing price elasticity...' },
+    { progress: 85, text: 'Initializing AI chat context...' },
+    { progress: 95, text: 'Finalizing data viewer...' },
+    { progress: 100, text: 'Complete!' }
+  ];
+
+  // Random total duration between 2-7 seconds
+  const totalDuration = 2000 + Math.random() * 5000;
+  const stageInterval = totalDuration / stages.length;
 
   try {
-    await loadKPIs();
-    await loadScenarioCards();
-    await loadElasticityAnalytics();
+    // Show progress through stages
+    for (let i = 0; i < stages.length; i++) {
+      const stage = stages[i];
 
-    // Initialize chat with data context
-    await initializeChatContext();
+      // Update UI
+      progressBar.style.width = stage.progress + '%';
+      progressBar.setAttribute('aria-valuenow', stage.progress);
+      progressText.textContent = stage.progress + '%';
+      stageText.textContent = stage.text;
 
-    // Hide load button, show sections
+      // Add color transition as we progress
+      if (stage.progress >= 75) {
+        progressBar.classList.remove('bg-primary');
+        progressBar.classList.add('bg-success');
+      }
+
+      // Wait for stage interval
+      await new Promise(resolve => setTimeout(resolve, stageInterval));
+
+      // Load actual data at specific stages
+      if (stage.progress === 45) {
+        await loadKPIs();
+      } else if (stage.progress === 60) {
+        await loadScenarioCards();
+      } else if (stage.progress === 75) {
+        await loadElasticityAnalytics();
+      } else if (stage.progress === 85) {
+        await initializeChatContext();
+      } else if (stage.progress === 95) {
+        initializeDataViewer();
+      }
+    }
+
+    // Wait a bit before hiding progress
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Hide load button section, show all data sections
     document.getElementById('load-data-section').style.display = 'none';
     document.getElementById('kpi-section').style.display = 'block';
     document.getElementById('elasticity-section').style.display = 'block';
     document.getElementById('scenario-section').style.display = 'block';
     document.getElementById('analytics-section').style.display = 'block';
     document.getElementById('chat-section').style.display = 'block';
+    document.getElementById('data-viewer-section').style.display = 'block';
+
+    // Re-initialize popovers for newly visible sections
+    initializePopovers();
 
     dataLoaded = true;
     console.log('Data loaded successfully!');
+
   } catch (error) {
     console.error('Error loading data:', error);
-    alert('Failed to load data. Please check console for details.');
+
+    // Show error state
+    progressBar.classList.remove('bg-success');
+    progressBar.classList.add('bg-danger');
+    stageText.textContent = 'Error loading data: ' + error.message;
+
+    // Reset after 3 seconds
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    progressContainer.style.display = 'none';
+    btn.style.display = 'inline-block';
     btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-cloud-download me-2"></i>Load Sample Data';
   }
 }
 
@@ -726,6 +1004,133 @@ async function handleChatSend() {
   }
 }
 
+// Open Scenario Editor
+function openScenarioEditor(scenarioId) {
+  const scenario = allScenarios.find(s => s.id === scenarioId);
+  if (!scenario) return;
+
+  // Populate form
+  document.getElementById('edit-scenario-id').value = scenario.id;
+  document.getElementById('edit-scenario-name').value = scenario.name;
+  document.getElementById('edit-tier').value = scenario.config.tier.replace('_', ' ').toUpperCase();
+  document.getElementById('edit-current-price').value = scenario.config.current_price;
+  document.getElementById('edit-new-price').value = scenario.config.new_price;
+
+  // Show constraints
+  const constraints = scenario.constraints;
+  document.getElementById('price-constraints').textContent =
+    `Valid range: $${constraints.min_price} - $${constraints.max_price}`;
+
+  // Show promotion settings if applicable
+  if (scenario.config.promotion) {
+    document.getElementById('promotion-settings').style.display = 'block';
+    document.getElementById('edit-discount-pct').value = scenario.config.promotion.discount_pct;
+    document.getElementById('edit-duration-months').value = scenario.config.promotion.duration_months;
+  } else {
+    document.getElementById('promotion-settings').style.display = 'none';
+  }
+
+  // Update price change indicator
+  updatePriceChangeIndicator();
+
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('scenarioEditorModal'));
+  modal.show();
+}
+
+// Update price change indicator
+function updatePriceChangeIndicator() {
+  const currentPrice = parseFloat(document.getElementById('edit-current-price').value);
+  const newPrice = parseFloat(document.getElementById('edit-new-price').value);
+
+  if (currentPrice && newPrice) {
+    const change = ((newPrice - currentPrice) / currentPrice) * 100;
+    const indicator = document.getElementById('price-change-indicator');
+    indicator.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+    indicator.className = 'input-group-text';
+    if (change > 0) indicator.classList.add('bg-danger', 'text-white');
+    else if (change < 0) indicator.classList.add('bg-success', 'text-white');
+  }
+}
+
+// Save edited scenario
+async function saveEditedScenario() {
+  const scenarioId = document.getElementById('edit-scenario-id').value;
+  const scenario = allScenarios.find(s => s.id === scenarioId);
+  if (!scenario) return;
+
+  // Get new values
+  const newPrice = parseFloat(document.getElementById('edit-new-price').value);
+  const discountPct = document.getElementById('edit-discount-pct').value ?
+    parseFloat(document.getElementById('edit-discount-pct').value) : null;
+  const durationMonths = document.getElementById('edit-duration-months').value ?
+    parseInt(document.getElementById('edit-duration-months').value) : null;
+
+  // Validate constraints
+  if (newPrice < scenario.constraints.min_price || newPrice > scenario.constraints.max_price) {
+    alert(`Price must be between $${scenario.constraints.min_price} and $${scenario.constraints.max_price}`);
+    return;
+  }
+
+  // Update scenario
+  scenario.config.new_price = newPrice;
+  scenario.config.price_change_pct = ((newPrice - scenario.config.current_price) / scenario.config.current_price) * 100;
+
+  if (scenario.config.promotion && discountPct && durationMonths) {
+    scenario.config.promotion.discount_pct = discountPct;
+    scenario.config.promotion.duration_months = durationMonths;
+
+    // Recalculate promo price
+    scenario.config.new_price = scenario.config.current_price * (1 - discountPct / 100);
+  }
+
+  // Update description
+  if (scenario.category === 'promotion') {
+    scenario.name = `Launch ${discountPct}% Off Promo (${durationMonths} months)`;
+    scenario.description = `Offer ${discountPct}% discount for ${durationMonths} months on ${scenario.config.tier.replace('_', '-')} tier`;
+  } else {
+    const priceDiff = newPrice - scenario.config.current_price;
+    scenario.name = `${scenario.config.tier.replace('_', ' ')} ${priceDiff >= 0 ? '+' : ''}$${Math.abs(priceDiff).toFixed(2)}`;
+  }
+
+  // Close modal properly to avoid focus issues
+  const modalElement = document.getElementById('scenarioEditorModal');
+  const modalInstance = bootstrap.Modal.getInstance(modalElement);
+  if (modalInstance) {
+    modalInstance.hide();
+  }
+
+  // Wait for modal to close animation
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  // Reload scenario cards
+  await loadScenarioCards();
+
+  // If this was the selected scenario, re-select it
+  if (selectedScenario && selectedScenario.id === scenarioId) {
+    selectedScenario = scenario;
+    const cardElement = document.querySelector(`[data-scenario-id="${scenarioId}"]`);
+    if (cardElement) {
+      cardElement.classList.add('selected');
+    }
+  }
+
+  alert('Scenario updated! Click "Simulate" to see the new results.');
+}
+
+// Initialize Bootstrap popovers for ML methodology
+function initializePopovers() {
+  const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+  const popoverList = [...popoverTriggerList].map(popoverTriggerEl => {
+    return new bootstrap.Popover(popoverTriggerEl, {
+      html: true,
+      sanitize: false,
+      trigger: 'focus'
+    });
+  });
+  console.log(`Initialized ${popoverList.length} ML methodology popovers`);
+}
+
 // Initialize app
 async function init() {
   console.log('Initializing Price Elasticity POC...');
@@ -755,6 +1160,13 @@ async function init() {
       handleChatSend();
     });
   });
+
+  // Initialize popovers (will be initialized again after data loads)
+  initializePopovers();
+
+  // Scenario editor event listeners
+  document.getElementById('edit-new-price').addEventListener('input', updatePriceChangeIndicator);
+  document.getElementById('save-edited-scenario-btn').addEventListener('click', saveEditedScenario);
 
   console.log('POC initialized successfully!');
 }

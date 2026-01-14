@@ -101,124 +101,91 @@ export async function configureLLM() {
 }
 
 /**
- * Build system prompt with current data context
+ * Build system prompt with current scenario-focused context
  */
 function buildSystemPrompt() {
-  const scenarios = dataContext.scenarios || [];
-  const currentSubs = dataContext.currentSubscribers || 'N/A';
-  const currentRevenue = dataContext.currentRevenue || 'N/A';
-  const currentChurn = dataContext.currentChurn || 'N/A';
+  const allScenarios = dataContext.allScenarios || [];
+  const businessContext = dataContext.businessContext || {};
+  const currentSim = dataContext.getCurrentSimulation ? dataContext.getCurrentSimulation() : null;
 
-  return `You are an AI assistant for the Discovery+ Price Elasticity Dashboard.
+  return `You are the Scenario Analysis Assistant for the Discovery+ Price Elasticity Dashboard.
 
 **Your Role:**
-- Answer questions about pricing data, trends, and elasticity
-- Run scenario simulations when requested
-- Compare scenarios and provide recommendations
-- Generate visualizations and charts
-- Explain elasticity concepts in simple, business-friendly terms
+- Interpret scenario simulation results and provide business insights
+- Analyze visualizations and explain what they mean
+- Suggest optimal scenarios based on business goals
+- Compare multiple scenarios and highlight trade-offs
+- Help users understand price elasticity and its impact
 
-**Available Data:**
-- Date range: January 2, 2022 to December 29, 2024 (3 years, 156 weeks per tier = 468 total records)
-- Subscription Tiers:
-  - Ad-Supported: $5.99/month (price-sensitive, elasticity ~-2.1)
-  - Ad-Free: $8.99/month (moderately elastic, elasticity ~-1.7)
-  - Annual: $71.88/year ($5.99/month equiv, less elastic, elasticity ~-1.5)
-  - Bundle: Discovery+ & Max at $14.99 (estimated baseline)
+**Current Business Context:**
+- Total Subscribers: ${businessContext.currentSubscribers?.toLocaleString() || 'N/A'}
+- Monthly Revenue: $${businessContext.currentRevenue?.toLocaleString() || 'N/A'}
+- Average Churn Rate: ${businessContext.currentChurn ? (businessContext.currentChurn * 100).toFixed(2) + '%' : 'N/A'}
 
-**Data Schema (weekly_aggregated.csv):**
-Columns available: date, tier, new_subscribers, active_subscribers, churned_subscribers, churn_rate,
-net_adds, revenue, arpu, price, base_price, is_promo, promo_discount_pct, avg_engagement_score,
-avg_watch_time_30d, total_marketing_spend, paid_social, paid_search, major_content_releases,
-net_content_score, unemployment_rate, cpi, consumer_sentiment, competitor_avg_price, netflix_price,
-netflix_major_release, price_lag1, price_lag4, new_subs_lag1, time_index, month, quarter, is_holiday_season
-
-**Current Dashboard State:**
-- Total Subscribers: ${typeof currentSubs === 'number' ? currentSubs.toLocaleString() : currentSubs}
-- Monthly Revenue: ${typeof currentRevenue === 'number' ? '$' + currentRevenue.toLocaleString() : currentRevenue}
-- Average Churn Rate: ${typeof currentChurn === 'number' ? (currentChurn * 100).toFixed(2) + '%' : currentChurn}
+**Price Elasticity by Tier:**
+- Ad-Supported ($5.99/mo): ${businessContext.elasticityByTier?.ad_supported || -2.1} (Most price-sensitive)
+- Ad-Free ($8.99/mo): ${businessContext.elasticityByTier?.ad_free || -1.9} (Moderately elastic)
+- Annual ($71.88/yr): ${businessContext.elasticityByTier?.annual || -1.6} (Least elastic)
 
 **Available Scenarios:**
-${scenarios.slice(0, 10).map(s => `- ${s.id}: ${s.name} (${s.category})`).join('\n') || 'None loaded'}
+${allScenarios.slice(0, 8).map(s => `- ${s.id}: ${s.name}`).join('\n') || 'None loaded yet'}
 
-**IMPORTANT - Tool Usage:**
-When users ask data questions, you MUST use the query_data tool to retrieve actual data from the CSV.
-DO NOT make up numbers or estimates - always query the data first, then answer based on the results.
+**Current Simulation:**
+${currentSim ? `Active: "${currentSim.scenario_name}" - Revenue ${currentSim.delta.revenue_pct >= 0 ? '+' : ''}${currentSim.delta.revenue_pct.toFixed(1)}%, Subscribers ${currentSim.delta.subscribers_pct >= 0 ? '+' : ''}${currentSim.delta.subscribers_pct.toFixed(1)}%` : 'No scenario simulated yet'}
 
-Example:
-User: "What was churn in Q4 2024?"
-You: Call query_data with filters: {tier: "all", date_start: "2024-10-01", date_end: "2024-12-31"}, metrics: ["churn_rate"], aggregation: "avg"
-Tool returns: {results: {churn_rate: 0.0142}, data_points: 39}
-You: "The average churn rate in Q4 2024 across all tiers was 1.42% (based on 39 weekly data points)."
+**Available Tools:**
+1. **interpret_scenario** - Analyze a scenario's results with detailed metrics and trade-offs
+2. **suggest_scenario** - Get scenario suggestions based on business goals (maximize_revenue, grow_subscribers, reduce_churn, maximize_arpu)
+3. **analyze_chart** - Explain what a specific visualization shows (demand_curve, tier_mix, forecast, heatmap)
+4. **compare_outcomes** - Deep comparison of multiple scenarios with trade-off analysis
+5. **create_scenario** - Generate a new custom scenario from parameters
+
+**How to Use Tools:**
+- When users ask to interpret results: Use interpret_scenario with the scenario_id
+- When users ask "which scenario is best for X": Use suggest_scenario with the goal
+- When users ask about a chart: Use analyze_chart with the chart name
+- When users want to compare: Use compare_outcomes with array of scenario_ids
+- When users want to create new scenarios: Use create_scenario with parameters
 
 **Response Guidelines:**
-- Always use tools to query data before answering
-- Cite the tool results in your answer (e.g., "Based on 39 data points...")
-- Use business-friendly language
-- Explain implications of pricing changes
-- Highlight trade-offs between revenue, growth, and churn
-- Format numbers clearly (use commas, currency symbols, percentages)
-- When you receive tool results, analyze them and provide insights, not just raw numbers`;
+- Focus on scenario interpretation and business insights
+- Explain trade-offs clearly (revenue vs subscribers, short-term vs long-term)
+- Highlight risks and warnings from simulations
+- Use business-friendly language, avoid technical jargon
+- Provide actionable recommendations
+- Format numbers with proper currency/percentage symbols
+- Cite elasticity values when explaining price sensitivity
+
+**Example Interactions:**
+User: "Interpret the current scenario"
+→ Use interpret_scenario with the current scenario_id
+
+User: "What scenario maximizes revenue?"
+→ Use suggest_scenario with goal: "maximize_revenue"
+
+User: "Explain the demand curve"
+→ Use analyze_chart with chartName: "demand_curve"
+
+User: "Compare scenario_001 and scenario_002"
+→ Use compare_outcomes with scenario_ids: ["scenario_001", "scenario_002"]`;
 }
 
 /**
- * Define tools for the LLM to call
+ * Define scenario-focused tools for the LLM to call
  */
 function getToolDefinitions() {
   return [
     {
       type: "function",
       function: {
-        name: "query_data",
-        description: "Query the weekly aggregated CSV data with filters and aggregations. Use this to answer questions about historical metrics, trends, and tier-specific data.",
-        parameters: {
-          type: "object",
-          properties: {
-            filters: {
-              type: "object",
-              description: "Filter conditions (e.g., {tier: 'ad_supported', date_start: '2024-01-01', date_end: '2024-12-31'})",
-              properties: {
-                tier: {
-                  type: "string",
-                  enum: ["ad_supported", "ad_free", "annual", "all"],
-                  description: "Subscription tier to filter by"
-                },
-                date_start: {
-                  type: "string",
-                  description: "Start date in YYYY-MM-DD format"
-                },
-                date_end: {
-                  type: "string",
-                  description: "End date in YYYY-MM-DD format"
-                }
-              }
-            },
-            metrics: {
-              type: "array",
-              items: { type: "string" },
-              description: "Metrics to retrieve (e.g., ['active_subscribers', 'churn_rate', 'revenue', 'arpu'])"
-            },
-            aggregation: {
-              type: "string",
-              enum: ["avg", "sum", "min", "max", "latest", "trend"],
-              description: "How to aggregate the data"
-            }
-          },
-          required: ["metrics"]
-        }
-      }
-    },
-    {
-      type: "function",
-      function: {
-        name: "run_scenario",
-        description: "Run a pricing scenario simulation to forecast the impact of price changes. Returns forecasted subscribers, revenue, churn, ARPU, and other KPIs.",
+        name: "interpret_scenario",
+        description: "Analyze and interpret a specific scenario's simulation results. Provides detailed metrics, trade-offs, risks, and business insights.",
         parameters: {
           type: "object",
           properties: {
             scenario_id: {
               type: "string",
-              description: "ID of the scenario to run (e.g., 'scenario_001', 'scenario_002'). Use query_data first to see available scenarios if needed."
+              description: "ID of the scenario to interpret (e.g., 'scenario_001', 'scenario_002', 'scenario_003')"
             }
           },
           required: ["scenario_id"]
@@ -228,20 +195,52 @@ function getToolDefinitions() {
     {
       type: "function",
       function: {
-        name: "compare_scenarios",
-        description: "Compare multiple scenarios side-by-side to see which performs best on various metrics.",
+        name: "suggest_scenario",
+        description: "Get AI-powered scenario suggestions based on a specific business goal. Returns optimal strategy and parameters.",
+        parameters: {
+          type: "object",
+          properties: {
+            goal: {
+              type: "string",
+              enum: ["maximize_revenue", "grow_subscribers", "reduce_churn", "maximize_arpu"],
+              description: "The business goal to optimize for"
+            }
+          },
+          required: ["goal"]
+        }
+      }
+    },
+    {
+      type: "function",
+      function: {
+        name: "analyze_chart",
+        description: "Explain what a specific visualization shows and how to interpret it. Provides context and insights about the chart.",
+        parameters: {
+          type: "object",
+          properties: {
+            chart_name: {
+              type: "string",
+              enum: ["demand_curve", "tier_mix", "forecast", "heatmap"],
+              description: "The name of the chart to analyze"
+            }
+          },
+          required: ["chart_name"]
+        }
+      }
+    },
+    {
+      type: "function",
+      function: {
+        name: "compare_outcomes",
+        description: "Deep comparison of multiple scenarios with trade-off analysis. Shows which scenario is best for each metric and explains the business implications.",
         parameters: {
           type: "object",
           properties: {
             scenario_ids: {
               type: "array",
               items: { type: "string" },
-              description: "Array of scenario IDs to compare (e.g., ['scenario_001', 'scenario_002', 'scenario_003'])"
-            },
-            sort_by: {
-              type: "string",
-              enum: ["revenue", "subscribers", "churn", "arpu"],
-              description: "Metric to rank scenarios by"
+              description: "Array of 2+ scenario IDs to compare (e.g., ['scenario_001', 'scenario_002'])",
+              minItems: 2
             }
           },
           required: ["scenario_ids"]
@@ -251,11 +250,30 @@ function getToolDefinitions() {
     {
       type: "function",
       function: {
-        name: "get_scenario_list",
-        description: "Get a list of all available pricing scenarios with their descriptions.",
+        name: "create_scenario",
+        description: "Create a new custom pricing scenario from user-specified parameters. Can create price change scenarios or promotional scenarios.",
         parameters: {
           type: "object",
-          properties: {}
+          properties: {
+            tier: {
+              type: "string",
+              enum: ["ad_supported", "ad_free", "annual"],
+              description: "The subscription tier to apply changes to"
+            },
+            price_change: {
+              type: "number",
+              description: "Dollar amount to change price (e.g., 1.00 for +$1, -2.00 for -$2). Omit if creating a promotion."
+            },
+            promotion_discount: {
+              type: "number",
+              description: "Discount percentage for promotion (e.g., 50 for 50% off). Required if creating promotion."
+            },
+            promotion_duration: {
+              type: "integer",
+              description: "Duration of promotion in months (1-12). Required if creating promotion."
+            }
+          },
+          required: ["tier"]
         }
       }
     }
@@ -516,21 +534,24 @@ async function getContinuationResponse() {
 }
 
 /**
- * Execute a specific tool
+ * Execute a specific scenario-focused tool
  */
 async function executeTool(toolName, args) {
   switch (toolName) {
-    case 'query_data':
-      return await dataContext.queryData(args);
+    case 'interpret_scenario':
+      return await dataContext.interpretScenario(args.scenario_id);
 
-    case 'run_scenario':
-      return await dataContext.runScenario(args.scenario_id);
+    case 'suggest_scenario':
+      return await dataContext.suggestScenario(args.goal);
 
-    case 'compare_scenarios':
-      return await dataContext.compareScenarios(args.scenario_ids, args.sort_by);
+    case 'analyze_chart':
+      return await dataContext.analyzeChart(args.chart_name);
 
-    case 'get_scenario_list':
-      return await dataContext.getScenarioList();
+    case 'compare_outcomes':
+      return await dataContext.compareOutcomes(args.scenario_ids);
+
+    case 'create_scenario':
+      return await dataContext.createScenario(args);
 
     default:
       throw new Error(`Unknown tool: ${toolName}`);
