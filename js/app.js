@@ -6,8 +6,9 @@
  */
 
 import { loadAllData, loadScenarios, getWeeklyData, loadElasticityParams } from './data-loader.js';
-import { simulateScenario } from './scenario-engine.js';
+import { simulateScenario, compareScenarios as compareScenariosEngine } from './scenario-engine.js';
 import { renderDemandCurve, renderElasticityHeatmap, renderTierMixShift, renderTradeoffsScatter, renderComparisonBarChart, renderRadarChart } from './charts.js';
+import { initializeChat, configureLLM, sendMessage, clearHistory } from './chat.js';
 
 // Global state
 let selectedScenario = null;
@@ -69,7 +70,7 @@ async function loadScenarioCards() {
   try {
     allScenarios = await loadScenarios();
 
-    // Filter to most interesting scenarios for Phase 1
+    // Filter to most interesting scenarios for Phase 1 (including bundle scenario)
     const featuredScenarios = allScenarios.filter(s =>
       ['scenario_001', 'scenario_002', 'scenario_003', 'scenario_008', 'scenario_baseline'].includes(s.id)
     );
@@ -395,6 +396,177 @@ async function loadElasticityAnalytics() {
   }
 }
 
+// Initialize chat context with tool implementations
+async function initializeChatContext() {
+  try {
+    // Get current KPI values
+    const weeklyData = await getWeeklyData('all');
+    const latestWeek = {};
+    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+      const tierData = weeklyData.filter(d => d.tier === tier);
+      latestWeek[tier] = tierData[tierData.length - 1];
+    });
+
+    const totalSubs = Object.values(latestWeek).reduce((sum, d) => sum + d.active_subscribers, 0);
+    const totalRevenue = Object.values(latestWeek).reduce((sum, d) => sum + d.revenue, 0) * 4;
+    const avgChurn = Object.values(latestWeek).reduce((sum, d) => sum + d.churn_rate, 0) / 3;
+
+    // Create data context for chat
+    const context = {
+      scenarios: allScenarios,
+      currentSubscribers: totalSubs,
+      currentRevenue: totalRevenue,
+      currentChurn: avgChurn,
+
+      // Tool implementations
+      queryData: async (params) => {
+        const { filters = {}, metrics = [], aggregation = 'avg' } = params;
+        const tier = filters.tier || 'all';
+        const data = await getWeeklyData(tier);
+
+        // Apply date filters
+        let filteredData = data;
+        if (filters.date_start || filters.date_end) {
+          filteredData = data.filter(d => {
+            const date = new Date(d.date);
+            if (filters.date_start && date < new Date(filters.date_start)) return false;
+            if (filters.date_end && date > new Date(filters.date_end)) return false;
+            return true;
+          });
+        }
+
+        // Calculate aggregations
+        const result = {};
+        for (const metric of metrics) {
+          const values = filteredData.map(d => d[metric]).filter(v => v !== undefined && v !== null);
+
+          switch (aggregation) {
+            case 'avg':
+              result[metric] = values.reduce((sum, v) => sum + v, 0) / values.length;
+              break;
+            case 'sum':
+              result[metric] = values.reduce((sum, v) => sum + v, 0);
+              break;
+            case 'min':
+              result[metric] = Math.min(...values);
+              break;
+            case 'max':
+              result[metric] = Math.max(...values);
+              break;
+            case 'latest':
+              result[metric] = values[values.length - 1];
+              break;
+            case 'trend':
+              // Simple trend: compare first quarter to last quarter
+              const q1 = values.slice(0, Math.floor(values.length / 4));
+              const q4 = values.slice(-Math.floor(values.length / 4));
+              const q1Avg = q1.reduce((sum, v) => sum + v, 0) / q1.length;
+              const q4Avg = q4.reduce((sum, v) => sum + v, 0) / q4.length;
+              result[metric] = {
+                trend: q4Avg > q1Avg ? 'increasing' : 'decreasing',
+                change: q4Avg - q1Avg,
+                change_pct: ((q4Avg - q1Avg) / q1Avg) * 100
+              };
+              break;
+          }
+        }
+
+        return {
+          filters,
+          metrics,
+          aggregation,
+          data_points: filteredData.length,
+          results: result,
+          summary: `Analyzed ${filteredData.length} data points for ${tier} tier`
+        };
+      },
+
+      runScenario: async (scenarioId) => {
+        const scenario = allScenarios.find(s => s.id === scenarioId);
+        if (!scenario) {
+          throw new Error(`Scenario ${scenarioId} not found`);
+        }
+
+        const result = await simulateScenario(scenario);
+        return {
+          scenario_id: result.scenario_id,
+          scenario_name: result.scenario_name,
+          baseline: result.baseline,
+          forecasted: result.forecasted,
+          delta: result.delta,
+          warnings: result.warnings,
+          summary: `${result.scenario_name}: Revenue ${result.delta.revenue_pct >= 0 ? '+' : ''}${result.delta.revenue_pct.toFixed(1)}%, Subscribers ${result.delta.subscribers_pct >= 0 ? '+' : ''}${result.delta.subscribers_pct.toFixed(1)}%, Churn ${result.delta.churn_rate_pct >= 0 ? '+' : ''}${result.delta.churn_rate_pct.toFixed(1)}%`
+        };
+      },
+
+      compareScenarios: async (scenarioIds, sortBy = 'revenue') => {
+        const scenarios = scenarioIds.map(id => allScenarios.find(s => s.id === id)).filter(s => s);
+
+        if (scenarios.length === 0) {
+          throw new Error('No valid scenarios found');
+        }
+
+        const results = await compareScenariosEngine(scenarios);
+
+        // Sort by specified metric
+        const sorted = results.sort((a, b) => {
+          switch (sortBy) {
+            case 'revenue':
+              return b.delta.revenue_pct - a.delta.revenue_pct;
+            case 'subscribers':
+              return b.delta.subscribers_pct - a.delta.subscribers_pct;
+            case 'churn':
+              return a.delta.churn_rate_pct - b.delta.churn_rate_pct; // Lower is better
+            case 'arpu':
+              return b.delta.arpu_pct - a.delta.arpu_pct;
+            default:
+              return 0;
+          }
+        });
+
+        return {
+          scenarios: sorted.map(r => ({
+            id: r.scenario_id,
+            name: r.scenario_name,
+            revenue_change_pct: r.delta.revenue_pct,
+            subscribers_change_pct: r.delta.subscribers_pct,
+            churn_change_pct: r.delta.churn_rate_pct,
+            arpu_change_pct: r.delta.arpu_pct
+          })),
+          sorted_by: sortBy,
+          best_scenario: sorted[0].scenario_name,
+          summary: `Compared ${scenarios.length} scenarios. Best for ${sortBy}: ${sorted[0].scenario_name} (${sortBy === 'churn' ? '' : '+'}${sorted[0].delta[sortBy + '_pct'].toFixed(1)}%)`
+        };
+      },
+
+      getScenarioList: async () => {
+        return {
+          scenarios: allScenarios.map(s => ({
+            id: s.id,
+            name: s.name,
+            description: s.description,
+            category: s.category,
+            priority: s.priority,
+            tier: s.config?.tier,
+            current_price: s.config?.current_price,
+            new_price: s.config?.new_price
+          })),
+          total: allScenarios.length,
+          categories: [...new Set(allScenarios.map(s => s.category))]
+        };
+      }
+    };
+
+    // Initialize chat module with context
+    initializeChat(context);
+    console.log('Chat initialized with data context');
+
+  } catch (error) {
+    console.error('Error initializing chat context:', error);
+    throw error;
+  }
+}
+
 // Load sample data
 async function loadData() {
   const btn = document.getElementById('load-data-btn');
@@ -406,12 +578,16 @@ async function loadData() {
     await loadScenarioCards();
     await loadElasticityAnalytics();
 
+    // Initialize chat with data context
+    await initializeChatContext();
+
     // Hide load button, show sections
     document.getElementById('load-data-section').style.display = 'none';
     document.getElementById('kpi-section').style.display = 'block';
     document.getElementById('elasticity-section').style.display = 'block';
     document.getElementById('scenario-section').style.display = 'block';
     document.getElementById('analytics-section').style.display = 'block';
+    document.getElementById('chat-section').style.display = 'block';
 
     dataLoaded = true;
     console.log('Data loaded successfully!');
@@ -495,6 +671,26 @@ function clearScenarios() {
   }
 }
 
+// Handle chat message send
+async function handleChatSend() {
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  input.value = '';
+  input.disabled = true;
+  document.getElementById('chat-send-btn').disabled = true;
+
+  try {
+    await sendMessage(message);
+  } finally {
+    input.disabled = false;
+    document.getElementById('chat-send-btn').disabled = false;
+    input.focus();
+  }
+}
+
 // Initialize app
 async function init() {
   console.log('Initializing Price Elasticity POC...');
@@ -505,6 +701,25 @@ async function init() {
   document.getElementById('save-scenario-btn').addEventListener('click', saveScenario);
   document.getElementById('compare-btn').addEventListener('click', compareScenarios);
   document.getElementById('clear-scenarios-btn').addEventListener('click', clearScenarios);
+
+  // Chat event listeners
+  document.getElementById('configure-llm-btn').addEventListener('click', configureLLM);
+  document.getElementById('chat-send-btn').addEventListener('click', handleChatSend);
+  document.getElementById('chat-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSend();
+    }
+  });
+
+  // Suggested query buttons
+  document.querySelectorAll('.suggested-query').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const query = btn.textContent.trim();
+      document.getElementById('chat-input').value = query;
+      handleChatSend();
+    });
+  });
 
   console.log('POC initialized successfully!');
 }

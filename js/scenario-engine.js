@@ -24,8 +24,11 @@ export async function simulateScenario(scenario, options = {}) {
   const timeHorizon = options.timeHorizon || 'medium_term_3_12mo';
 
   try {
-    // Get baseline data
-    const baseline = await getBaselineMetrics(scenario.config.tier);
+    console.log('Simulating scenario:', scenario.id, 'for tier:', scenario.config.tier);
+
+    // Get baseline data (pass scenario for bundle handling)
+    const baseline = await getBaselineMetrics(scenario.config.tier, scenario);
+    console.log('Baseline metrics retrieved:', baseline);
 
     // Calculate elasticity for this scenario
     const elasticityInfo = await calculateElasticity(
@@ -151,19 +154,62 @@ export async function simulateScenario(scenario, options = {}) {
 /**
  * Get baseline metrics for a tier
  * @param {string} tier - Tier name
+ * @param {Object} scenario - Scenario object (for special handling)
  * @returns {Promise<Object>} Baseline metrics
  */
-async function getBaselineMetrics(tier) {
-  // Get most recent week of data
+async function getBaselineMetrics(tier, scenario = null) {
+  // Special handling for bundle scenarios
+  if (tier === 'bundle') {
+    console.log('Bundle scenario detected - using ad_free tier as baseline');
+
+    // Use ad_free tier as baseline since bundle includes Discovery+ ad-free
+    const weeklyData = await getWeeklyData('ad_free');
+
+    if (!weeklyData || weeklyData.length === 0) {
+      throw new Error('No data available for ad_free tier (needed for bundle baseline)');
+    }
+
+    const latestWeek = weeklyData[weeklyData.length - 1];
+
+    // For bundle scenarios, estimate potential bundle subscribers as a percentage of ad_free
+    // Assumption: ~30% of ad_free users might be interested in bundle
+    const bundlePotentialPct = 0.30;
+    const estimatedBundleSubs = Math.round((latestWeek.active_subscribers || 0) * bundlePotentialPct);
+
+    // Bundle ARPU is the bundle price
+    const bundleARPU = scenario?.config?.new_price || 14.99;
+
+    return {
+      activeSubscribers: estimatedBundleSubs,
+      churnRate: (latestWeek.churn_rate || 0) * 0.7, // Bundles typically have lower churn
+      newSubscribers: Math.round((latestWeek.new_subscribers || 0) * bundlePotentialPct),
+      revenue: estimatedBundleSubs * bundleARPU,
+      arpu: bundleARPU,
+      isBundle: true,
+      baseTier: 'ad_free'
+    };
+  }
+
+  // Regular tier handling
   const weeklyData = await getWeeklyData(tier);
+
+  if (!weeklyData || weeklyData.length === 0) {
+    throw new Error(`No data available for tier: ${tier}. Please ensure data is loaded correctly.`);
+  }
+
   const latestWeek = weeklyData[weeklyData.length - 1];
 
+  if (!latestWeek) {
+    throw new Error(`Unable to retrieve latest week data for tier: ${tier}`);
+  }
+
   return {
-    activeSubscribers: latestWeek.active_subscribers,
-    churnRate: latestWeek.churn_rate,
-    newSubscribers: latestWeek.new_subscribers,
-    revenue: latestWeek.revenue,
-    arpu: latestWeek.arpu
+    activeSubscribers: latestWeek.active_subscribers || 0,
+    churnRate: latestWeek.churn_rate || 0,
+    newSubscribers: latestWeek.new_subscribers || 0,
+    revenue: latestWeek.revenue || 0,
+    arpu: latestWeek.arpu || 0,
+    isBundle: false
   };
 }
 

@@ -302,20 +302,31 @@ export async function getBaselineScenario() {
  */
 export async function getWeeklyData(tier = 'all', startDate = null, endDate = null) {
   const data = await loadWeeklyAggregated();
+  console.log('Total weekly data records loaded:', data.length);
 
   let filtered = data;
 
   // Filter by tier
   if (tier !== 'all') {
     filtered = filtered.filter(d => d.tier === tier);
+    console.log(`Filtered to tier "${tier}":`, filtered.length, 'records');
   }
 
   // Filter by date range
   if (startDate) {
     filtered = filtered.filter(d => d.date >= startDate);
+    console.log(`Filtered from ${startDate}:`, filtered.length, 'records');
   }
   if (endDate) {
     filtered = filtered.filter(d => d.date <= endDate);
+    console.log(`Filtered to ${endDate}:`, filtered.length, 'records');
+  }
+
+  if (filtered.length === 0) {
+    console.warn(`Warning: No data found for tier="${tier}", startDate="${startDate}", endDate="${endDate}"`);
+    // Show sample of available tiers
+    const availableTiers = [...new Set(data.map(d => d.tier))];
+    console.log('Available tiers:', availableTiers);
   }
 
   return filtered;

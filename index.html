@@ -202,6 +202,11 @@
       </div>
       <div class="card-body">
         <p class="mb-3">Select a pricing scenario to simulate its impact on key metrics.</p>
+        <div class="alert alert-info alert-dismissible fade show small" role="alert">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Phase 1 POC:</strong> Includes scenarios for ad-supported, ad-free, annual, and bundle tiers. Bundle scenarios use estimated baseline derived from ad-free tier data.
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
 
         <!-- Scenario Selection -->
         <div class="row g-3" id="scenario-cards">
@@ -367,6 +372,55 @@
   </div>
   </div>
 
+  <!-- GenAI Conversational Search -->
+  <div id="chat-section" style="display: none;">
+  <div class="container my-4">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="h5 mb-0">
+          <i class="bi bi-chat-dots me-2"></i>
+          Ask Questions About Your Data
+        </h2>
+        <button id="configure-llm-btn" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-gear me-1"></i>
+          Configure LLM
+        </button>
+      </div>
+      <div class="card-body">
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="mb-3 border rounded p-3" style="height: 500px; overflow-y: auto; background-color: var(--bs-light-bg-subtle);">
+          <div class="text-center text-muted mt-5">
+            <i class="bi bi-chat-square-text display-4 mb-3"></i>
+            <p>Start a conversation by asking a question about your pricing data, scenarios, or elasticity analysis.</p>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-group mb-3">
+          <input type="text" id="chat-input" class="form-control" placeholder="Ask a question about pricing, scenarios, or data..." disabled />
+          <button id="chat-send-btn" class="btn btn-primary" disabled>
+            <i class="bi bi-send"></i> Send
+          </button>
+        </div>
+
+        <!-- Suggested Questions -->
+        <div class="mt-3">
+          <small class="text-muted d-block mb-2">
+            <i class="bi bi-lightbulb me-1"></i>
+            Try asking:
+          </small>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>What was churn rate in Q4 2024?</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Run aggressive pricing scenario</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Compare all scenarios</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Which tier has highest ARPU?</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
   <!-- Footer -->
   <footer class="container my-5 text-center text-muted">
     <small>
@@ -384,6 +438,23 @@
 
   <!-- D3.js v7 for advanced visualizations -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+
+  <!-- LLM and Chat Dependencies -->
+  <script type="importmap">
+  {
+    "imports": {
+      "asyncllm": "https://cdn.jsdelivr.net/npm/asyncllm@2/dist/asyncllm.min.js",
+      "bootstrap-alert": "https://cdn.jsdelivr.net/npm/bootstrap-alert@1/dist/bootstrap-alert.min.js",
+      "bootstrap-llm-provider": "https://cdn.jsdelivr.net/npm/bootstrap-llm-provider@1/dist/bootstrap-llm-provider.min.js",
+      "highlight.js": "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/es/highlight.min.js",
+      "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@3/lit-html.js",
+      "lit-html/": "https://cdn.jsdelivr.net/npm/lit-html@3/",
+      "marked": "https://cdn.jsdelivr.net/npm/marked@11/lib/marked.esm.js",
+      "partial-json": "https://cdn.jsdelivr.net/npm/partial-json@0.1.7/+esm"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
 
   <!-- Main Application Script -->
   <script type="module" src="./js/app.js"></script>
