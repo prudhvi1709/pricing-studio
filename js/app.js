@@ -21,15 +21,27 @@ let dataLoaded = false;
 
 // Format helpers
 function formatNumber(num) {
-  return num ? num.toLocaleString() : 'N/A';
+  // Check for null, undefined, NaN, and Infinity
+  if (num === null || num === undefined || !Number.isFinite(num)) {
+    return 'N/A';
+  }
+  return num.toLocaleString();
 }
 
 function formatCurrency(num) {
-  return num ? `$${num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : 'N/A';
+  // Check for null, undefined, NaN, and Infinity
+  if (num === null || num === undefined || !Number.isFinite(num)) {
+    return 'N/A';
+  }
+  return `$${num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
 
 function formatPercent(num, decimals = 1) {
-  return num !== null && num !== undefined ? `${num.toFixed(decimals)}%` : 'N/A';
+  // Check for null, undefined, NaN, and Infinity
+  if (num === null || num === undefined || !Number.isFinite(num)) {
+    return 'N/A';
+  }
+  return `${num.toFixed(decimals)}%`;
 }
 
 // Load KPI data
@@ -1223,26 +1235,46 @@ function compareScenarios() {
     return;
   }
 
-  // Prepare data for grouped bar chart
-  const barChartData = savedScenarios.map(s => ({
-    name: s.scenario_name,
-    subscribers_pct: s.delta.subscribers_pct,
-    revenue_pct: s.delta.revenue_pct,
-    arpu_pct: s.delta.arpu_pct,
-    churn_pct: s.delta.churn_rate_pct
-  }));
+  // Prepare data for grouped bar chart with proper null/undefined handling
+  const barChartData = savedScenarios.map(s => {
+    // Calculate churn_rate_pct if not already present
+    const churnPct = s.delta.churn_rate_pct ||
+      (s.delta.churn_rate && s.baseline && s.baseline.churn_rate
+        ? (s.delta.churn_rate / s.baseline.churn_rate) * 100
+        : 0);
 
-  // Prepare data for radar chart
-  const radarChartData = savedScenarios.map(s => ({
-    name: s.scenario_name,
-    dimensions: {
-      revenue: s.delta.revenue_pct,
-      growth: s.delta.subscribers_pct,
-      arpu: s.delta.arpu_pct,
-      churn: s.delta.churn_rate_pct,
-      cltv: s.delta.cltv_pct
-    }
-  }));
+    return {
+      name: s.scenario_name || 'Unnamed Scenario',
+      subscribers_pct: s.delta?.subscribers_pct || 0,
+      revenue_pct: s.delta?.revenue_pct || 0,
+      arpu_pct: s.delta?.arpu_pct || 0,
+      churn_pct: churnPct
+    };
+  });
+
+  // Prepare data for radar chart with proper null/undefined handling
+  const radarChartData = savedScenarios.map(s => {
+    // Calculate churn_rate_pct if not already present
+    const churnPct = s.delta.churn_rate_pct ||
+      (s.delta.churn_rate && s.baseline && s.baseline.churn_rate
+        ? (s.delta.churn_rate / s.baseline.churn_rate) * 100
+        : 0);
+
+    // Calculate CLTV change estimate (simple approximation if not available)
+    const cltvPct = s.delta?.cltv_pct ||
+      ((s.delta?.revenue_pct || 0) - (churnPct * 0.5));
+
+    return {
+      name: s.scenario_name || 'Unnamed Scenario',
+      dimensions: {
+        revenue: s.delta?.revenue_pct || 0,
+        growth: s.delta?.subscribers_pct || 0,
+        arpu: s.delta?.arpu_pct || 0,
+        churn: churnPct,
+        cltv: cltvPct
+      }
+    };
+  });
 
   // Render charts
   renderComparisonBarChart('comparison-bar-chart', barChartData, { width: 750, height: 450 });

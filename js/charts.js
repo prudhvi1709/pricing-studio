@@ -914,6 +914,14 @@ export function renderComparisonBarChart(containerId, data, options = {}) {
   const container = d3.select(`#${containerId}`);
   container.html('');
 
+  // Validate data
+  if (!data || data.length === 0) {
+    container.append('div')
+      .attr('class', 'alert alert-warning')
+      .text('No data available for comparison');
+    return;
+  }
+
   const margin = { top: 40, right: 120, bottom: 80, left: 80 };
   const width = (options.width || 800) - margin.left - margin.right;
   const height = (options.height || 400) - margin.top - margin.bottom;
@@ -928,6 +936,15 @@ export function renderComparisonBarChart(containerId, data, options = {}) {
   const kpis = ['Subscribers', 'Revenue', 'ARPU', 'Churn'];
   const kpiKeys = ['subscribers_pct', 'revenue_pct', 'arpu_pct', 'churn_pct'];
 
+  // Sanitize data - replace NaN/undefined with 0
+  const sanitizedData = data.map(d => ({
+    name: d.name || 'Unnamed',
+    subscribers_pct: Number.isFinite(d.subscribers_pct) ? d.subscribers_pct : 0,
+    revenue_pct: Number.isFinite(d.revenue_pct) ? d.revenue_pct : 0,
+    arpu_pct: Number.isFinite(d.arpu_pct) ? d.arpu_pct : 0,
+    churn_pct: Number.isFinite(d.churn_pct) ? d.churn_pct : 0
+  }));
+
   // Scales
   const x0 = d3.scaleBand()
     .domain(kpis)
@@ -935,17 +952,17 @@ export function renderComparisonBarChart(containerId, data, options = {}) {
     .padding(0.2);
 
   const x1 = d3.scaleBand()
-    .domain(data.map(d => d.name))
+    .domain(sanitizedData.map(d => d.name))
     .range([0, x0.bandwidth()])
     .padding(0.05);
 
-  const maxValue = d3.max(data, d => d3.max(kpiKeys, key => Math.abs(d[key])));
+  const maxValue = d3.max(sanitizedData, d => d3.max(kpiKeys, key => Math.abs(d[key]))) || 10;
   const yScale = d3.scaleLinear()
     .domain([-maxValue * 1.1, maxValue * 1.1])
     .range([height, 0]);
 
   const colorScale = d3.scaleOrdinal()
-    .domain(data.map(d => d.name))
+    .domain(sanitizedData.map(d => d.name))
     .range(d3.schemeCategory10);
 
   // Add grid lines
@@ -971,7 +988,7 @@ export function renderComparisonBarChart(containerId, data, options = {}) {
     const kpiKey = kpiKeys[i];
 
     svg.selectAll(`.bar-${i}`)
-      .data(data)
+      .data(sanitizedData)
       .join('rect')
       .attr('class', `bar-${i}`)
       .attr('x', d => x0(kpi) + x1(d.name))
@@ -1008,7 +1025,7 @@ export function renderComparisonBarChart(containerId, data, options = {}) {
   const legend = svg.append('g')
     .attr('transform', `translate(${width + 20}, 0)`);
 
-  data.forEach((scenario, i) => {
+  sanitizedData.forEach((scenario, i) => {
     const legendRow = legend.append('g')
       .attr('transform', `translate(0, ${i * 25})`);
 
@@ -1046,6 +1063,14 @@ export function renderRadarChart(containerId, data, options = {}) {
   const container = d3.select(`#${containerId}`);
   container.html('');
 
+  // Validate data
+  if (!data || data.length === 0) {
+    container.append('div')
+      .attr('class', 'alert alert-warning')
+      .text('No data available for radar chart');
+    return;
+  }
+
   const margin = { top: 60, right: 120, bottom: 60, left: 120 };
   const width = (options.width || 500) - margin.left - margin.right;
   const height = (options.height || 500) - margin.top - margin.bottom;
@@ -1061,11 +1086,15 @@ export function renderRadarChart(containerId, data, options = {}) {
   const dimensions = ['Revenue\nGrowth', 'Subscriber\nGrowth', 'ARPU', 'Low\nChurn', 'CLTV'];
   const angleSlice = (Math.PI * 2) / dimensions.length;
 
-  // Normalize data to 0-100 scale
+  // Normalize data to 0-100 scale with proper validation
   const normalize = (value, isChurn = false) => {
+    // Ensure value is a finite number
+    const safeValue = Number.isFinite(value) ? value : 0;
     // Normalize to 0-100 where 50 is baseline
-    const normalized = 50 + value * 5; // Assuming values are -10 to +10 range
-    return isChurn ? 100 - normalized : normalized; // Invert for churn (lower is better)
+    const normalized = 50 + safeValue * 5; // Assuming values are -10 to +10 range
+    // Clamp between 0 and 100
+    const clamped = Math.max(0, Math.min(100, normalized));
+    return isChurn ? 100 - clamped : clamped; // Invert for churn (lower is better)
   };
 
   // Scales
@@ -1130,17 +1159,22 @@ export function renderRadarChart(containerId, data, options = {}) {
     .curve(d3.curveLinearClosed);
 
   data.forEach((scenario, idx) => {
+    // Safely extract dimension values with defaults
+    const dims = scenario.dimensions || {};
     const values = [
-      normalize(scenario.dimensions.revenue),
-      normalize(scenario.dimensions.growth),
-      normalize(scenario.dimensions.arpu),
-      normalize(scenario.dimensions.churn, true),
-      normalize(scenario.dimensions.cltv)
+      normalize(dims.revenue || 0),
+      normalize(dims.growth || 0),
+      normalize(dims.arpu || 0),
+      normalize(dims.churn || 0, true),
+      normalize(dims.cltv || 0)
     ];
+
+    // Verify all values are finite numbers
+    const validValues = values.map(v => Number.isFinite(v) ? v : 50);
 
     // Area
     svg.append('path')
-      .datum(values)
+      .datum(validValues)
       .attr('d', lineGenerator)
       .attr('fill', colorScale(scenario.name))
       .attr('fill-opacity', 0.2)
@@ -1148,20 +1182,23 @@ export function renderRadarChart(containerId, data, options = {}) {
       .attr('stroke-width', 2);
 
     // Points
-    values.forEach((value, i) => {
+    validValues.forEach((value, i) => {
       const angle = angleSlice * i - Math.PI / 2;
       const x = radialScale(value) * Math.cos(angle);
       const y = radialScale(value) * Math.sin(angle);
 
-      svg.append('circle')
-        .attr('cx', x)
-        .attr('cy', y)
-        .attr('r', 4)
-        .attr('fill', colorScale(scenario.name))
-        .attr('stroke', 'white')
-        .attr('stroke-width', 2)
-        .append('title')
-        .text(`${scenario.name}\n${dimensions[i]}: ${value.toFixed(0)}`);
+      // Only draw if coordinates are valid
+      if (Number.isFinite(x) && Number.isFinite(y)) {
+        svg.append('circle')
+          .attr('cx', x)
+          .attr('cy', y)
+          .attr('r', 4)
+          .attr('fill', colorScale(scenario.name))
+          .attr('stroke', 'white')
+          .attr('stroke-width', 2)
+          .append('title')
+          .text(`${scenario.name}\n${dimensions[i]}: ${value.toFixed(0)}`);
+      }
     });
   });
 

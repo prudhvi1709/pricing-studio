@@ -86,6 +86,15 @@ export async function simulateScenario(scenario, options = {}) {
     const forecastedARPU = scenario.config.new_price;
     const arpuChange = forecastedARPU - baseline.arpu;
 
+    // Calculate ARPU percentage change, handling zero baseline
+    let arpuChangePct = 0;
+    if (baseline.arpu > 0) {
+      arpuChangePct = (arpuChange / baseline.arpu) * 100;
+    } else if (arpuChange !== 0) {
+      // If baseline ARPU is 0 but there's a change, use a very large number to indicate significant change
+      arpuChangePct = arpuChange > 0 ? 100 : -100;
+    }
+
     // Estimate CLTV (simplified: ARPU × average lifetime months)
     const avgLifetimeMonths = 24; // Assumption
     const forecastedCLTV = forecastedARPU * avgLifetimeMonths;
@@ -142,9 +151,9 @@ export async function simulateScenario(scenario, options = {}) {
         revenue: revenueImpact.change,
         revenue_pct: revenueImpact.percentChange,
         arpu: arpuChange,
-        arpu_pct: (arpuChange / baseline.arpu) * 100,
+        arpu_pct: arpuChangePct,
         cltv: forecastedCLTV - baselineCLTV,
-        cltv_pct: ((forecastedCLTV - baselineCLTV) / baselineCLTV) * 100,
+        cltv_pct: baselineCLTV > 0 ? ((forecastedCLTV - baselineCLTV) / baselineCLTV) * 100 : 0,
         net_adds: forecastedNetAdds - baselineNetAdds
       },
 
@@ -290,15 +299,15 @@ async function getBaselineMetrics(tier, scenario = null) {
     const bundlePotentialPct = 0.30;
     const estimatedBundleSubs = Math.round((latestWeek.active_subscribers || 0) * bundlePotentialPct);
 
-    // Bundle ARPU is the bundle price
-    const bundleARPU = scenario?.config?.new_price || 14.99;
+    // Bundle baseline ARPU should be the CURRENT price, not the new price
+    const bundleCurrentARPU = scenario?.config?.current_price || 14.99;
 
     return {
       activeSubscribers: estimatedBundleSubs,
       churnRate: (latestWeek.churn_rate || 0) * 0.7, // Bundles typically have lower churn
       newSubscribers: Math.round((latestWeek.new_subscribers || 0) * bundlePotentialPct),
-      revenue: estimatedBundleSubs * bundleARPU,
-      arpu: bundleARPU,
+      revenue: estimatedBundleSubs * bundleCurrentARPU,
+      arpu: bundleCurrentARPU,
       isBundle: true,
       baseTier: 'ad_free'
     };
@@ -317,12 +326,19 @@ async function getBaselineMetrics(tier, scenario = null) {
     throw new Error(`Unable to retrieve latest week data for tier: ${tier}`);
   }
 
+  // Calculate ARPU if not available or is zero
+  let arpu = latestWeek.arpu || 0;
+  if (arpu === 0 && latestWeek.revenue && latestWeek.active_subscribers > 0) {
+    arpu = latestWeek.revenue / latestWeek.active_subscribers;
+    console.log(`Calculated ARPU from revenue/subscribers: ${arpu.toFixed(2)}`);
+  }
+
   return {
     activeSubscribers: latestWeek.active_subscribers || 0,
     churnRate: latestWeek.churn_rate || 0,
     newSubscribers: latestWeek.new_subscribers || 0,
     revenue: latestWeek.revenue || 0,
-    arpu: latestWeek.arpu || 0,
+    arpu: arpu,
     isBundle: false
   };
 }
