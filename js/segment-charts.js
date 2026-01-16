@@ -94,15 +94,10 @@ export function renderSegmentKPICards(containerId, aggregatedKPIs) {
 export function renderSegmentElasticityHeatmap(containerId, tier, filters = {}, axis = 'engagement') {
     const container = d3.select(`#${containerId}`);
     container.selectAll('*').remove();
-
-    console.log('renderSegmentElasticityHeatmap called with:', { containerId, tier, filters, axis });
-
-    // Set container to relative positioning for tooltip
     container.style('position', 'relative');
 
     // Get filtered segments
     const segments = window.segmentEngine.filterSegments(filters);
-    console.log('Got segments from filterSegments:', segments.length);
 
     if (!segments || segments.length === 0) {
         container.append('p')
@@ -113,12 +108,6 @@ export function renderSegmentElasticityHeatmap(containerId, tier, filters = {}, 
 
     // Filter segments for the selected tier
     const tierSegments = segments.filter(s => s.tier === tier);
-    console.log(`After filtering for tier '${tier}':`, tierSegments.length, 'segments');
-    if (tierSegments.length > 0) {
-        console.log('Sample tierSegment:', tierSegments[0]);
-    } else {
-        console.log('Available tiers in segments:', [...new Set(segments.map(s => s.tier))]);
-    }
 
     if (tierSegments.length === 0) {
         container.append('p')
@@ -394,8 +383,6 @@ export function render3AxisRadialChart(containerId, tier, highlightSegment = nul
     const container = d3.select(`#${containerId}`);
     container.selectAll('*').remove();
 
-    console.log('render3AxisRadialChart called with:', { containerId, tier, highlightSegment });
-
     // Get segments for the selected tier
     const segments = window.segmentEngine.getSegmentsForTier(tier);
 
@@ -405,8 +392,6 @@ export function render3AxisRadialChart(containerId, tier, highlightSegment = nul
             .html(`<p class="mb-0">No segment data available for tier: ${tier}</p>`);
         return;
     }
-
-    console.log(`Rendering 3-axis chart with ${segments.length} segments for tier ${tier}`);
 
     // Set container to relative positioning for tooltip
     container.style('position', 'relative');
@@ -653,7 +638,6 @@ export function render3AxisRadialChart(containerId, tier, highlightSegment = nul
             tooltip.style('display', 'none');
         })
         .on('click', function(event, d) {
-            console.log('Segment clicked:', d);
             // Future: Show detailed segment analysis
         });
 
@@ -727,8 +711,207 @@ export function render3AxisRadialChart(containerId, tier, highlightSegment = nul
         .attr('font-size', '16px')
         .attr('fill', '#333')
         .text(`3-Axis Customer Segmentation - ${tier.replace('_', ' ').toUpperCase()} Tier`);
+}
 
-    console.log('✓ 3-axis radial chart rendered successfully');
+/**
+ * Render scatter plot of segments (Elasticity vs Subscriber Count)
+ * @param {string} containerId - DOM element ID
+ * @param {string} tier - Subscription tier
+ */
+export function renderSegmentScatterPlot(containerId, tier) {
+    const container = d3.select(`#${containerId}`);
+    container.selectAll('*').remove();
+    container.style('position', 'relative');
+
+    const segments = window.segmentEngine.getSegmentsForTier(tier);
+    if (!segments || segments.length === 0) {
+        container.append('div')
+            .attr('class', 'alert alert-warning')
+            .html('<p>No segment data available</p>');
+        return;
+    }
+
+    // Prepare data
+    const data = segments.map(seg => ({
+        compositeKey: seg.compositeKey,
+        subscribers: parseInt(seg.subscriber_count),
+        churn_rate: parseFloat(seg.avg_churn_rate),
+        arpu: parseFloat(seg.avg_arpu),
+        elasticity: window.segmentEngine.getElasticity(tier, seg.compositeKey, 'engagement') || -2.0
+    }));
+
+    // Set up dimensions
+    const margin = { top: 40, right: 150, bottom: 60, left: 80 };
+    const width = 900 - margin.left - margin.right;
+    const height = 600 - margin.top - margin.bottom;
+
+    const svg = container.append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    // Scales
+    const xScale = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.subscribers)])
+        .range([0, width])
+        .nice();
+
+    const yScale = d3.scaleLinear()
+        .domain([d3.min(data, d => d.elasticity), 0])
+        .range([height, 0])
+        .nice();
+
+    const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+        .domain([d3.max(data, d => d.churn_rate), d3.min(data, d => d.churn_rate)]);
+
+    const radiusScale = d3.scaleSqrt()
+        .domain([0, d3.max(data, d => d.arpu)])
+        .range([4, 15]);
+
+    // Axes
+    svg.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale).tickFormat(d => (d / 1000).toFixed(0) + 'K'));
+
+    svg.append('g')
+        .call(d3.axisLeft(yScale));
+
+    // Axis labels
+    svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height + 50)
+        .attr('text-anchor', 'middle')
+        .attr('font-weight', 'bold')
+        .text('Subscriber Count');
+
+    svg.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('x', -height / 2)
+        .attr('y', -60)
+        .attr('text-anchor', 'middle')
+        .attr('font-weight', 'bold')
+        .text('Price Elasticity');
+
+    // Quadrant line
+    svg.append('line')
+        .attr('x1', 0)
+        .attr('x2', width)
+        .attr('y1', yScale(-2.0))
+        .attr('y2', yScale(-2.0))
+        .attr('stroke', '#ccc')
+        .attr('stroke-dasharray', '5,5')
+        .attr('opacity', 0.5);
+
+    // Tooltip
+    const tooltip = container.append('div')
+        .attr('class', 'position-absolute bg-dark text-white p-2 rounded shadow-sm')
+        .style('display', 'none')
+        .style('pointer-events', 'none')
+        .style('font-size', '11px')
+        .style('z-index', '1000');
+
+    // Plot points
+    svg.selectAll('.segment-point')
+        .data(data)
+        .join('circle')
+        .attr('class', 'segment-point')
+        .attr('cx', d => xScale(d.subscribers))
+        .attr('cy', d => yScale(d.elasticity))
+        .attr('r', d => radiusScale(d.arpu))
+        .attr('fill', d => colorScale(d.churn_rate))
+        .attr('opacity', 0.7)
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 1)
+        .style('cursor', 'pointer')
+        .on('mouseenter', function(event, d) {
+            d3.select(this).attr('opacity', 1).attr('stroke-width', 2);
+
+            const containerNode = container.node();
+            const containerRect = containerNode.getBoundingClientRect();
+            const x = event.clientX - containerRect.left;
+            const y = event.clientY - containerRect.top;
+
+            tooltip.style('display', 'block')
+                .style('left', x + 10 + 'px')
+                .style('top', y - 20 + 'px')
+                .html(`
+                    <strong>${window.segmentEngine.formatCompositeKey(d.compositeKey)}</strong><br>
+                    Subscribers: ${d.subscribers.toLocaleString()}<br>
+                    Elasticity: ${d.elasticity.toFixed(2)}<br>
+                    Churn: ${(d.churn_rate * 100).toFixed(2)}%<br>
+                    ARPU: $${d.arpu.toFixed(2)}
+                `);
+        })
+        .on('mousemove', function(event) {
+            const containerNode = container.node();
+            const containerRect = containerNode.getBoundingClientRect();
+            const x = event.clientX - containerRect.left;
+            const y = event.clientY - containerRect.top;
+
+            tooltip.style('left', x + 10 + 'px')
+                .style('top', y - 20 + 'px');
+        })
+        .on('mouseleave', function() {
+            d3.select(this).attr('opacity', 0.7).attr('stroke-width', 1);
+            tooltip.style('display', 'none');
+        });
+
+    // Legend
+    const legend = svg.append('g')
+        .attr('transform', `translate(${width + 20}, 0)`);
+
+    legend.append('text')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('font-weight', 'bold')
+        .attr('font-size', '12px')
+        .text('Legend');
+
+    // Size legend
+    legend.append('text')
+        .attr('x', 0)
+        .attr('y', 25)
+        .attr('font-size', '10px')
+        .text('Size: ARPU');
+
+    // Color legend
+    legend.append('text')
+        .attr('x', 0)
+        .attr('y', 80)
+        .attr('font-size', '10px')
+        .text('Color: Churn');
+
+    legend.append('circle')
+        .attr('cx', 10)
+        .attr('cy', 95)
+        .attr('r', 5)
+        .attr('fill', '#22c55e');
+    legend.append('text')
+        .attr('x', 20)
+        .attr('y', 98)
+        .attr('font-size', '9px')
+        .text('Low');
+
+    legend.append('circle')
+        .attr('cx', 10)
+        .attr('cy', 110)
+        .attr('r', 5)
+        .attr('fill', '#ef4444');
+    legend.append('text')
+        .attr('x', 20)
+        .attr('y', 113)
+        .attr('font-size', '9px')
+        .text('High');
+
+    // Title
+    svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', -20)
+        .attr('text-anchor', 'middle')
+        .attr('font-weight', 'bold')
+        .attr('font-size', '14px')
+        .text(`Segment Analysis - ${tier.replace('_', ' ').toUpperCase()}`);
 }
 
 /**

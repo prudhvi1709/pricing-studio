@@ -910,6 +910,7 @@
             <select id="segment-viz-select" class="form-select">
               <option value="heatmap">Elasticity Heatmap</option>
               <option value="3axis" selected>3-Axis Framework</option>
+              <option value="scatter">Scatter Plot (Elasticity vs Subscribers)</option>
             </select>
           </div>
         </div>
@@ -920,6 +921,41 @@
           <strong>Segmentation Insights:</strong>
           Analyze how different customer segments respond to pricing changes.
           Use this to design targeted pricing strategies and reduce churn risk.
+        </div>
+
+        <!-- Enhanced Filter Controls -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="form-label fw-bold mb-0">Quick Presets</label>
+            <button id="filter-search-toggle" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-search me-1"></i> Search
+            </button>
+          </div>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-primary" data-preset="high-risk">
+              High Risk Segments
+            </button>
+            <button type="button" class="btn btn-outline-success" data-preset="low-elastic">
+              Low Elasticity
+            </button>
+            <button type="button" class="btn btn-outline-warning" data-preset="high-value">
+              High Value
+            </button>
+            <button type="button" class="btn btn-outline-info" data-preset="large">
+              Large Volume
+            </button>
+          </div>
+        </div>
+
+        <!-- Search Box (hidden by default) -->
+        <div id="filter-search-box" class="mb-3" style="display: none;">
+          <input type="text" id="segment-search-input" class="form-control" placeholder="Search segments..." />
+          <div id="search-results" class="mt-2"></div>
+        </div>
+
+        <!-- Filter Summary Stats -->
+        <div id="filter-summary" class="alert alert-light small mb-3">
+          <strong>Viewing:</strong> <span id="filter-stats">All segments</span>
         </div>
 
         <!-- Segment Filters (Pills) -->
@@ -948,6 +984,16 @@
         <!-- Segment KPI Dashboard -->
         <div id="segment-kpi-dashboard" class="mb-4"></div>
 
+        <!-- Export Buttons -->
+        <div class="mb-3">
+          <button id="export-segments-csv" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export to CSV
+          </button>
+          <button id="export-viz-svg" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-file-earmark-image me-1"></i> Export SVG
+          </button>
+        </div>
+
         <!-- Visualization Container -->
         <div id="segment-visualization-container">
           <!-- Elasticity Heatmap -->
@@ -972,10 +1018,70 @@
               </button>
             </div>
           </div>
+
+          <!-- Scatter Plot View -->
+          <div id="scatter-view" class="chart-container" style="display: none;">
+            <h3 class="h6 mb-3">Segment Scatter Plot</h3>
+            <p class="text-muted small">
+              Bubble size represents ARPU, color represents churn rate. Hover for details.
+            </p>
+            <div id="segment-scatter-plot"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+  </div>
+
+  <!-- Segment Analysis & Comparison Section -->
+  <div id="segment-analysis-section" class="container my-5" style="display: none;">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h2 class="h5 mb-0">
+          <i class="bi bi-bar-chart-line me-2"></i>
+          Segment Elasticity Comparison
+        </h2>
+      </div>
+      <div class="card-body">
+        <!-- Controls -->
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Compare By</label>
+            <select id="compare-axis-select" class="form-select">
+              <option value="acquisition">Acquisition Price Sensitivity</option>
+              <option value="engagement" selected>Engagement & Churn Propensity</option>
+              <option value="monetization">Monetization & Plan Type</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Tier</label>
+            <select id="compare-tier-select" class="form-select">
+              <option value="ad_supported">Ad-Supported</option>
+              <option value="ad_free" selected>Ad-Free</option>
+              <option value="annual">Annual</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Sort By</label>
+            <select id="compare-sort-select" class="form-select">
+              <option value="elasticity">Elasticity (Most Elastic First)</option>
+              <option value="subscribers">Subscribers (Largest First)</option>
+              <option value="churn">Churn Rate (Highest First)</option>
+              <option value="arpu">ARPU (Highest First)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div id="segment-comparison-table" class="table-responsive"></div>
+
+        <!-- Comparison Chart -->
+        <div class="mt-4">
+          <h6 class="fw-bold">Elasticity Comparison Chart</h6>
+          <canvas id="segment-comparison-chart" height="80"></canvas>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Advanced Analytics Section -->

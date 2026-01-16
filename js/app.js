@@ -10,7 +10,7 @@ import { simulateScenario, compareScenarios as compareScenariosEngine } from './
 import { renderDemandCurve, renderElasticityHeatmap, renderTierMixShift, renderTradeoffsScatter, renderComparisonBarChart, renderRadarChart } from './charts.js';
 import { initializeChat, configureLLM, sendMessage, clearHistory } from './chat.js';
 import { initializeDataViewer } from './data-viewer.js';
-import { renderSegmentKPICards, renderSegmentElasticityHeatmap, render3AxisRadialChart, exportSVG } from './segment-charts.js';
+import { renderSegmentKPICards, renderSegmentElasticityHeatmap, render3AxisRadialChart, renderSegmentScatterPlot, exportSVG } from './segment-charts.js';
 
 // Global state
 let selectedScenario = null;
@@ -144,8 +144,6 @@ async function runSimulation() {
     // Get segment targeting options
     const targetSegment = document.getElementById('scenario-target-segment')?.value || 'all';
     const segmentAxis = document.getElementById('scenario-segment-axis')?.value || null;
-
-    console.log('Running simulation with targeting:', { targetSegment, segmentAxis });
 
     // Run simulation with segment targeting
     const result = await simulateScenario(selectedScenario, {
@@ -354,7 +352,6 @@ function displaySegmentResults(result) {
 
   // Note: For segment scenarios, we don't have time_series data yet
   // So skip the forecast chart for now
-  console.log('Segment scenario results displayed');
 }
 
 // Display simulation results
@@ -1070,8 +1067,6 @@ async function initializeChatContext() {
 
     // Initialize chat module with scenario-focused context
     initializeChat(context);
-    console.log('Chat initialized with scenario-focused context');
-
   } catch (error) {
     console.error('Error initializing chat context:', error);
     throw error;
@@ -1134,15 +1129,12 @@ async function loadData() {
         await loadScenarioCards();
         // Load segmentation data
         if (window.segmentEngine) {
-          console.log('Loading segmentation data...');
           const segmentDataLoaded = await window.segmentEngine.loadSegmentData();
-          if (segmentDataLoaded) {
-            console.log('✓ Segmentation data loaded successfully');
-          } else {
-            console.error('✗ Failed to load segmentation data');
+          if (!segmentDataLoaded) {
+            console.error('Failed to load segmentation data');
           }
         } else {
-          console.error('✗ window.segmentEngine not available');
+          console.error('Segmentation engine not available');
         }
       } else if (stage.progress === 75) {
         await loadElasticityAnalytics();
@@ -1169,14 +1161,15 @@ async function loadData() {
     if (window.segmentEngine && window.segmentEngine.isDataLoaded()) {
       document.getElementById('segmentation-section').style.display = 'block';
       initializeSegmentationSection();
+      initializeSegmentComparison();
+      initializeFilterPresets();
+      initializeExportButtons();
     }
 
     // Re-initialize popovers for newly visible sections
     initializePopovers();
 
     dataLoaded = true;
-    console.log('Data loaded successfully!');
-
   } catch (error) {
     console.error('Error loading data:', error);
 
@@ -1409,7 +1402,6 @@ function initializePopovers() {
       trigger: 'focus'
     });
   });
-  console.log(`Initialized ${popoverList.length} ML methodology popovers`);
 }
 
 // ========== Segmentation Section Functions ==========
@@ -1418,8 +1410,6 @@ function initializePopovers() {
  * Initialize the segmentation section
  */
 function initializeSegmentationSection() {
-  console.log('Initializing Customer Segmentation section...');
-
   // Populate filter pills for each axis
   populateFilterPills(
     'acquisition-filters',
@@ -1454,7 +1444,6 @@ function initializeSegmentationSection() {
 
   if (reset3AxisBtn) {
     reset3AxisBtn.addEventListener('click', () => {
-      console.log('Resetting 3-axis view...');
       updateSegmentVisualization();
     });
   }
@@ -1469,8 +1458,6 @@ function initializeSegmentationSection() {
 
   // Initial render
   updateSegmentVisualization();
-
-  console.log('✓ Segmentation section initialized');
 }
 
 /**
@@ -1481,10 +1468,7 @@ function initializeSegmentationSection() {
  */
 function populateFilterPills(containerId, values, axisType) {
   const container = document.getElementById(containerId);
-  if (!container) {
-    console.warn(`Container not found: ${containerId}`);
-    return;
-  }
+  if (!container) return;
 
   container.innerHTML = '';
 
@@ -1520,13 +1504,6 @@ function updateSegmentVisualization() {
     monetization: getActivePillValues('monetization-filters')
   };
 
-  console.log('=== updateSegmentVisualization ===');
-  console.log('Selected tier:', tier);
-  console.log('Selected axis:', axis);
-  console.log('Selected vizType:', vizType);
-  console.log('Filters:', filters);
-  console.log('segmentEngine loaded?', window.segmentEngine && window.segmentEngine.isDataLoaded());
-
   // Get filtered segments
   const filteredSegments = window.segmentEngine.filterSegments(filters);
 
@@ -1542,18 +1519,24 @@ function updateSegmentVisualization() {
   // Show/hide views based on visualization type
   const heatmapView = document.getElementById('heatmap-view');
   const threeAxisView = document.getElementById('3axis-view');
+  const scatterView = document.getElementById('scatter-view');
 
   if (vizType === 'heatmap') {
     heatmapView.style.display = 'block';
     threeAxisView.style.display = 'none';
+    scatterView.style.display = 'none';
     renderSegmentElasticityHeatmap('segment-elasticity-heatmap', tier, filters, axis);
   } else if (vizType === '3axis') {
     heatmapView.style.display = 'none';
     threeAxisView.style.display = 'block';
+    scatterView.style.display = 'none';
     render3AxisRadialChart('three-axis-radial-viz', tier, null);
+  } else if (vizType === 'scatter') {
+    heatmapView.style.display = 'none';
+    threeAxisView.style.display = 'none';
+    scatterView.style.display = 'block';
+    renderSegmentScatterPlot('segment-scatter-plot', tier);
   }
-
-  console.log(`✓ Visualization updated: ${tierSegments.length} segments, ${aggregatedKPIs.total_subscribers.toLocaleString()} subscribers`);
 }
 
 /**
@@ -1580,14 +1563,395 @@ function clearAllFilters() {
 
   // Update visualization
   updateSegmentVisualization();
+}
 
-  console.log('✓ All filters cleared');
+/**
+ * Render segment comparison table
+ */
+function renderSegmentComparisonTable() {
+  const axis = document.getElementById('compare-axis-select').value;
+  const tier = document.getElementById('compare-tier-select').value;
+  const sortBy = document.getElementById('compare-sort-select').value;
+
+  const segments = window.segmentEngine.getSegmentsForTier(tier);
+  const axisSegments = [...new Set(segments.map(s => s[axis]))];
+
+  // Aggregate by axis
+  const comparisonData = axisSegments.map(segmentId => {
+    const matching = segments.filter(s => s[axis] === segmentId);
+    const totalSubs = matching.reduce((sum, s) => sum + parseInt(s.subscriber_count), 0);
+    const avgChurn = matching.reduce((sum, s) => sum + (parseFloat(s.avg_churn_rate) * parseInt(s.subscriber_count)), 0) / totalSubs;
+    const avgArpu = matching.reduce((sum, s) => sum + (parseFloat(s.avg_arpu) * parseInt(s.subscriber_count)), 0) / totalSubs;
+
+    // Get elasticity from segment_elasticity.json
+    const elasticity = window.segmentEngine.getElasticity(tier, matching[0].compositeKey, axis);
+
+    return {
+      segment: segmentId,
+      label: window.segmentEngine.formatSegmentLabel(segmentId),
+      subscribers: totalSubs,
+      churn_rate: avgChurn,
+      arpu: avgArpu,
+      elasticity: elasticity || -2.0,
+      risk_level: Math.abs(elasticity) > 2.5 ? 'High' : (Math.abs(elasticity) > 2.0 ? 'Medium' : 'Low')
+    };
+  });
+
+  // Sort
+  comparisonData.sort((a, b) => {
+    switch(sortBy) {
+      case 'elasticity': return a.elasticity - b.elasticity;
+      case 'subscribers': return b.subscribers - a.subscribers;
+      case 'churn': return b.churn_rate - a.churn_rate;
+      case 'arpu': return b.arpu - a.arpu;
+      default: return 0;
+    }
+  });
+
+  // Render table
+  const container = document.getElementById('segment-comparison-table');
+  container.innerHTML = `
+    <table class="table table-hover">
+      <thead class="table-dark">
+        <tr>
+          <th>Segment</th>
+          <th class="text-end">Subscribers</th>
+          <th class="text-end">Churn Rate</th>
+          <th class="text-end">ARPU</th>
+          <th class="text-end">Elasticity</th>
+          <th class="text-center">Risk Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${comparisonData.map(d => `
+          <tr>
+            <td><strong>${d.label}</strong></td>
+            <td class="text-end">${formatNumber(d.subscribers)}</td>
+            <td class="text-end">${formatPercent(d.churn_rate, 2)}</td>
+            <td class="text-end">${formatCurrency(d.arpu)}</td>
+            <td class="text-end">
+              <span class="badge ${Math.abs(d.elasticity) > 2.5 ? 'bg-danger' : (Math.abs(d.elasticity) > 2.0 ? 'bg-warning' : 'bg-success')}">
+                ${d.elasticity.toFixed(2)}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="badge ${d.risk_level === 'High' ? 'bg-danger' : (d.risk_level === 'Medium' ? 'bg-warning' : 'bg-success')}">
+                ${d.risk_level}
+              </span>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  // Render chart
+  renderSegmentComparisonChart(comparisonData);
+}
+
+/**
+ * Render comparison chart (Chart.js bar chart)
+ */
+function renderSegmentComparisonChart(data) {
+  const ctx = document.getElementById('segment-comparison-chart');
+
+  if (window.comparisonChart) {
+    window.comparisonChart.destroy();
+  }
+
+  window.comparisonChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.label),
+      datasets: [{
+        label: 'Price Elasticity',
+        data: data.map(d => Math.abs(d.elasticity)),
+        backgroundColor: data.map(d =>
+          Math.abs(d.elasticity) > 2.5 ? '#dc3545' : (Math.abs(d.elasticity) > 2.0 ? '#ffc107' : '#28a745')
+        ),
+        borderColor: '#fff',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `Elasticity: ${context.parsed.y.toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Absolute Elasticity' }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Initialize segment comparison table
+ */
+function initializeSegmentComparison() {
+  const compareAxisSelect = document.getElementById('compare-axis-select');
+  const compareTierSelect = document.getElementById('compare-tier-select');
+  const compareSortSelect = document.getElementById('compare-sort-select');
+
+  if (!compareAxisSelect || !compareTierSelect || !compareSortSelect) return;
+
+  compareAxisSelect.addEventListener('change', renderSegmentComparisonTable);
+  compareTierSelect.addEventListener('change', renderSegmentComparisonTable);
+  compareSortSelect.addEventListener('change', renderSegmentComparisonTable);
+
+  // Initial render
+  renderSegmentComparisonTable();
+
+  // Show section
+  document.getElementById('segment-analysis-section').style.display = 'block';
+}
+
+/**
+ * Initialize filter presets
+ */
+function initializeFilterPresets() {
+  document.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = btn.dataset.preset;
+      applyFilterPreset(preset);
+    });
+  });
+
+  // Search toggle
+  document.getElementById('filter-search-toggle')?.addEventListener('click', () => {
+    const searchBox = document.getElementById('filter-search-box');
+    searchBox.style.display = searchBox.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Search input
+  document.getElementById('segment-search-input')?.addEventListener('input', (e) => {
+    searchSegments(e.target.value);
+  });
+}
+
+/**
+ * Apply filter preset
+ */
+function applyFilterPreset(preset) {
+  clearAllFilters();
+
+  const tier = document.getElementById('segment-tier-select').value;
+  const segments = window.segmentEngine.getSegmentsForTier(tier);
+
+  let targetSegments = [];
+
+  switch(preset) {
+    case 'high-risk':
+      // High churn rate (> 15%)
+      targetSegments = segments
+        .filter(s => parseFloat(s.avg_churn_rate) > 0.15)
+        .map(s => s.engagement);
+      break;
+    case 'low-elastic':
+      // Low elasticity (> -2.0)
+      targetSegments = segments
+        .filter(s => {
+          const elasticity = window.segmentEngine.getElasticity(tier, s.compositeKey, 'engagement');
+          return elasticity > -2.0;
+        })
+        .map(s => s.engagement);
+      break;
+    case 'high-value':
+      // High ARPU (> $30)
+      targetSegments = segments
+        .filter(s => parseFloat(s.avg_arpu) > 30)
+        .map(s => s.monetization);
+      break;
+    case 'large':
+      // Large subscriber count (> 2000)
+      targetSegments = segments
+        .filter(s => parseInt(s.subscriber_count) > 2000)
+        .map(s => s.acquisition);
+      break;
+  }
+
+  // Activate relevant pills
+  targetSegments = [...new Set(targetSegments)];
+  targetSegments.forEach(segmentId => {
+    const pill = document.querySelector(`[data-segment-id="${segmentId}"]`);
+    if (pill) pill.classList.add('active');
+  });
+
+  updateSegmentVisualization();
+  updateFilterSummary();
+}
+
+/**
+ * Search segments by name
+ */
+function searchSegments(query) {
+  const resultsContainer = document.getElementById('search-results');
+
+  if (!query || query.length < 2) {
+    resultsContainer.innerHTML = '';
+    return;
+  }
+
+  const allSegments = [
+    ...window.segmentEngine.axisDefinitions.acquisition,
+    ...window.segmentEngine.axisDefinitions.engagement,
+    ...window.segmentEngine.axisDefinitions.monetization
+  ];
+
+  const matches = allSegments.filter(segmentId => {
+    const info = window.segmentEngine.getSegmentInfo(segmentId);
+    const label = info ? info.label : segmentId;
+    return label.toLowerCase().includes(query.toLowerCase());
+  });
+
+  resultsContainer.innerHTML = matches.map(segmentId => {
+    const info = window.segmentEngine.getSegmentInfo(segmentId);
+    return `
+      <button class="btn btn-sm btn-outline-secondary me-2 mb-2"
+              onclick="selectSegmentFromSearch('${segmentId}')">
+        ${info ? info.label : segmentId}
+      </button>
+    `;
+  }).join('');
+}
+
+/**
+ * Select segment from search results
+ */
+window.selectSegmentFromSearch = function(segmentId) {
+  const pill = document.querySelector(`[data-segment-id="${segmentId}"]`);
+  if (pill) {
+    pill.classList.add('active');
+    updateSegmentVisualization();
+    updateFilterSummary();
+  }
+};
+
+/**
+ * Update filter summary stats
+ */
+function updateFilterSummary() {
+  const filters = {
+    acquisition: getActivePillValues('acquisition-filters'),
+    engagement: getActivePillValues('engagement-filters'),
+    monetization: getActivePillValues('monetization-filters')
+  };
+
+  const tier = document.getElementById('segment-tier-select').value;
+  const filteredSegments = window.segmentEngine.filterSegments(filters);
+  const tierSegments = filteredSegments.filter(s => s.tier === tier);
+
+  const totalSubs = tierSegments.reduce((sum, s) => sum + parseInt(s.subscriber_count || 0), 0);
+
+  const statsElement = document.getElementById('filter-stats');
+  if (tierSegments.length === window.segmentEngine.getSegmentsForTier(tier).length) {
+    statsElement.textContent = 'All segments';
+  } else {
+    statsElement.innerHTML = `
+      ${tierSegments.length} segments,
+      ${totalSubs.toLocaleString()} subscribers
+    `;
+  }
+}
+
+/**
+ * Export segments to CSV
+ */
+function exportSegmentsToCSV() {
+  const tier = document.getElementById('segment-tier-select').value;
+  const segments = window.segmentEngine.getSegmentsForTier(tier);
+
+  const headers = [
+    'Composite Key',
+    'Acquisition',
+    'Engagement',
+    'Monetization',
+    'Subscribers',
+    'Churn Rate',
+    'ARPU',
+    'Elasticity'
+  ];
+
+  const rows = segments.map(seg => {
+    const elasticity = window.segmentEngine.getElasticity(tier, seg.compositeKey, 'engagement');
+    return [
+      seg.compositeKey,
+      seg.acquisition,
+      seg.engagement,
+      seg.monetization,
+      seg.subscriber_count,
+      seg.avg_churn_rate,
+      seg.avg_arpu,
+      elasticity
+    ];
+  });
+
+  const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `segments-${tier}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Export visualization to SVG
+ */
+function exportVisualizationToSVG(containerId, filename) {
+  const container = document.getElementById(containerId);
+  const svg = container.querySelector('svg');
+
+  if (!svg) {
+    alert('No SVG visualization found to export');
+    return;
+  }
+
+  const serializer = new XMLSerializer();
+  const svgString = serializer.serializeToString(svg);
+  const blob = new Blob([svgString], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || `visualization-${new Date().toISOString().slice(0, 10)}.svg`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Initialize export buttons
+ */
+function initializeExportButtons() {
+  document.getElementById('export-segments-csv')?.addEventListener('click', exportSegmentsToCSV);
+  document.getElementById('export-viz-svg')?.addEventListener('click', () => {
+    const vizType = document.getElementById('segment-viz-select').value;
+    let containerId;
+    switch(vizType) {
+      case '3axis':
+        containerId = 'three-axis-radial-viz';
+        break;
+      case 'scatter':
+        containerId = 'segment-scatter-plot';
+        break;
+      default:
+        containerId = 'segment-elasticity-heatmap';
+    }
+    exportVisualizationToSVG(containerId, `segment-viz-${vizType}.svg`);
+  });
 }
 
 // Initialize app
 async function init() {
-  console.log('Initializing Price Elasticity POC...');
-
   // Add event listeners
   document.getElementById('load-data-btn').addEventListener('click', loadData);
   document.getElementById('simulate-btn').addEventListener('click', runSimulation);
@@ -1620,8 +1984,6 @@ async function init() {
   // Scenario editor event listeners
   document.getElementById('edit-new-price').addEventListener('input', updatePriceChangeIndicator);
   document.getElementById('save-edited-scenario-btn').addEventListener('click', saveEditedScenario);
-
-  console.log('POC initialized successfully!');
 }
 
 // Start app

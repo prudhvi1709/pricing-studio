@@ -133,8 +133,6 @@ class SegmentationEngine {
      * @returns {Promise<boolean>} True if successful, false otherwise
      */
     async loadSegmentData() {
-        console.log('Loading customer segment data...');
-
         try {
             const [elasticity, segments, kpis] = await Promise.all([
                 d3.json('data/segment_elasticity.json'),
@@ -146,18 +144,7 @@ class SegmentationEngine {
             this.customerSegments = segments;
             this.segmentKPIs = this.#indexKPIsByCompositeKey(kpis);
 
-            console.log(`✓ Loaded segment data: ${Object.keys(this.segmentKPIs).length} segments`);
-
-            // Debug: Show tier distribution
-            const tierCounts = {};
-            kpis.forEach(kpi => {
-                tierCounts[kpi.tier] = (tierCounts[kpi.tier] || 0) + 1;
-            });
-            console.log('Segment KPIs by tier:', tierCounts);
-            console.log('Sample ad_free segments:', kpis.filter(k => k.tier === 'ad_free').slice(0, 3));
-
             return true;
-
         } catch (error) {
             console.error('Failed to load segment data:', error);
             return false;
@@ -204,9 +191,7 @@ class SegmentationEngine {
 
             // Level 2-4: Fallback to existing elasticity calculation
             // This integrates with the existing elasticity-model.js
-            console.log(`Using fallback for ${tier} ${compositeKey} ${axis}`);
             return this.#getBaseFallback(tier);
-
         } catch (error) {
             console.error('Error getting elasticity:', error);
             return this.#getBaseFallback(tier);
@@ -239,9 +224,6 @@ class SegmentationEngine {
             return [];
         }
 
-        console.log('filterSegments called with filters:', filters);
-        console.log('Total segments available:', Object.keys(this.segmentKPIs).length);
-
         const results = [];
 
         for (const [indexKey, kpis] of Object.entries(this.segmentKPIs)) {
@@ -269,11 +251,6 @@ class SegmentationEngine {
                     ...kpis
                 });
             }
-        }
-
-        console.log('filterSegments returning', results.length, 'segments');
-        if (results.length > 0) {
-            console.log('Sample result:', results[0]);
         }
 
         return results;
@@ -507,7 +484,6 @@ class SegmentationEngine {
 // Create global instance
 if (typeof window !== 'undefined') {
     window.segmentEngine = new SegmentationEngine();
-    console.log('✓ Segmentation Engine initialized');
 }
 
 // Export for module systems
