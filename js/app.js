@@ -350,8 +350,17 @@ function displaySegmentResults(result) {
     warningsContainer.style.display = 'none';
   }
 
-  // Note: For segment scenarios, we don't have time_series data yet
-  // So skip the forecast chart for now
+  // Render charts for segment scenarios
+  if (result.time_series && result.time_series.length > 0) {
+    renderForecastChart(result);
+  }
+
+  // Update elasticity analysis with scenario data
+  updateElasticityAnalysis(result);
+
+  // Render tier mix and tradeoffs charts using tier-level totals
+  renderTierMixChart(result);
+  renderTradeoffsChart(result);
 }
 
 // Display simulation results
@@ -1162,7 +1171,7 @@ async function loadData() {
       document.getElementById('segmentation-section').style.display = 'block';
       initializeSegmentationSection();
       initializeSegmentComparison();
-      initializeFilterPresets();
+      // initializeFilterPresets(); // Removed - Quick Presets feature removed from UI
       initializeExportButtons();
     }
 

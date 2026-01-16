@@ -12,7 +12,7 @@ import {
   calculateElasticity
 } from './elasticity-model.js';
 
-import { getWeeklyData, getCurrentPrices } from './data-loader.js';
+import { getWeeklyData, getCurrentPrices, loadElasticityParams } from './data-loader.js';
 
 /**
  * Simulate a pricing scenario
@@ -21,6 +21,12 @@ import { getWeeklyData, getCurrentPrices } from './data-loader.js';
  * @returns {Promise<Object>} Simulation results
  */
 export async function simulateScenario(scenario, options = {}) {
+  // Handle baseline "Do Nothing" scenario (tier="all")
+  if (scenario.config.tier === 'all') {
+    console.log('Baseline scenario detected - returning current state');
+    return await simulateBaselineScenario(scenario, options);
+  }
+
   // Check if this is a segment-targeted scenario
   if (options.targetSegment && options.targetSegment !== 'all') {
     console.log('Delegating to segment-targeted simulation');
@@ -158,6 +164,108 @@ export async function simulateScenario(scenario, options = {}) {
 }
 
 /**
+ * Simulate baseline "Do Nothing" scenario
+ * Returns current state across all tiers with no changes
+ * @param {Object} scenario - Baseline scenario configuration
+ * @param {Object} options - Additional options
+ * @returns {Promise<Object>} Baseline simulation results
+ */
+async function simulateBaselineScenario(scenario, options = {}) {
+  try {
+    // Get current data for all three main tiers
+    const tiers = ['ad_supported', 'ad_free', 'annual'];
+    const weeklyData = await getWeeklyData('all');
+
+    // Calculate aggregated metrics across all tiers
+    let totalSubs = 0;
+    let totalRevenue = 0;
+    let weightedChurnRate = 0;
+    let weightedNewSubs = 0;
+
+    for (const tier of tiers) {
+      const tierData = weeklyData.filter(d => d.tier === tier);
+      const latestWeek = tierData[tierData.length - 1];
+
+      if (latestWeek) {
+        totalSubs += latestWeek.active_subscribers;
+        totalRevenue += latestWeek.revenue;
+        weightedChurnRate += latestWeek.churn_rate * latestWeek.active_subscribers;
+        weightedNewSubs += latestWeek.new_subscribers;
+      }
+    }
+
+    const avgChurnRate = weightedChurnRate / totalSubs;
+    const avgARPU = totalRevenue / totalSubs;
+    const avgLifetimeMonths = 24;
+    const baselineCLTV = avgARPU * avgLifetimeMonths;
+    const baselineNetAdds = weightedNewSubs - Math.round(totalSubs * avgChurnRate);
+
+    // Generate time series (no change over time for baseline)
+    const timeSeries = [];
+    for (let month = 0; month <= 12; month++) {
+      timeSeries.push({
+        month,
+        subscribers: Math.round(totalSubs),
+        revenue: Math.round(totalRevenue),
+        churn_rate: avgChurnRate
+      });
+    }
+
+    return {
+      scenario_id: scenario.id,
+      scenario_name: scenario.name,
+      elasticity: 0, // No price change
+      confidence_interval: [0, 0],
+
+      baseline: {
+        subscribers: totalSubs,
+        churn_rate: avgChurnRate,
+        new_subscribers: weightedNewSubs,
+        revenue: totalRevenue,
+        arpu: avgARPU,
+        cltv: baselineCLTV,
+        net_adds: baselineNetAdds
+      },
+
+      forecasted: {
+        subscribers: totalSubs,
+        churn_rate: avgChurnRate,
+        new_subscribers: weightedNewSubs,
+        revenue: totalRevenue,
+        arpu: avgARPU,
+        cltv: baselineCLTV,
+        net_adds: baselineNetAdds
+      },
+
+      delta: {
+        subscribers: 0,
+        subscribers_pct: 0,
+        churn_rate: 0,
+        churn_rate_pct: 0,
+        new_subscribers: 0,
+        new_subscribers_pct: 0,
+        revenue: 0,
+        revenue_pct: 0,
+        arpu: 0,
+        arpu_pct: 0,
+        cltv: 0,
+        cltv_pct: 0,
+        net_adds: 0
+      },
+
+      time_series: timeSeries,
+
+      warnings: ['This is a baseline scenario with no changes to pricing or strategy'],
+
+      constraints_met: true
+    };
+  } catch (error) {
+    console.error('Error simulating baseline scenario:', error);
+    throw error;
+  }
+}
+
+/**
  * Get baseline metrics for a tier
  * @param {string} tier - Tier name
  * @param {Object} scenario - Scenario object (for special handling)
@@ -285,6 +393,56 @@ function generateTimeSeries(demandForecast, churnForecast, acquisitionForecast, 
       month,
       subscribers: Math.round(currentSubs),
       revenue: Math.round(revenue),
+      churn_rate: monthChurnRate
+    });
+  }
+
+  return series;
+}
+
+/**
+ * Generate time series forecast for segment scenarios
+ * @param {Object} baseline - Baseline tier metrics
+ * @param {Object} forecasted - Forecasted tier metrics
+ * @param {number} forecastedChurn - Forecasted churn rate
+ * @param {number} baselineChurn - Baseline churn rate
+ * @param {number} months - Number of months to forecast
+ * @returns {Array} Time series data
+ */
+function generateTimeSeriesForSegment(baseline, forecasted, forecastedChurn, baselineChurn, months) {
+  const series = [];
+
+  for (let month = 0; month <= months; month++) {
+    // Month 0 is baseline
+    if (month === 0) {
+      series.push({
+        month: 0,
+        subscribers: Math.round(baseline.subscribers),
+        revenue: Math.round(baseline.revenue),
+        churn_rate: baselineChurn
+      });
+      continue;
+    }
+
+    // Apply changes gradually over time
+    const progressFactor = Math.min(month / 3, 1); // Full effect after 3 months
+
+    // Calculate subscriber change
+    const totalSubsChange = forecasted.subscribers - baseline.subscribers;
+    const currentSubs = baseline.subscribers + (totalSubsChange * progressFactor);
+
+    // Calculate revenue change
+    const totalRevenueChange = forecasted.revenue - baseline.revenue;
+    const currentRevenue = baseline.revenue + (totalRevenueChange * progressFactor);
+
+    // Calculate churn for this month
+    const churnChange = forecastedChurn - baselineChurn;
+    const monthChurnRate = baselineChurn + (churnChange * progressFactor);
+
+    series.push({
+      month,
+      subscribers: Math.round(currentSubs),
+      revenue: Math.round(currentRevenue),
       churn_rate: monthChurnRate
     });
   }
@@ -461,10 +619,14 @@ export async function simulateSegmentScenario(scenario, options = {}) {
   const newPrice = scenario.config.new_price;
   const priceChangePct = (newPrice - currentPrice) / currentPrice;
 
+  // Handle bundle tier - use ad_free as base tier for segment data
+  // since bundle includes Discovery+ ad-free
+  const segmentTier = tier === 'bundle' ? 'ad_free' : tier;
+
   try {
-    // Get segment-specific data
-    const segmentElasticity = await getSegmentElasticity(tier, targetSegment, segmentAxis);
-    const segmentBaseline = await getSegmentBaseline(tier, targetSegment, segmentAxis);
+    // Get segment-specific data (using segmentTier for lookups)
+    const segmentElasticity = await getSegmentElasticity(segmentTier, targetSegment, segmentAxis);
+    const segmentBaseline = await getSegmentBaseline(segmentTier, targetSegment, segmentAxis);
 
     console.log('Segment elasticity:', segmentElasticity);
     console.log('Segment baseline:', segmentBaseline);
@@ -498,17 +660,17 @@ export async function simulateSegmentScenario(scenario, options = {}) {
       elasticity: segmentElasticity
     };
 
-    // Estimate spillover effects on other segments
+    // Estimate spillover effects on other segments (use segmentTier for data lookups)
     const spilloverEffects = await estimateSpilloverEffects(
-      tier,
+      segmentTier,
       targetSegment,
       priceChangePct,
       demandChangePct,
       segmentBaseline.subscribers
     );
 
-    // Calculate tier-level totals including spillovers
-    const tierImpact = await calculateTierTotals(tier, {
+    // Calculate tier-level totals including spillovers (use segmentTier for data lookups)
+    const tierImpact = await calculateTierTotals(segmentTier, {
       targetSegment,
       segmentBaseline,
       segmentForecasted: segmentImpact.forecasted,
@@ -517,6 +679,9 @@ export async function simulateSegmentScenario(scenario, options = {}) {
 
     // Generate warnings
     const warnings = [];
+    if (tier === 'bundle') {
+      warnings.push(`Note: Bundle scenario uses ad_free tier segment data as baseline (bundle includes Discovery+ ad-free)`);
+    }
     if (Math.abs(priceChangePct) > 0.15) {
       warnings.push(`Large price change (${(priceChangePct * 100).toFixed(1)}%) may have unpredictable effects`);
     }
@@ -529,6 +694,15 @@ export async function simulateSegmentScenario(scenario, options = {}) {
     if (spilloverEffects.total_migration > segmentBaseline.subscribers * 0.15) {
       warnings.push(`Significant spillover effects: ~${spilloverEffects.total_migration.toLocaleString()} subscribers may migrate`);
     }
+
+    // Generate time series forecast for tier-level totals (12 months)
+    const timeSeries = generateTimeSeriesForSegment(
+      tierImpact.baseline,
+      tierImpact.forecasted,
+      forecastedChurn,
+      segmentBaseline.churn_rate,
+      12
+    );
 
     return {
       scenario_id: scenario.id,
@@ -549,6 +723,14 @@ export async function simulateSegmentScenario(scenario, options = {}) {
 
       // Tier-level totals
       tier_impact: tierImpact,
+
+      // Time series forecast
+      time_series: timeSeries,
+
+      // For compatibility with regular scenario display
+      baseline: tierImpact.baseline,
+      forecasted: tierImpact.forecasted,
+      delta: tierImpact.delta,
 
       // Metadata
       elasticity: segmentElasticity,
