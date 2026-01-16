@@ -2,15 +2,56 @@
 
 ## Executive Summary
 
-Completed **Version 2.0** release with comprehensive customer segmentation and segment-targeted pricing capabilities. Introduced 3-axis behavioral framework (375 segments), interactive visualizations, AI-powered chat integration, and realistic data generation. Five major commits deployed advanced analytics features including spillover modeling, segment comparison tools, and enhanced export functionality.
+Completed **Version 2.0** release with comprehensive customer segmentation and segment-targeted pricing capabilities. Introduced 3-axis behavioral framework (375 segments), interactive visualizations, AI-powered chat integration, and realistic data generation. Seven commits deployed advanced analytics features including spillover modeling, segment comparison tools, enhanced export functionality, and critical ARPU calculation fixes.
 
-**Impact**: Application evolved from tier-level pricing analysis to granular segment-targeted scenarios with migration pattern forecasting.
+**Impact**: Application evolved from tier-level pricing analysis to granular segment-targeted scenarios with migration pattern forecasting and accurate baseline metrics.
 
 ---
 
 ## Commit Details
 
-### 1. `22aab06` - UI Cleanup + Baseline Scenario Support (17:29)
+### 1. `d6f856a` - ARPU Baseline Calculation Fix for Bundle Scenarios (21:41)
+
+**Type**: Bug Fix
+
+**Changes**:
+
+- **Scenario Engine** (`js/scenario-engine.js` +30/-5)
+  - Fixed baseline ARPU calculation to use correct tier-specific values
+  - Updated bundle tier handling to properly map to ad-free data
+  - Enhanced error handling for missing tier data
+
+- **Charts Module** (`js/charts.js` +85/-30)
+  - Fixed ARPU baseline calculations in time series charts
+  - Corrected metric calculations for before/after comparisons
+  - Improved chart data point generation with accurate baseline references
+
+- **App Controller** (`js/app.js` +78/-19)
+  - Enhanced scenario result processing with proper baseline metrics
+  - Fixed ARPU delta calculations across all scenario types
+  - Improved validation for bundle tier scenarios
+
+**Business Value**: Ensures accurate ARPU comparisons and revenue forecasts, particularly for bundle product scenarios. Critical fix for financial reporting accuracy.
+
+---
+
+### 2. `4d9c54c` - Changelog Documentation (17:46)
+
+**Type**: Documentation
+
+**Changes**:
+
+- **New File**: `CHANGELOG.md` (232 lines)
+  - Created comprehensive changelog documenting Version 2.0 development
+  - Detailed commit-by-commit breakdown of features and fixes
+  - Added technical highlights and migration notes
+  - Included overall statistics and next steps
+
+**Business Value**: Provides stakeholders with clear visibility into development progress and feature evolution.
+
+---
+
+### 3. `22aab06` - UI Cleanup + Baseline Scenario Support (17:29)
 
 **Type**: Bug Fix + Enhancement
 
@@ -172,10 +213,11 @@ Completed **Version 2.0** release with comprehensive customer segmentation and s
 
 **Code Changes**:
 
-- **5 commits** over 4 hours (13:20 - 17:29)
-- **8 files changed** (4 new, 4 modified)
-- **~10,000+ lines of JavaScript** added across 5 core modules
+- **7 commits** over 8 hours (13:20 - 21:41)
+- **9 files changed** (5 new including CHANGELOG.md, 4 modified)
+- **~10,200+ lines of JavaScript** added/modified across 5 core modules
 - **16,000+ rows of data** generated
+- **232 lines** of documentation added
 
 **Feature Additions**:
 
@@ -185,6 +227,8 @@ Completed **Version 2.0** release with comprehensive customer segmentation and s
 - Interactive visualizations (3D radial, heatmaps, scatter plots)
 - Advanced filtering and export tools
 - Baseline and bundle tier support
+- Accurate ARPU baseline calculations for all scenario types
+- Comprehensive changelog documentation
 
 **Documentation**:
 
