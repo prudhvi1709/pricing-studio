@@ -21,6 +21,12 @@ import { getWeeklyData, getCurrentPrices } from './data-loader.js';
  * @returns {Promise<Object>} Simulation results
  */
 export async function simulateScenario(scenario, options = {}) {
+  // Check if this is a segment-targeted scenario
+  if (options.targetSegment && options.targetSegment !== 'all') {
+    console.log('Delegating to segment-targeted simulation');
+    return simulateSegmentScenario(scenario, options);
+  }
+
   const timeHorizon = options.timeHorizon || 'medium_term_3_12mo';
 
   try {
@@ -429,5 +435,375 @@ export function exportScenarioResult(result) {
 
     warnings: result.warnings.join('; '),
     constraints_met: result.constraints_met
+  };
+}
+
+// ========== Segment-Targeted Scenario Simulation ==========
+
+/**
+ * Simulate a pricing scenario for a specific customer segment
+ * @param {Object} scenario - Scenario configuration
+ * @param {Object} options - { targetSegment, segmentAxis }
+ * @returns {Promise<Object>} Simulation results with segment breakdown
+ */
+export async function simulateSegmentScenario(scenario, options = {}) {
+  const { targetSegment, segmentAxis } = options;
+
+  console.log('Simulating segment-targeted scenario:', { targetSegment, segmentAxis });
+
+  // Validate segment targeting
+  if (!targetSegment || targetSegment === 'all') {
+    throw new Error('simulateSegmentScenario requires a specific targetSegment');
+  }
+
+  const tier = scenario.config.tier;
+  const currentPrice = scenario.config.current_price;
+  const newPrice = scenario.config.new_price;
+  const priceChangePct = (newPrice - currentPrice) / currentPrice;
+
+  try {
+    // Get segment-specific data
+    const segmentElasticity = await getSegmentElasticity(tier, targetSegment, segmentAxis);
+    const segmentBaseline = await getSegmentBaseline(tier, targetSegment, segmentAxis);
+
+    console.log('Segment elasticity:', segmentElasticity);
+    console.log('Segment baseline:', segmentBaseline);
+
+    // Calculate direct impact on targeted segment
+    const demandChangePct = segmentElasticity * priceChangePct;
+    const forecastedSubscribers = Math.round(segmentBaseline.subscribers * (1 + demandChangePct));
+    const forecastedRevenue = forecastedSubscribers * newPrice;
+
+    // Estimate churn impact
+    const churnMultiplier = 1 + (segmentElasticity * 0.15 * priceChangePct); // 15% of elasticity affects churn
+    const forecastedChurn = segmentBaseline.churn_rate * churnMultiplier;
+
+    // Calculate segment impact
+    const segmentImpact = {
+      baseline: segmentBaseline,
+      forecasted: {
+        subscribers: forecastedSubscribers,
+        revenue: forecastedRevenue,
+        churn_rate: forecastedChurn,
+        arpu: newPrice
+      },
+      delta: {
+        subscribers: forecastedSubscribers - segmentBaseline.subscribers,
+        subscribers_pct: demandChangePct * 100,
+        revenue: forecastedRevenue - segmentBaseline.revenue,
+        revenue_pct: ((forecastedRevenue - segmentBaseline.revenue) / segmentBaseline.revenue) * 100,
+        churn_rate: forecastedChurn - segmentBaseline.churn_rate,
+        churn_rate_pct: ((forecastedChurn - segmentBaseline.churn_rate) / segmentBaseline.churn_rate) * 100
+      },
+      elasticity: segmentElasticity
+    };
+
+    // Estimate spillover effects on other segments
+    const spilloverEffects = await estimateSpilloverEffects(
+      tier,
+      targetSegment,
+      priceChangePct,
+      demandChangePct,
+      segmentBaseline.subscribers
+    );
+
+    // Calculate tier-level totals including spillovers
+    const tierImpact = await calculateTierTotals(tier, {
+      targetSegment,
+      segmentBaseline,
+      segmentForecasted: segmentImpact.forecasted,
+      spilloverEffects: spilloverEffects.details
+    });
+
+    // Generate warnings
+    const warnings = [];
+    if (Math.abs(priceChangePct) > 0.15) {
+      warnings.push(`Large price change (${(priceChangePct * 100).toFixed(1)}%) may have unpredictable effects`);
+    }
+    if (Math.abs(demandChangePct) > 0.25) {
+      warnings.push(`High demand sensitivity: ${(Math.abs(demandChangePct) * 100).toFixed(1)}% change expected`);
+    }
+    if (forecastedChurn > 0.20) {
+      warnings.push(`High churn risk: ${(forecastedChurn * 100).toFixed(1)}%`);
+    }
+    if (spilloverEffects.total_migration > segmentBaseline.subscribers * 0.15) {
+      warnings.push(`Significant spillover effects: ~${spilloverEffects.total_migration.toLocaleString()} subscribers may migrate`);
+    }
+
+    return {
+      scenario_id: scenario.id,
+      scenario_name: scenario.name,
+      tier,
+      target_segment: targetSegment,
+      segment_axis: segmentAxis || 'auto-detected',
+
+      // Segment-specific results
+      segment_impact: segmentImpact,
+
+      // Spillover effects
+      spillover_effects: spilloverEffects.details,
+      spillover_summary: {
+        total_migration: spilloverEffects.total_migration,
+        net_tier_change: spilloverEffects.net_tier_change
+      },
+
+      // Tier-level totals
+      tier_impact: tierImpact,
+
+      // Metadata
+      elasticity: segmentElasticity,
+      price_change_pct: priceChangePct * 100,
+      warnings,
+      constraints_met: warnings.length === 0,
+      timestamp: new Date().toISOString()
+    };
+
+  } catch (error) {
+    console.error('Error simulating segment scenario:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get elasticity for a specific segment
+ * @param {string} tier - Tier name
+ * @param {string} segmentId - Segment identifier
+ * @param {string} axis - Optional axis override
+ * @returns {Promise<number>} Elasticity value
+ */
+async function getSegmentElasticity(tier, segmentId, axis) {
+  // Check if segmentEngine has elasticity data
+  if (!window.segmentEngine || !window.segmentEngine.segmentElasticity) {
+    console.warn('Segment elasticity data not available, using tier-level fallback');
+    const params = await loadElasticityParams();
+    return params.tiers[tier]?.base_elasticity || -2.0;
+  }
+
+  const tierData = window.segmentEngine.segmentElasticity[tier];
+  if (!tierData || !tierData.segment_elasticity) {
+    console.warn('No segment elasticity for tier:', tier);
+    const params = await loadElasticityParams();
+    return params.tiers[tier]?.base_elasticity || -2.0;
+  }
+
+  // Find segments matching the target segment ID
+  const matchingKeys = Object.keys(tierData.segment_elasticity).filter(key => {
+    const parts = key.split('|');
+    return parts.includes(segmentId);
+  });
+
+  if (matchingKeys.length === 0) {
+    console.warn('No matching segment found for:', segmentId);
+    const params = await loadElasticityParams();
+    return params.tiers[tier]?.base_elasticity || -2.0;
+  }
+
+  // Use the first matching segment's elasticity
+  const compositeKey = matchingKeys[0];
+  const segmentData = tierData.segment_elasticity[compositeKey];
+
+  // Determine which axis to use
+  let axisKey = axis ? `${axis}_axis` : null;
+
+  // Auto-detect axis if not specified
+  if (!axisKey) {
+    // Check which position the segment appears in
+    const parts = compositeKey.split('|');
+    const position = parts.indexOf(segmentId);
+
+    if (position === 0) axisKey = 'acquisition_axis';
+    else if (position === 1) axisKey = 'engagement_axis';
+    else if (position === 2) axisKey = 'monetization_axis';
+    else axisKey = 'engagement_axis'; // Default
+  }
+
+  const elasticity = segmentData[axisKey]?.elasticity;
+
+  if (elasticity !== undefined) {
+    console.log(`Using segment elasticity: ${elasticity} for ${segmentId} (${axisKey})`);
+    return elasticity;
+  }
+
+  // Fallback to tier-level
+  console.warn('Could not find segment elasticity, using tier-level');
+  const params = await loadElasticityParams();
+  return params.tiers[tier]?.base_elasticity || -2.0;
+}
+
+/**
+ * Get baseline metrics for a specific segment
+ * @param {string} tier - Tier name
+ * @param {string} segmentId - Segment identifier
+ * @param {string} axis - Optional axis
+ * @returns {Promise<Object>} Baseline metrics
+ */
+async function getSegmentBaseline(tier, segmentId, axis) {
+  if (!window.segmentEngine) {
+    throw new Error('Segment engine not initialized');
+  }
+
+  const segments = window.segmentEngine.getSegmentsForTier(tier);
+
+  // Filter segments that match the target segment ID on any axis
+  const matchingSegments = segments.filter(s =>
+    s.acquisition === segmentId ||
+    s.engagement === segmentId ||
+    s.monetization === segmentId
+  );
+
+  if (matchingSegments.length === 0) {
+    throw new Error(`No data found for segment: ${segmentId} in tier: ${tier}`);
+  }
+
+  console.log(`Found ${matchingSegments.length} matching segments for ${segmentId}`);
+
+  // Aggregate across matching segments
+  const totalSubscribers = matchingSegments.reduce((sum, s) =>
+    sum + parseInt(s.subscriber_count || 0), 0);
+
+  const weightedChurnRate = matchingSegments.reduce((sum, s) => {
+    const subs = parseInt(s.subscriber_count || 0);
+    const churn = parseFloat(s.avg_churn_rate || 0);
+    return sum + (churn * subs);
+  }, 0) / totalSubscribers;
+
+  const weightedArpu = matchingSegments.reduce((sum, s) => {
+    const subs = parseInt(s.subscriber_count || 0);
+    const arpu = parseFloat(s.avg_arpu || 0);
+    return sum + (arpu * subs);
+  }, 0) / totalSubscribers;
+
+  const revenue = totalSubscribers * weightedArpu;
+
+  return {
+    subscribers: totalSubscribers,
+    churn_rate: weightedChurnRate,
+    arpu: weightedArpu,
+    revenue,
+    segment_count: matchingSegments.length
+  };
+}
+
+/**
+ * Estimate spillover effects on other segments (migration patterns)
+ * @param {string} tier - Tier name
+ * @param {string} targetSegment - Target segment ID
+ * @param {number} priceChangePct - Price change percentage
+ * @param {number} demandChangePct - Demand change percentage for target
+ * @param {number} targetSubscribers - Target segment subscribers
+ * @returns {Promise<Object>} Spillover effects
+ */
+async function estimateSpilloverEffects(tier, targetSegment, priceChangePct, demandChangePct, targetSubscribers) {
+  if (!window.segmentEngine) {
+    return { details: [], total_migration: 0, net_tier_change: 0 };
+  }
+
+  const allSegments = window.segmentEngine.getSegmentsForTier(tier);
+  const spillovers = [];
+
+  // Simplified migration model: some churned customers move to other segments
+  // Migration rate is proportional to demand change, capped at 10%
+  const migrationRate = Math.min(Math.abs(demandChangePct) * 0.25, 0.10); // Max 10% migration
+  const totalMigrants = Math.round(targetSubscribers * migrationRate);
+
+  // Distribute migrants across other segments (weighted by their size)
+  const otherSegments = allSegments.filter(s =>
+    s.acquisition !== targetSegment &&
+    s.engagement !== targetSegment &&
+    s.monetization !== targetSegment
+  );
+
+  const totalOtherSubs = otherSegments.reduce((sum, s) =>
+    sum + parseInt(s.subscriber_count || 0), 0);
+
+  for (const seg of otherSegments) {
+    const segSubs = parseInt(seg.subscriber_count || 0);
+    const weight = segSubs / totalOtherSubs;
+
+    // Migration direction: price increase -> outflow, price decrease -> inflow
+    const direction = priceChangePct > 0 ? -1 : 1;
+    const deltaSubscribers = Math.round(totalMigrants * weight * direction);
+
+    if (deltaSubscribers !== 0) {
+      spillovers.push({
+        compositeKey: seg.compositeKey,
+        baseline_subscribers: segSubs,
+        delta_subscribers: deltaSubscribers,
+        delta_pct: (deltaSubscribers / segSubs) * 100
+      });
+    }
+  }
+
+  // Sort by absolute impact
+  spillovers.sort((a, b) => Math.abs(b.delta_subscribers) - Math.abs(a.delta_subscribers));
+
+  // Calculate net tier change from spillover
+  const netTierChange = spillovers.reduce((sum, s) => sum + s.delta_subscribers, 0);
+
+  return {
+    details: spillovers.slice(0, 10), // Top 10 affected segments
+    total_migration: totalMigrants,
+    net_tier_change: netTierChange
+  };
+}
+
+/**
+ * Calculate tier-level totals including segment impact and spillovers
+ * @param {string} tier - Tier name
+ * @param {Object} impactData - Segment and spillover data
+ * @returns {Promise<Object>} Tier totals
+ */
+async function calculateTierTotals(tier, impactData) {
+  if (!window.segmentEngine) {
+    throw new Error('Segment engine not initialized');
+  }
+
+  const allSegments = window.segmentEngine.getSegmentsForTier(tier);
+
+  // Calculate baseline tier totals
+  const baselineSubscribers = allSegments.reduce((sum, s) =>
+    sum + parseInt(s.subscriber_count || 0), 0);
+
+  const baselineRevenue = allSegments.reduce((sum, s) => {
+    const subs = parseInt(s.subscriber_count || 0);
+    const arpu = parseFloat(s.avg_arpu || 0);
+    return sum + (subs * arpu);
+  }, 0);
+
+  // Calculate forecasted tier totals
+  const targetSegmentDelta = impactData.segmentForecasted.subscribers - impactData.segmentBaseline.subscribers;
+  const spilloverDelta = impactData.spilloverEffects.reduce((sum, s) =>
+    sum + (s.delta_subscribers || 0), 0);
+
+  const forecastedSubscribers = baselineSubscribers + targetSegmentDelta + spilloverDelta;
+
+  // Revenue calculation (simplified)
+  const targetRevenueChange = impactData.segmentForecasted.revenue - impactData.segmentBaseline.revenue;
+  const spilloverRevenueChange = impactData.spilloverEffects.reduce((sum, s) => {
+    // Assume migrated subscribers keep similar ARPU
+    const avgArpu = baselineRevenue / baselineSubscribers;
+    return sum + (s.delta_subscribers * avgArpu);
+  }, 0);
+
+  const forecastedRevenue = baselineRevenue + targetRevenueChange + spilloverRevenueChange;
+  const forecastedArpu = forecastedRevenue / forecastedSubscribers;
+
+  return {
+    baseline: {
+      subscribers: baselineSubscribers,
+      revenue: baselineRevenue,
+      arpu: baselineRevenue / baselineSubscribers
+    },
+    forecasted: {
+      subscribers: forecastedSubscribers,
+      revenue: forecastedRevenue,
+      arpu: forecastedArpu
+    },
+    delta: {
+      subscribers: forecastedSubscribers - baselineSubscribers,
+      subscribers_pct: ((forecastedSubscribers - baselineSubscribers) / baselineSubscribers) * 100,
+      revenue: forecastedRevenue - baselineRevenue,
+      revenue_pct: ((forecastedRevenue - baselineRevenue) / baselineRevenue) * 100
+    }
   };
 }

@@ -74,12 +74,19 @@ const DEFAULT_SYSTEM_PROMPT = `You are the Scenario Analysis Assistant for the D
 **Saved Scenarios for Comparison:**
 {savedScenarios}
 
+**Customer Segmentation:**
+{segmentSummary}
+
+**Available Segments for Targeting:**
+{availableSegments}
+
 **Available Tools:**
 1. **interpret_scenario** - Analyze a scenario's results with detailed metrics and trade-offs
 2. **suggest_scenario** - Get scenario suggestions based on business goals (maximize_revenue, grow_subscribers, reduce_churn, maximize_arpu)
 3. **analyze_chart** - Explain what a specific visualization shows (demand_curve, tier_mix, forecast, heatmap)
 4. **compare_outcomes** - Deep comparison of 2 or more scenarios with trade-off analysis
 5. **create_scenario** - Generate a new custom scenario from parameters
+6. **query_segments** - Get detailed information about customer segments (filter by tier, size, churn risk, value)
 
 **How to Use Tools:**
 - When users ask to interpret results: Use interpret_scenario with the scenario_id
@@ -87,6 +94,7 @@ const DEFAULT_SYSTEM_PROMPT = `You are the Scenario Analysis Assistant for the D
 - When users ask about a chart: Use analyze_chart with the chart name
 - When users want to compare 2+ scenarios: Use compare_outcomes with array of scenario_ids
 - When users want to create new scenarios: Use create_scenario with parameters
+- When users ask about customer segments: Use query_segments with filters (tier, size, churn_risk, value)
 
 **Response Guidelines:**
 - Focus on scenario interpretation and business insights
@@ -119,7 +127,13 @@ User: "Compare all saved scenarios"
 → Use compare_outcomes with the IDs from the saved scenarios list (can be 2, 3, 4+ scenarios)
 
 User: "Which saved scenario is best for revenue?"
-→ Use compare_outcomes with saved scenario IDs and explain which optimizes revenue`;
+→ Use compare_outcomes with saved scenario IDs and explain which optimizes revenue
+
+User: "Show me high churn segments"
+→ Use query_segments with filter: {churn_risk: "high"}
+
+User: "What are the largest segments in ad_supported tier?"
+→ Use query_segments with filter: {tier: "ad_supported", size: "large"}`;
 
 /**
  * Initialize chat module with data context
@@ -165,6 +179,37 @@ export function initializeChat(context) {
         settingsForm.save();
       }
     });
+  }
+
+  // Check if LLM is already configured and enable chat UI
+  checkAndEnableChatUI();
+}
+
+/**
+ * Check if LLM is configured and enable chat UI if so
+ */
+async function checkAndEnableChatUI() {
+  try {
+    // Try to get existing config without showing modal
+    const config = await openaiConfig({
+      defaultBaseUrls: DEFAULT_BASE_URLS,
+      show: false  // Don't show modal, just check if config exists
+    });
+
+    // If we got a config with apiKey, enable the chat UI
+    if (config && config.apiKey) {
+      console.log('LLM already configured, enabling chat UI');
+      document.getElementById('chat-input').disabled = false;
+      document.getElementById('chat-send-btn').disabled = false;
+      document.querySelectorAll('.suggested-query').forEach(btn => {
+        btn.disabled = false;
+      });
+    } else {
+      console.log('LLM not configured yet, chat UI will remain disabled until configuration');
+    }
+  } catch (error) {
+    // Config doesn't exist yet, that's fine
+    console.log('LLM not configured yet:', error.message);
   }
 }
 
@@ -227,8 +272,77 @@ function buildSystemPrompt() {
 
   // Format saved scenarios for the prompt
   const savedScenariosText = savedScenarios.length > 0
-    ? savedScenarios.map(s => `- ${s.scenario_id}: ${s.scenario_name} (Revenue ${s.delta.revenue_pct >= 0 ? '+' : ''}${s.delta.revenue_pct.toFixed(1)}%, Subscribers ${s.delta.subscribers_pct >= 0 ? '+' : ''}${s.delta.subscribers_pct.toFixed(1)}%)`).join('\n')
+    ? savedScenarios.map(s => {
+        if (s.delta && s.delta.revenue_pct !== undefined) {
+          return `- ${s.scenario_id}: ${s.scenario_name} (Revenue ${s.delta.revenue_pct >= 0 ? '+' : ''}${s.delta.revenue_pct.toFixed(1)}%, Subscribers ${s.delta.subscribers_pct >= 0 ? '+' : ''}${s.delta.subscribers_pct.toFixed(1)}%)`;
+        } else {
+          return `- ${s.scenario_id}: ${s.scenario_name}`;
+        }
+      }).join('\n')
     : 'No scenarios saved for comparison yet';
+
+  // Get segment data if available
+  let segmentSummary = 'Segment data not loaded yet';
+  let availableSegments = 'No segments available';
+
+  if (window.segmentEngine) {
+    try {
+      // Get all segments to compute summary
+      const allSegments = window.segmentEngine.filterSegments({});
+
+      if (allSegments && allSegments.length > 0) {
+        // Compute segment statistics
+        const totalSegments = allSegments.length;
+        const tierCounts = {};
+        let totalSubscribers = 0;
+        let totalChurn = 0;
+        let totalARPU = 0;
+
+        allSegments.forEach(seg => {
+          tierCounts[seg.tier] = (tierCounts[seg.tier] || 0) + 1;
+          totalSubscribers += parseInt(seg.subscriber_count) || 0;
+          totalChurn += parseFloat(seg.avg_churn_rate) || 0;
+          totalARPU += parseFloat(seg.avg_arpu) || 0;
+        });
+
+        const avgChurn = (totalChurn / totalSegments * 100).toFixed(2);
+        const avgARPU = (totalARPU / totalSegments).toFixed(2);
+
+        segmentSummary = `${totalSegments} behavioral segments across 3 tiers:
+- Ad-Supported: ${tierCounts['ad_supported'] || 0} segments
+- Ad-Free: ${tierCounts['ad_free'] || 0} segments
+- Annual: ${tierCounts['annual'] || 0} segments
+Total Subscribers: ${totalSubscribers.toLocaleString()}
+Avg Churn Rate: ${avgChurn}%
+Avg ARPU: $${avgARPU}`;
+
+        // List available segments for targeting (15 predefined segments)
+        availableSegments = `15 predefined segments for targeted pricing:
+1. Habitual Streamers (low price sensitivity)
+2. Content Explorers (moderate engagement)
+3. Casual Viewers (high price sensitivity)
+4. Binge-Watchers (high engagement)
+5. Deal-Driven Skeptics (high price sensitivity)
+6. Premium Experience Seekers (low churn)
+7. Trial Converts (recent acquisition)
+8. At-Risk High-Value (high churn + high ARPU)
+9. Loyal Fans (low churn)
+10. Weekend Warriors (moderate engagement)
+11. Platform Hoppers (high churn)
+12. Budget-Conscious Families (high price sensitivity)
+13. Early Adopters (long tenure)
+14. Mobile-First Users (platform-specific)
+15. Multi-Device Power Users (high engagement)
+
+You can also target by behavioral axes:
+- Acquisition: price_sensitivity, engagement_level, platform_loyalty
+- Engagement: content_preference, viewing_frequency
+- Monetization: churn_risk`;
+      }
+    } catch (error) {
+      console.error('Error getting segment data for chat:', error);
+    }
+  }
 
   // Replace placeholders with actual values
   const prompt = promptTemplate
@@ -239,8 +353,10 @@ function buildSystemPrompt() {
     .replace('{elasticityAdFree}', (businessContext.elasticityByTier?.ad_free || -1.9).toString())
     .replace('{elasticityAnnual}', (businessContext.elasticityByTier?.annual || -1.6).toString())
     .replace('{availableScenarios}', allScenarios.slice(0, 8).map(s => `- ${s.id}: ${s.name}`).join('\n') || 'None loaded yet')
-    .replace('{currentSimulation}', currentSim ? `Active: "${currentSim.scenario_name}" - Revenue ${currentSim.delta.revenue_pct >= 0 ? '+' : ''}${currentSim.delta.revenue_pct.toFixed(1)}%, Subscribers ${currentSim.delta.subscribers_pct >= 0 ? '+' : ''}${currentSim.delta.subscribers_pct.toFixed(1)}%` : 'No scenario simulated yet')
-    .replace('{savedScenarios}', savedScenariosText);
+    .replace('{currentSimulation}', currentSim && currentSim.delta ? `Active: "${currentSim.scenario_name}" - Revenue ${currentSim.delta.revenue_pct >= 0 ? '+' : ''}${currentSim.delta.revenue_pct.toFixed(1)}%, Subscribers ${currentSim.delta.subscribers_pct >= 0 ? '+' : ''}${currentSim.delta.subscribers_pct.toFixed(1)}%` : currentSim ? `Active: "${currentSim.scenario_name}"` : 'No scenario simulated yet')
+    .replace('{savedScenarios}', savedScenariosText)
+    .replace('{segmentSummary}', segmentSummary)
+    .replace('{availableSegments}', availableSegments);
 
   return prompt;
 }
@@ -349,6 +465,43 @@ function getToolDefinitions() {
             }
           },
           required: ["tier"]
+        }
+      }
+    },
+    {
+      type: "function",
+      function: {
+        name: "query_segments",
+        description: "Query customer segments with filters to get detailed segment information. Returns segment metrics like subscriber count, churn rate, ARPU, and elasticity.",
+        parameters: {
+          type: "object",
+          properties: {
+            tier: {
+              type: "string",
+              enum: ["ad_supported", "ad_free", "annual", "all"],
+              description: "Filter by subscription tier. Use 'all' to include all tiers."
+            },
+            size: {
+              type: "string",
+              enum: ["small", "medium", "large", "all"],
+              description: "Filter by segment size based on subscriber count. Use 'all' to include all sizes."
+            },
+            churn_risk: {
+              type: "string",
+              enum: ["low", "medium", "high", "all"],
+              description: "Filter by churn risk level. Use 'all' to include all risk levels."
+            },
+            value: {
+              type: "string",
+              enum: ["low", "medium", "high", "all"],
+              description: "Filter by segment value (ARPU). Use 'all' to include all value levels."
+            },
+            limit: {
+              type: "integer",
+              description: "Maximum number of segments to return (default: 10)"
+            }
+          },
+          required: []
         }
       }
     }
@@ -624,9 +777,106 @@ async function executeTool(toolName, args) {
     case 'create_scenario':
       return await dataContext.createScenario(args);
 
+    case 'query_segments':
+      return await querySegments(args);
+
     default:
       throw new Error(`Unknown tool: ${toolName}`);
   }
+}
+
+/**
+ * Query segments with filters
+ */
+async function querySegments(filters) {
+  if (!window.segmentEngine) {
+    throw new Error('Segmentation engine not available');
+  }
+
+  // Get all segments (filterSegments only handles acquisition/engagement/monetization)
+  let segments = window.segmentEngine.filterSegments({});
+
+  // Apply custom filters manually
+  if (filters.tier && filters.tier !== 'all') {
+    segments = segments.filter(seg => seg.tier === filters.tier);
+  }
+
+  if (filters.size && filters.size !== 'all') {
+    segments = segments.filter(seg => {
+      const count = parseInt(seg.subscriber_count) || 0;
+      if (filters.size === 'small') return count < 1000;
+      if (filters.size === 'medium') return count >= 1000 && count < 3000;
+      if (filters.size === 'large') return count >= 3000;
+      return true;
+    });
+  }
+
+  if (filters.churn_risk && filters.churn_risk !== 'all') {
+    segments = segments.filter(seg => {
+      const churn = parseFloat(seg.avg_churn_rate) || 0;
+      if (filters.churn_risk === 'low') return churn < 0.10;
+      if (filters.churn_risk === 'medium') return churn >= 0.10 && churn < 0.20;
+      if (filters.churn_risk === 'high') return churn >= 0.20;
+      return true;
+    });
+  }
+
+  if (filters.value && filters.value !== 'all') {
+    segments = segments.filter(seg => {
+      const arpu = parseFloat(seg.avg_arpu) || 0;
+      if (filters.value === 'low') return arpu < 10;
+      if (filters.value === 'medium') return arpu >= 10 && arpu < 20;
+      if (filters.value === 'high') return arpu >= 20;
+      return true;
+    });
+  }
+
+  // Apply limit
+  const limit = filters.limit || 10;
+  segments = segments.slice(0, limit);
+
+  // Format segment data for the LLM
+  const segmentData = segments.map(seg => {
+    const elasticity = window.segmentEngine.getElasticity(seg.tier, seg.compositeKey);
+    const churnRate = parseFloat(seg.avg_churn_rate) || 0;
+    const arpu = parseFloat(seg.avg_arpu) || 0;
+    const subscriberCount = parseInt(seg.subscriber_count) || 0;
+
+    return {
+      composite_key: seg.compositeKey,
+      tier: seg.tier,
+      acquisition: seg.acquisition,
+      engagement: seg.engagement,
+      monetization: seg.monetization,
+      subscriber_count: subscriberCount,
+      churn_rate: (churnRate * 100).toFixed(2) + '%',
+      arpu: '$' + arpu.toFixed(2),
+      elasticity: elasticity?.toFixed(2) || 'N/A',
+      segment_name: generateSegmentName(seg)
+    };
+  });
+
+  return {
+    total_segments: segmentData.length,
+    filters_applied: filters,
+    segments: segmentData,
+    summary: `Found ${segmentData.length} segments matching the criteria.`
+  };
+}
+
+/**
+ * Generate a human-readable segment name
+ */
+function generateSegmentName(segment) {
+  const acqMap = { low: 'Loyal', medium: 'Moderate', high: 'Deal-Seeking' };
+  const engMap = { low: 'Casual', medium: 'Regular', high: 'Heavy' };
+  const monMap = { low: 'At-Risk', medium: 'Stable', high: 'Premium' };
+
+  const acq = acqMap[segment.acquisition] || segment.acquisition;
+  const eng = engMap[segment.engagement] || segment.engagement;
+  const mon = monMap[segment.monetization] || segment.monetization;
+
+  return `${acq} ${eng} ${mon}`;
 }
 
 /**

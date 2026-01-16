@@ -141,8 +141,17 @@ async function runSimulation() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating...';
 
-    // Run simulation
-    const result = await simulateScenario(selectedScenario);
+    // Get segment targeting options
+    const targetSegment = document.getElementById('scenario-target-segment')?.value || 'all';
+    const segmentAxis = document.getElementById('scenario-segment-axis')?.value || null;
+
+    console.log('Running simulation with targeting:', { targetSegment, segmentAxis });
+
+    // Run simulation with segment targeting
+    const result = await simulateScenario(selectedScenario, {
+      targetSegment,
+      segmentAxis
+    });
 
     // Display results
     displayResults(result);
@@ -159,6 +168,195 @@ async function runSimulation() {
   }
 }
 
+// Display segment-targeted simulation results
+function displaySegmentResults(result) {
+  const segmentLabel = window.segmentEngine.formatSegmentLabel(result.target_segment);
+  const container = document.getElementById('result-cards');
+
+  container.innerHTML = `
+    <!-- Segment Target Banner -->
+    <div class="col-12">
+      <div class="alert alert-primary d-flex align-items-center">
+        <i class="bi bi-bullseye me-3 fs-4"></i>
+        <div>
+          <strong>Targeted Segment:</strong> ${segmentLabel}
+          <span class="badge bg-secondary ms-2">${result.segment_axis} axis</span>
+          <div class="small mt-1">
+            This price change targets ${result.segment_impact.baseline.subscribers.toLocaleString()} subscribers
+            (${((result.segment_impact.baseline.subscribers / result.tier_impact.baseline.subscribers) * 100).toFixed(1)}% of ${result.tier} tier)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Segment-Level Impact -->
+    <div class="col-12 mt-2">
+      <h6 class="fw-bold text-primary">
+        <i class="bi bi-bar-chart me-2"></i>Direct Impact on Target Segment
+      </h6>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-primary">
+        <div class="card-body text-center">
+          <div class="text-muted small">Segment Subscribers</div>
+          <div class="h4 mb-1">${formatNumber(result.segment_impact.forecasted.subscribers)}</div>
+          <div class="small ${result.segment_impact.delta.subscribers >= 0 ? 'text-success' : 'text-danger'}">
+            ${result.segment_impact.delta.subscribers >= 0 ? '+' : ''}${formatNumber(result.segment_impact.delta.subscribers)}
+            (${formatPercent(result.segment_impact.delta.subscribers_pct, 1)})
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-primary">
+        <div class="card-body text-center">
+          <div class="text-muted small">Segment Revenue</div>
+          <div class="h4 mb-1">${formatCurrency(result.segment_impact.forecasted.revenue)}</div>
+          <div class="small ${result.segment_impact.delta.revenue >= 0 ? 'text-success' : 'text-danger'}">
+            ${result.segment_impact.delta.revenue >= 0 ? '+' : ''}${formatCurrency(result.segment_impact.delta.revenue)}
+            (${formatPercent(result.segment_impact.delta.revenue_pct, 1)})
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-primary">
+        <div class="card-body text-center">
+          <div class="text-muted small">Segment Churn Rate</div>
+          <div class="h4 mb-1">${formatPercent(result.segment_impact.forecasted.churn_rate * 100, 2)}</div>
+          <div class="small ${result.segment_impact.delta.churn_rate <= 0 ? 'text-success' : 'text-danger'}">
+            ${result.segment_impact.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(result.segment_impact.delta.churn_rate * 100, 2)}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-primary">
+        <div class="card-body text-center">
+          <div class="text-muted small">Price Elasticity</div>
+          <div class="h4 mb-1">${result.segment_impact.elasticity.toFixed(2)}</div>
+          <div class="small text-muted">
+            ${Math.abs(result.segment_impact.elasticity) > 2.5 ? 'Highly Elastic' :
+              Math.abs(result.segment_impact.elasticity) > 2.0 ? 'Elastic' : 'Moderately Elastic'}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spillover Effects -->
+    ${result.spillover_effects && result.spillover_effects.length > 0 ? `
+      <div class="col-12 mt-4">
+        <h6 class="fw-bold text-info">
+          <i class="bi bi-arrow-left-right me-2"></i>Spillover Effects (Migration Patterns)
+        </h6>
+        <p class="text-muted small mb-2">
+          Estimated migration: ~${result.spillover_summary.total_migration.toLocaleString()} subscribers may move to/from other segments
+        </p>
+      </div>
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Affected Segment</th>
+                <th class="text-end">Baseline Subs</th>
+                <th class="text-end">Migration Impact</th>
+                <th class="text-end">Change %</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.spillover_effects.slice(0, 5).map(sp => `
+                <tr>
+                  <td><small>${window.segmentEngine.formatCompositeKey(sp.compositeKey)}</small></td>
+                  <td class="text-end">${formatNumber(sp.baseline_subscribers)}</td>
+                  <td class="text-end ${sp.delta_subscribers >= 0 ? 'text-success' : 'text-danger'}">
+                    ${sp.delta_subscribers >= 0 ? '+' : ''}${formatNumber(sp.delta_subscribers)}
+                  </td>
+                  <td class="text-end ${sp.delta_pct >= 0 ? 'text-success' : 'text-danger'}">
+                    ${sp.delta_pct >= 0 ? '+' : ''}${formatPercent(sp.delta_pct, 1)}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          ${result.spillover_effects.length > 5 ? `
+            <p class="small text-muted mb-0">
+              Showing top 5 of ${result.spillover_effects.length} affected segments
+            </p>
+          ` : ''}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Tier-Level Totals -->
+    <div class="col-12 mt-4">
+      <h6 class="fw-bold text-secondary">
+        <i class="bi bi-layers me-2"></i>Overall ${result.tier.replace('_', ' ').toUpperCase()} Tier Impact
+        <small class="text-muted ms-2">(includes direct + spillover effects)</small>
+      </h6>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="text-muted small">Total Tier Subscribers</div>
+          <div class="h5 mb-1">${formatNumber(result.tier_impact.forecasted.subscribers)}</div>
+          <div class="small ${result.tier_impact.delta.subscribers >= 0 ? 'text-success' : 'text-danger'}">
+            ${result.tier_impact.delta.subscribers >= 0 ? '+' : ''}${formatNumber(result.tier_impact.delta.subscribers)}
+            (${formatPercent(result.tier_impact.delta.subscribers_pct, 1)})
+          </div>
+          <div class="text-muted small mt-1">
+            Baseline: ${formatNumber(result.tier_impact.baseline.subscribers)}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="text-muted small">Total Tier Revenue</div>
+          <div class="h5 mb-1">${formatCurrency(result.tier_impact.forecasted.revenue)}</div>
+          <div class="small ${result.tier_impact.delta.revenue >= 0 ? 'text-success' : 'text-danger'}">
+            ${result.tier_impact.delta.revenue >= 0 ? '+' : ''}${formatCurrency(result.tier_impact.delta.revenue)}
+            (${formatPercent(result.tier_impact.delta.revenue_pct, 1)})
+          </div>
+          <div class="text-muted small mt-1">
+            Baseline: ${formatCurrency(result.tier_impact.baseline.revenue)}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="text-muted small">Average Tier ARPU</div>
+          <div class="h5 mb-1">${formatCurrency(result.tier_impact.forecasted.arpu)}</div>
+          <div class="small ${(result.tier_impact.forecasted.arpu - result.tier_impact.baseline.arpu) >= 0 ? 'text-success' : 'text-danger'}">
+            ${(result.tier_impact.forecasted.arpu - result.tier_impact.baseline.arpu) >= 0 ? '+' : ''}${formatCurrency(result.tier_impact.forecasted.arpu - result.tier_impact.baseline.arpu)}
+          </div>
+          <div class="text-muted small mt-1">
+            Baseline: ${formatCurrency(result.tier_impact.baseline.arpu)}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Display warnings
+  const warningsContainer = document.getElementById('warnings-container');
+  const warningsList = document.getElementById('warnings-list');
+
+  if (result.warnings && result.warnings.length > 0) {
+    warningsContainer.style.display = 'block';
+    warningsList.innerHTML = result.warnings.map(w => `<li>${w}</li>`).join('');
+  } else {
+    warningsContainer.style.display = 'none';
+  }
+
+  // Note: For segment scenarios, we don't have time_series data yet
+  // So skip the forecast chart for now
+  console.log('Segment scenario results displayed');
+}
+
 // Display simulation results
 function displayResults(result) {
   currentResult = result; // Store for saving
@@ -166,6 +364,12 @@ function displayResults(result) {
   // Store in all simulation results for chatbot access
   if (!allSimulationResults.find(r => r.scenario_id === result.scenario_id)) {
     allSimulationResults.push(result);
+  }
+
+  // Check if this is a segment-targeted result
+  if (result.target_segment && result.target_segment !== 'all' && result.segment_impact) {
+    displaySegmentResults(result);
+    return;
   }
 
   const container = document.getElementById('result-cards');
