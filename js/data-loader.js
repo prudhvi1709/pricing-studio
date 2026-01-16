@@ -19,7 +19,8 @@ const dataCache = {
   contentReleases: null,
   elasticityParams: null,
   scenarios: null,
-  metadata: null
+  metadata: null,
+  segmentsAvailable: false
 };
 
 /**
@@ -44,13 +45,23 @@ export async function loadAllData() {
       loadExternalFactors()
     ]);
 
+    // Load segment data (non-blocking - graceful degradation if not available)
+    try {
+      const segmentLoaded = await loadSegmentData();
+      dataCache.segmentsAvailable = segmentLoaded;
+    } catch (error) {
+      console.warn('Segment data not available, continuing with tier-level analysis only', error);
+      dataCache.segmentsAvailable = false;
+    }
+
     return {
       elasticityParams,
       scenarios,
       metadata,
       weeklyAggregated,
       pricingHistory,
-      externalFactors
+      externalFactors,
+      segmentsAvailable: dataCache.segmentsAvailable
     };
   } catch (error) {
     console.error('Error loading data:', error);
@@ -412,6 +423,38 @@ export function getCacheStatus() {
     status[key] = dataCache[key] !== null ? 'cached' : 'not cached';
   });
   return status;
+}
+
+/**
+ * Load customer segment data via segmentation engine
+ * @returns {Promise<boolean>} True if successful, false otherwise
+ */
+export async function loadSegmentData() {
+  if (!window.segmentEngine) {
+    console.warn('Segmentation engine not available');
+    return false;
+  }
+
+  try {
+    const loaded = await window.segmentEngine.loadSegmentData();
+    if (loaded) {
+      console.log('✓ Customer segment data loaded successfully');
+      dataCache.segmentsAvailable = true;
+    }
+    return loaded;
+  } catch (error) {
+    console.error('Error loading segment data:', error);
+    dataCache.segmentsAvailable = false;
+    return false;
+  }
+}
+
+/**
+ * Check if segment data is available
+ * @returns {boolean}
+ */
+export function isSegmentDataAvailable() {
+  return dataCache.segmentsAvailable && window.segmentEngine?.isDataLoaded();
 }
 
 // Export dataCache for advanced usage

@@ -1,0 +1,6395 @@
+{
+  "ad_supported": {
+    "tier_name": "Ad Supported",
+    "base_elasticity": -2.1,
+    "segment_elasticity": {
+      "habitual_streamers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.848,
+          "cac_sensitivity": 0.74,
+          "frequency_score": 2.491
+        },
+        "engagement_axis": {
+          "elasticity": -3.818,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.697,
+          "arpu": 23.0,
+          "upsell_propensity": 0.312
+        }
+      },
+      "habitual_streamers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.785,
+          "cac_sensitivity": 0.36,
+          "frequency_score": 0.562
+        },
+        "engagement_axis": {
+          "elasticity": -3.534,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.178,
+          "arpu": 28.0,
+          "upsell_propensity": 0.261
+        }
+      },
+      "habitual_streamers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.806,
+          "cac_sensitivity": 0.34,
+          "frequency_score": 2.207
+        },
+        "engagement_axis": {
+          "elasticity": -3.627,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.008,
+          "arpu": 32.0,
+          "upsell_propensity": 0.306
+        }
+      },
+      "habitual_streamers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.869,
+          "cac_sensitivity": 0.28,
+          "frequency_score": 0.653
+        },
+        "engagement_axis": {
+          "elasticity": -3.909,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -4.126,
+          "arpu": 14.32,
+          "upsell_propensity": 0.195
+        }
+      },
+      "habitual_streamers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.869,
+          "cac_sensitivity": 0.84,
+          "frequency_score": 1.781
+        },
+        "engagement_axis": {
+          "elasticity": -3.911,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.173,
+          "arpu": 20.0,
+          "upsell_propensity": 0.255
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.779,
+          "cac_sensitivity": 0.85,
+          "frequency_score": 2.015
+        },
+        "engagement_axis": {
+          "elasticity": -2.143,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.558,
+          "arpu": 23.0,
+          "upsell_propensity": 0.465
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.834,
+          "cac_sensitivity": 0.52,
+          "frequency_score": 1.685
+        },
+        "engagement_axis": {
+          "elasticity": -2.293,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.251,
+          "arpu": 28.0,
+          "upsell_propensity": 0.221
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.796,
+          "cac_sensitivity": 0.45,
+          "frequency_score": 1.579
+        },
+        "engagement_axis": {
+          "elasticity": -2.189,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.995,
+          "arpu": 32.0,
+          "upsell_propensity": 0.905
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.849,
+          "cac_sensitivity": 0.59,
+          "frequency_score": 2.385
+        },
+        "engagement_axis": {
+          "elasticity": -2.334,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -4.031,
+          "arpu": 14.32,
+          "upsell_propensity": 0.124
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.814,
+          "cac_sensitivity": 0.22,
+          "frequency_score": 1.005
+        },
+        "engagement_axis": {
+          "elasticity": -2.238,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.035,
+          "arpu": 20.0,
+          "upsell_propensity": 0.295
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.774,
+          "cac_sensitivity": 0.58,
+          "frequency_score": 1.296
+        },
+        "engagement_axis": {
+          "elasticity": -0.967,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.548,
+          "arpu": 23.0,
+          "upsell_propensity": 0.427
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.866,
+          "cac_sensitivity": 0.86,
+          "frequency_score": 1.592
+        },
+        "engagement_axis": {
+          "elasticity": -1.082,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.298,
+          "arpu": 28.0,
+          "upsell_propensity": 0.685
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.814,
+          "cac_sensitivity": 0.98,
+          "frequency_score": 1.872
+        },
+        "engagement_axis": {
+          "elasticity": -1.017,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.017,
+          "arpu": 32.0,
+          "upsell_propensity": 0.699
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.881,
+          "cac_sensitivity": 0.27,
+          "frequency_score": 0.519
+        },
+        "engagement_axis": {
+          "elasticity": -1.101,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -4.185,
+          "arpu": 14.32,
+          "upsell_propensity": 0.152
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.783,
+          "cac_sensitivity": 0.79,
+          "frequency_score": 1.749
+        },
+        "engagement_axis": {
+          "elasticity": -0.978,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.957,
+          "arpu": 20.0,
+          "upsell_propensity": 0.115
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.817,
+          "cac_sensitivity": 0.55,
+          "frequency_score": 1.439
+        },
+        "engagement_axis": {
+          "elasticity": -3.267,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.634,
+          "arpu": 23.0,
+          "upsell_propensity": 0.562
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.885,
+          "cac_sensitivity": 0.92,
+          "frequency_score": 1.708
+        },
+        "engagement_axis": {
+          "elasticity": -3.54,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.327,
+          "arpu": 28.0,
+          "upsell_propensity": 0.83
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.805,
+          "cac_sensitivity": 0.37,
+          "frequency_score": 1.054
+        },
+        "engagement_axis": {
+          "elasticity": -3.221,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.006,
+          "arpu": 32.0,
+          "upsell_propensity": 0.24
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.878,
+          "cac_sensitivity": 0.33,
+          "frequency_score": 1.601
+        },
+        "engagement_axis": {
+          "elasticity": -3.511,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -4.17,
+          "arpu": 14.32,
+          "upsell_propensity": 0.21
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.903,
+          "cac_sensitivity": 0.36,
+          "frequency_score": 0.977
+        },
+        "engagement_axis": {
+          "elasticity": -3.611,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -2.257,
+          "arpu": 20.0,
+          "upsell_propensity": 0.442
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.85,
+          "cac_sensitivity": 0.71,
+          "frequency_score": 0.598
+        },
+        "engagement_axis": {
+          "elasticity": -1.913,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.701,
+          "arpu": 23.0,
+          "upsell_propensity": 0.526
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.886,
+          "cac_sensitivity": 0.74,
+          "frequency_score": 1.244
+        },
+        "engagement_axis": {
+          "elasticity": -1.994,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.329,
+          "arpu": 28.0,
+          "upsell_propensity": 0.211
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.775,
+          "cac_sensitivity": 0.46,
+          "frequency_score": 2.443
+        },
+        "engagement_axis": {
+          "elasticity": -1.743,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.968,
+          "arpu": 32.0,
+          "upsell_propensity": 0.969
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.836,
+          "cac_sensitivity": 0.41,
+          "frequency_score": 1.236
+        },
+        "engagement_axis": {
+          "elasticity": -1.882,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.973,
+          "arpu": 14.32,
+          "upsell_propensity": 0.125
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.869,
+          "cac_sensitivity": 0.59,
+          "frequency_score": 0.625
+        },
+        "engagement_axis": {
+          "elasticity": -1.956,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -2.173,
+          "arpu": 20.0,
+          "upsell_propensity": 0.181
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.284,
+          "cac_sensitivity": 1.3,
+          "frequency_score": 0.466
+        },
+        "engagement_axis": {
+          "elasticity": -3.852,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.712,
+          "arpu": 23.0,
+          "upsell_propensity": 0.462
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.16,
+          "cac_sensitivity": 1.4,
+          "frequency_score": 1.46
+        },
+        "engagement_axis": {
+          "elasticity": -3.479,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.16,
+          "arpu": 28.0,
+          "upsell_propensity": 0.285
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.355,
+          "cac_sensitivity": 0.39,
+          "frequency_score": 1.543
+        },
+        "engagement_axis": {
+          "elasticity": -4.066,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.13,
+          "arpu": 32.0,
+          "upsell_propensity": 0.715
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.211,
+          "cac_sensitivity": 0.62,
+          "frequency_score": 1.061
+        },
+        "engagement_axis": {
+          "elasticity": -3.634,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -3.836,
+          "arpu": 14.32,
+          "upsell_propensity": 0.153
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.269,
+          "cac_sensitivity": 0.77,
+          "frequency_score": 1.457
+        },
+        "engagement_axis": {
+          "elasticity": -3.808,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.115,
+          "arpu": 20.0,
+          "upsell_propensity": 0.384
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.346,
+          "cac_sensitivity": 0.9,
+          "frequency_score": 1.36
+        },
+        "engagement_axis": {
+          "elasticity": -2.467,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.794,
+          "arpu": 23.0,
+          "upsell_propensity": 0.256
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.235,
+          "cac_sensitivity": 1.01,
+          "frequency_score": 1.438
+        },
+        "engagement_axis": {
+          "elasticity": -2.264,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.235,
+          "arpu": 28.0,
+          "upsell_propensity": 0.413
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.241,
+          "cac_sensitivity": 0.49,
+          "frequency_score": 0.989
+        },
+        "engagement_axis": {
+          "elasticity": -2.275,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.034,
+          "arpu": 32.0,
+          "upsell_propensity": 0.84
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.163,
+          "cac_sensitivity": 0.52,
+          "frequency_score": 1.197
+        },
+        "engagement_axis": {
+          "elasticity": -2.133,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -3.684,
+          "arpu": 14.32,
+          "upsell_propensity": 0.249
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.336,
+          "cac_sensitivity": 0.66,
+          "frequency_score": 1.015
+        },
+        "engagement_axis": {
+          "elasticity": -2.449,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.227,
+          "arpu": 20.0,
+          "upsell_propensity": 0.206
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.343,
+          "cac_sensitivity": 0.71,
+          "frequency_score": 1.428
+        },
+        "engagement_axis": {
+          "elasticity": -1.119,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.79,
+          "arpu": 23.0,
+          "upsell_propensity": 0.183
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.35,
+          "cac_sensitivity": 0.68,
+          "frequency_score": 0.681
+        },
+        "engagement_axis": {
+          "elasticity": -1.125,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.35,
+          "arpu": 28.0,
+          "upsell_propensity": 0.412
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.33,
+          "cac_sensitivity": 0.44,
+          "frequency_score": 1.431
+        },
+        "engagement_axis": {
+          "elasticity": -1.108,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.108,
+          "arpu": 32.0,
+          "upsell_propensity": 0.231
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.284,
+          "cac_sensitivity": 1.5,
+          "frequency_score": 0.762
+        },
+        "engagement_axis": {
+          "elasticity": -1.07,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -4.065,
+          "arpu": 14.32,
+          "upsell_propensity": 0.127
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.349,
+          "cac_sensitivity": 0.89,
+          "frequency_score": 1.211
+        },
+        "engagement_axis": {
+          "elasticity": -1.124,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -2.248,
+          "arpu": 20.0,
+          "upsell_propensity": 0.394
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.183,
+          "cac_sensitivity": 0.64,
+          "frequency_score": 0.948
+        },
+        "engagement_axis": {
+          "elasticity": -3.155,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.578,
+          "arpu": 23.0,
+          "upsell_propensity": 0.518
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.228,
+          "cac_sensitivity": 0.74,
+          "frequency_score": 0.516
+        },
+        "engagement_axis": {
+          "elasticity": -3.276,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.228,
+          "arpu": 28.0,
+          "upsell_propensity": 0.675
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.288,
+          "cac_sensitivity": 0.38,
+          "frequency_score": 1.567
+        },
+        "engagement_axis": {
+          "elasticity": -3.435,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.073,
+          "arpu": 32.0,
+          "upsell_propensity": 0.988
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.348,
+          "cac_sensitivity": 0.96,
+          "frequency_score": 0.363
+        },
+        "engagement_axis": {
+          "elasticity": -3.594,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -4.268,
+          "arpu": 14.32,
+          "upsell_propensity": 0.214
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.274,
+          "cac_sensitivity": 0.92,
+          "frequency_score": 1.156
+        },
+        "engagement_axis": {
+          "elasticity": -3.399,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -2.124,
+          "arpu": 20.0,
+          "upsell_propensity": 0.209
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.253,
+          "cac_sensitivity": 1.03,
+          "frequency_score": 1.299
+        },
+        "engagement_axis": {
+          "elasticity": -1.879,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.67,
+          "arpu": 23.0,
+          "upsell_propensity": 0.55
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.347,
+          "cac_sensitivity": 1.35,
+          "frequency_score": 0.99
+        },
+        "engagement_axis": {
+          "elasticity": -2.02,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.347,
+          "arpu": 28.0,
+          "upsell_propensity": 0.326
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.161,
+          "cac_sensitivity": 0.58,
+          "frequency_score": 1.099
+        },
+        "engagement_axis": {
+          "elasticity": -1.742,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.968,
+          "arpu": 32.0,
+          "upsell_propensity": 0.981
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.284,
+          "cac_sensitivity": 1.19,
+          "frequency_score": 0.821
+        },
+        "engagement_axis": {
+          "elasticity": -1.926,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -4.066,
+          "arpu": 14.32,
+          "upsell_propensity": 0.101
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.355,
+          "cac_sensitivity": 0.69,
+          "frequency_score": 0.884
+        },
+        "engagement_axis": {
+          "elasticity": -2.032,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -2.258,
+          "arpu": 20.0,
+          "upsell_propensity": 0.162
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.566,
+          "cac_sensitivity": 1.98,
+          "frequency_score": 0.705
+        },
+        "engagement_axis": {
+          "elasticity": -3.849,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.71,
+          "arpu": 23.0,
+          "upsell_propensity": 0.596
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.67,
+          "cac_sensitivity": 1.71,
+          "frequency_score": 0.766
+        },
+        "engagement_axis": {
+          "elasticity": -4.006,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.335,
+          "arpu": 28.0,
+          "upsell_propensity": 0.566
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.661,
+          "cac_sensitivity": 1.7,
+          "frequency_score": 0.521
+        },
+        "engagement_axis": {
+          "elasticity": -3.991,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.109,
+          "arpu": 32.0,
+          "upsell_propensity": 0.345
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.445,
+          "cac_sensitivity": 1.86,
+          "frequency_score": 0.534
+        },
+        "engagement_axis": {
+          "elasticity": -3.668,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -3.871,
+          "arpu": 14.32,
+          "upsell_propensity": 0.138
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.565,
+          "cac_sensitivity": 0.89,
+          "frequency_score": 0.583
+        },
+        "engagement_axis": {
+          "elasticity": -3.847,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.137,
+          "arpu": 20.0,
+          "upsell_propensity": 0.415
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.407,
+          "cac_sensitivity": 1.99,
+          "frequency_score": 0.322
+        },
+        "engagement_axis": {
+          "elasticity": -2.207,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.605,
+          "arpu": 23.0,
+          "upsell_propensity": 0.372
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.514,
+          "cac_sensitivity": 1.67,
+          "frequency_score": 0.796
+        },
+        "engagement_axis": {
+          "elasticity": -2.305,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.257,
+          "arpu": 28.0,
+          "upsell_propensity": 0.505
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.554,
+          "cac_sensitivity": 2.43,
+          "frequency_score": 0.495
+        },
+        "engagement_axis": {
+          "elasticity": -2.341,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.064,
+          "arpu": 32.0,
+          "upsell_propensity": 0.813
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.436,
+          "cac_sensitivity": 1.57,
+          "frequency_score": 0.559
+        },
+        "engagement_axis": {
+          "elasticity": -2.233,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -3.857,
+          "arpu": 14.32,
+          "upsell_propensity": 0.095
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.477,
+          "cac_sensitivity": 2.39,
+          "frequency_score": 0.556
+        },
+        "engagement_axis": {
+          "elasticity": -2.271,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.064,
+          "arpu": 20.0,
+          "upsell_propensity": 0.157
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.482,
+          "cac_sensitivity": 2.9,
+          "frequency_score": 0.383
+        },
+        "engagement_axis": {
+          "elasticity": -1.034,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.655,
+          "arpu": 23.0,
+          "upsell_propensity": 0.289
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.652,
+          "cac_sensitivity": 1.39,
+          "frequency_score": 0.641
+        },
+        "engagement_axis": {
+          "elasticity": -1.105,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.326,
+          "arpu": 28.0,
+          "upsell_propensity": 0.207
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.496,
+          "cac_sensitivity": 0.63,
+          "frequency_score": 0.831
+        },
+        "engagement_axis": {
+          "elasticity": -1.04,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.04,
+          "arpu": 32.0,
+          "upsell_propensity": 0.737
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.379,
+          "cac_sensitivity": 2.22,
+          "frequency_score": 0.495
+        },
+        "engagement_axis": {
+          "elasticity": -0.991,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.767,
+          "arpu": 14.32,
+          "upsell_propensity": 0.092
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.635,
+          "cac_sensitivity": 0.78,
+          "frequency_score": 0.49
+        },
+        "engagement_axis": {
+          "elasticity": -1.098,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -2.195,
+          "arpu": 20.0,
+          "upsell_propensity": 0.448
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.476,
+          "cac_sensitivity": 2.84,
+          "frequency_score": 0.618
+        },
+        "engagement_axis": {
+          "elasticity": -3.301,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.651,
+          "arpu": 23.0,
+          "upsell_propensity": 0.257
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.676,
+          "cac_sensitivity": 1.99,
+          "frequency_score": 0.627
+        },
+        "engagement_axis": {
+          "elasticity": -3.567,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.338,
+          "arpu": 28.0,
+          "upsell_propensity": 0.349
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.624,
+          "cac_sensitivity": 1.02,
+          "frequency_score": 0.832
+        },
+        "engagement_axis": {
+          "elasticity": -3.498,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.093,
+          "arpu": 32.0,
+          "upsell_propensity": 0.918
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.358,
+          "cac_sensitivity": 1.75,
+          "frequency_score": 0.291
+        },
+        "engagement_axis": {
+          "elasticity": -3.144,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.733,
+          "arpu": 14.32,
+          "upsell_propensity": 0.176
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.713,
+          "cac_sensitivity": 1.16,
+          "frequency_score": 0.437
+        },
+        "engagement_axis": {
+          "elasticity": -3.618,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -2.261,
+          "arpu": 20.0,
+          "upsell_propensity": 0.342
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.345,
+          "cac_sensitivity": 1.03,
+          "frequency_score": 0.184
+        },
+        "engagement_axis": {
+          "elasticity": -1.759,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.563,
+          "arpu": 23.0,
+          "upsell_propensity": 0.242
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.529,
+          "cac_sensitivity": 2.99,
+          "frequency_score": 0.631
+        },
+        "engagement_axis": {
+          "elasticity": -1.897,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.265,
+          "arpu": 28.0,
+          "upsell_propensity": 0.775
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.616,
+          "cac_sensitivity": 0.97,
+          "frequency_score": 0.541
+        },
+        "engagement_axis": {
+          "elasticity": -1.962,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.09,
+          "arpu": 32.0,
+          "upsell_propensity": 0.798
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.508,
+          "cac_sensitivity": 1.73,
+          "frequency_score": 0.633
+        },
+        "engagement_axis": {
+          "elasticity": -1.881,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.971,
+          "arpu": 14.32,
+          "upsell_propensity": 0.244
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.514,
+          "cac_sensitivity": 2.88,
+          "frequency_score": 0.423
+        },
+        "engagement_axis": {
+          "elasticity": -1.885,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -2.095,
+          "arpu": 20.0,
+          "upsell_propensity": 0.329
+        }
+      },
+      "promo_only_users|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -4.054,
+          "cac_sensitivity": 3.41,
+          "frequency_score": 0.268
+        },
+        "engagement_axis": {
+          "elasticity": -3.648,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.621,
+          "arpu": 23.0,
+          "upsell_propensity": 0.277
+        }
+      },
+      "promo_only_users|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -4.209,
+          "cac_sensitivity": 1.94,
+          "frequency_score": 0.279
+        },
+        "engagement_axis": {
+          "elasticity": -3.788,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.263,
+          "arpu": 28.0,
+          "upsell_propensity": 0.63
+        }
+      },
+      "promo_only_users|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -4.043,
+          "cac_sensitivity": 3.62,
+          "frequency_score": 0.482
+        },
+        "engagement_axis": {
+          "elasticity": -3.639,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.011,
+          "arpu": 32.0,
+          "upsell_propensity": 0.388
+        }
+      },
+      "promo_only_users|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -4.361,
+          "cac_sensitivity": 1.37,
+          "frequency_score": 0.447
+        },
+        "engagement_axis": {
+          "elasticity": -3.925,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -4.143,
+          "arpu": 14.32,
+          "upsell_propensity": 0.217
+        }
+      },
+      "promo_only_users|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.986,
+          "cac_sensitivity": 2.86,
+          "frequency_score": 0.147
+        },
+        "engagement_axis": {
+          "elasticity": -3.587,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.993,
+          "arpu": 20.0,
+          "upsell_propensity": 0.401
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -4.058,
+          "cac_sensitivity": 1.97,
+          "frequency_score": 0.284
+        },
+        "engagement_axis": {
+          "elasticity": -2.232,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.623,
+          "arpu": 23.0,
+          "upsell_propensity": 0.371
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -4.017,
+          "cac_sensitivity": 4.83,
+          "frequency_score": 0.155
+        },
+        "engagement_axis": {
+          "elasticity": -2.209,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.205,
+          "arpu": 28.0,
+          "upsell_propensity": 0.646
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -4.161,
+          "cac_sensitivity": 4.57,
+          "frequency_score": 0.141
+        },
+        "engagement_axis": {
+          "elasticity": -2.289,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.04,
+          "arpu": 32.0,
+          "upsell_propensity": 0.949
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -4.33,
+          "cac_sensitivity": 3.26,
+          "frequency_score": 0.197
+        },
+        "engagement_axis": {
+          "elasticity": -2.381,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -4.113,
+          "arpu": 14.32,
+          "upsell_propensity": 0.204
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.993,
+          "cac_sensitivity": 1.02,
+          "frequency_score": 0.155
+        },
+        "engagement_axis": {
+          "elasticity": -2.196,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.996,
+          "arpu": 20.0,
+          "upsell_propensity": 0.447
+        }
+      },
+      "promo_only_users|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -4.272,
+          "cac_sensitivity": 3.72,
+          "frequency_score": 0.132
+        },
+        "engagement_axis": {
+          "elasticity": -1.068,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.709,
+          "arpu": 23.0,
+          "upsell_propensity": 0.276
+        }
+      },
+      "promo_only_users|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -4.443,
+          "cac_sensitivity": 4.06,
+          "frequency_score": 0.227
+        },
+        "engagement_axis": {
+          "elasticity": -1.111,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.333,
+          "arpu": 28.0,
+          "upsell_propensity": 0.767
+        }
+      },
+      "promo_only_users|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -4.029,
+          "cac_sensitivity": 2.84,
+          "frequency_score": 0.494
+        },
+        "engagement_axis": {
+          "elasticity": -1.007,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.007,
+          "arpu": 32.0,
+          "upsell_propensity": 0.435
+        }
+      },
+      "promo_only_users|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -4.357,
+          "cac_sensitivity": 3.34,
+          "frequency_score": 0.165
+        },
+        "engagement_axis": {
+          "elasticity": -1.089,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -4.139,
+          "arpu": 14.32,
+          "upsell_propensity": 0.138
+        }
+      },
+      "promo_only_users|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -4.128,
+          "cac_sensitivity": 3.53,
+          "frequency_score": 0.154
+        },
+        "engagement_axis": {
+          "elasticity": -1.032,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -2.064,
+          "arpu": 20.0,
+          "upsell_propensity": 0.307
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -4.153,
+          "cac_sensitivity": 1.36,
+          "frequency_score": 0.149
+        },
+        "engagement_axis": {
+          "elasticity": -3.323,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.661,
+          "arpu": 23.0,
+          "upsell_propensity": 0.351
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -4.319,
+          "cac_sensitivity": 2.49,
+          "frequency_score": 0.262
+        },
+        "engagement_axis": {
+          "elasticity": -3.455,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.296,
+          "arpu": 28.0,
+          "upsell_propensity": 0.689
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.968,
+          "cac_sensitivity": 1.84,
+          "frequency_score": 0.28
+        },
+        "engagement_axis": {
+          "elasticity": -3.174,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.992,
+          "arpu": 32.0,
+          "upsell_propensity": 0.275
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.929,
+          "cac_sensitivity": 2.96,
+          "frequency_score": 0.387
+        },
+        "engagement_axis": {
+          "elasticity": -3.143,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.732,
+          "arpu": 14.32,
+          "upsell_propensity": 0.201
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.969,
+          "cac_sensitivity": 2.59,
+          "frequency_score": 0.237
+        },
+        "engagement_axis": {
+          "elasticity": -3.175,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.984,
+          "arpu": 20.0,
+          "upsell_propensity": 0.277
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -4.514,
+          "cac_sensitivity": 3.86,
+          "frequency_score": 0.315
+        },
+        "engagement_axis": {
+          "elasticity": -2.031,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.805,
+          "arpu": 23.0,
+          "upsell_propensity": 0.451
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -4.124,
+          "cac_sensitivity": 1.64,
+          "frequency_score": 0.117
+        },
+        "engagement_axis": {
+          "elasticity": -1.856,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.237,
+          "arpu": 28.0,
+          "upsell_propensity": 0.72
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -4.393,
+          "cac_sensitivity": 1.01,
+          "frequency_score": 0.452
+        },
+        "engagement_axis": {
+          "elasticity": -1.977,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.098,
+          "arpu": 32.0,
+          "upsell_propensity": 0.761
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.903,
+          "cac_sensitivity": 1.65,
+          "frequency_score": 0.313
+        },
+        "engagement_axis": {
+          "elasticity": -1.757,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.708,
+          "arpu": 14.32,
+          "upsell_propensity": 0.21
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.932,
+          "cac_sensitivity": 1.96,
+          "frequency_score": 0.13
+        },
+        "engagement_axis": {
+          "elasticity": -1.769,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.966,
+          "arpu": 20.0,
+          "upsell_propensity": 0.388
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.354,
+          "cac_sensitivity": 3.01,
+          "frequency_score": 0.607
+        },
+        "engagement_axis": {
+          "elasticity": -4.024,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.789,
+          "arpu": 23.0,
+          "upsell_propensity": 0.559
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.333,
+          "cac_sensitivity": 2.16,
+          "frequency_score": 0.659
+        },
+        "engagement_axis": {
+          "elasticity": -4.0,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.333,
+          "arpu": 28.0,
+          "upsell_propensity": 0.297
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.258,
+          "cac_sensitivity": 3.47,
+          "frequency_score": 0.399
+        },
+        "engagement_axis": {
+          "elasticity": -3.909,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.086,
+          "arpu": 32.0,
+          "upsell_propensity": 0.229
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.961,
+          "cac_sensitivity": 1.1,
+          "frequency_score": 0.62
+        },
+        "engagement_axis": {
+          "elasticity": -3.553,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -3.75,
+          "arpu": 14.32,
+          "upsell_propensity": 0.155
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.229,
+          "cac_sensitivity": 1.81,
+          "frequency_score": 0.451
+        },
+        "engagement_axis": {
+          "elasticity": -3.875,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.153,
+          "arpu": 20.0,
+          "upsell_propensity": 0.266
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.077,
+          "cac_sensitivity": 3.4,
+          "frequency_score": 0.458
+        },
+        "engagement_axis": {
+          "elasticity": -2.257,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.641,
+          "arpu": 23.0,
+          "upsell_propensity": 0.176
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.148,
+          "cac_sensitivity": 2.89,
+          "frequency_score": 0.414
+        },
+        "engagement_axis": {
+          "elasticity": -2.309,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.259,
+          "arpu": 28.0,
+          "upsell_propensity": 0.59
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.0,
+          "cac_sensitivity": 2.23,
+          "frequency_score": 0.328
+        },
+        "engagement_axis": {
+          "elasticity": -2.2,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.0,
+          "arpu": 32.0,
+          "upsell_propensity": 0.421
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.995,
+          "cac_sensitivity": 0.91,
+          "frequency_score": 0.244
+        },
+        "engagement_axis": {
+          "elasticity": -2.197,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -3.794,
+          "arpu": 14.32,
+          "upsell_propensity": 0.129
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.281,
+          "cac_sensitivity": 1.77,
+          "frequency_score": 0.52
+        },
+        "engagement_axis": {
+          "elasticity": -2.406,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.188,
+          "arpu": 20.0,
+          "upsell_propensity": 0.152
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.284,
+          "cac_sensitivity": 2.71,
+          "frequency_score": 0.572
+        },
+        "engagement_axis": {
+          "elasticity": -1.095,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.752,
+          "arpu": 23.0,
+          "upsell_propensity": 0.571
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.356,
+          "cac_sensitivity": 1.77,
+          "frequency_score": 0.651
+        },
+        "engagement_axis": {
+          "elasticity": -1.119,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.342,
+          "arpu": 28.0,
+          "upsell_propensity": 0.393
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.284,
+          "cac_sensitivity": 1.21,
+          "frequency_score": 0.591
+        },
+        "engagement_axis": {
+          "elasticity": -1.095,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.095,
+          "arpu": 32.0,
+          "upsell_propensity": 0.676
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.076,
+          "cac_sensitivity": 3.23,
+          "frequency_score": 0.244
+        },
+        "engagement_axis": {
+          "elasticity": -1.025,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.896,
+          "arpu": 14.32,
+          "upsell_propensity": 0.09
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.356,
+          "cac_sensitivity": 2.27,
+          "frequency_score": 0.628
+        },
+        "engagement_axis": {
+          "elasticity": -1.119,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -2.237,
+          "arpu": 20.0,
+          "upsell_propensity": 0.234
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.351,
+          "cac_sensitivity": 1.27,
+          "frequency_score": 0.206
+        },
+        "engagement_axis": {
+          "elasticity": -3.574,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.787,
+          "arpu": 23.0,
+          "upsell_propensity": 0.383
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.159,
+          "cac_sensitivity": 1.38,
+          "frequency_score": 0.289
+        },
+        "engagement_axis": {
+          "elasticity": -3.369,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.264,
+          "arpu": 28.0,
+          "upsell_propensity": 0.662
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.338,
+          "cac_sensitivity": 1.42,
+          "frequency_score": 0.608
+        },
+        "engagement_axis": {
+          "elasticity": -3.561,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.113,
+          "arpu": 32.0,
+          "upsell_propensity": 0.571
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.377,
+          "cac_sensitivity": 2.44,
+          "frequency_score": 0.19
+        },
+        "engagement_axis": {
+          "elasticity": -3.603,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -4.278,
+          "arpu": 14.32,
+          "upsell_propensity": 0.211
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.246,
+          "cac_sensitivity": 2.74,
+          "frequency_score": 0.352
+        },
+        "engagement_axis": {
+          "elasticity": -3.462,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -2.164,
+          "arpu": 20.0,
+          "upsell_propensity": 0.343
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.075,
+          "cac_sensitivity": 2.16,
+          "frequency_score": 0.627
+        },
+        "engagement_axis": {
+          "elasticity": -1.845,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.64,
+          "arpu": 23.0,
+          "upsell_propensity": 0.248
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.319,
+          "cac_sensitivity": 2.91,
+          "frequency_score": 0.635
+        },
+        "engagement_axis": {
+          "elasticity": -1.992,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.328,
+          "arpu": 28.0,
+          "upsell_propensity": 0.223
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.02,
+          "cac_sensitivity": 3.29,
+          "frequency_score": 0.344
+        },
+        "engagement_axis": {
+          "elasticity": -1.812,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.007,
+          "arpu": 32.0,
+          "upsell_propensity": 0.565
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.933,
+          "cac_sensitivity": 2.75,
+          "frequency_score": 0.177
+        },
+        "engagement_axis": {
+          "elasticity": -1.76,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.716,
+          "arpu": 14.32,
+          "upsell_propensity": 0.127
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.387,
+          "cac_sensitivity": 1.77,
+          "frequency_score": 0.413
+        },
+        "engagement_axis": {
+          "elasticity": -2.032,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -2.258,
+          "arpu": 20.0,
+          "upsell_propensity": 0.455
+        }
+      }
+    }
+  },
+  "ad_free": {
+    "tier_name": "Ad Free",
+    "base_elasticity": -1.7,
+    "segment_elasticity": {
+      "habitual_streamers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.628,
+          "cac_sensitivity": 0.62,
+          "frequency_score": 1.31
+        },
+        "engagement_axis": {
+          "elasticity": -2.828,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.257,
+          "arpu": 23.0,
+          "upsell_propensity": 0.133
+        }
+      },
+      "habitual_streamers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.664,
+          "cac_sensitivity": 0.43,
+          "frequency_score": 1.419
+        },
+        "engagement_axis": {
+          "elasticity": -2.986,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.995,
+          "arpu": 28.0,
+          "upsell_propensity": 0.77
+        }
+      },
+      "habitual_streamers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.629,
+          "cac_sensitivity": 0.66,
+          "frequency_score": 1.637
+        },
+        "engagement_axis": {
+          "elasticity": -2.828,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.786,
+          "arpu": 32.0,
+          "upsell_propensity": 0.844
+        }
+      },
+      "habitual_streamers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.685,
+          "cac_sensitivity": 0.53,
+          "frequency_score": 1.836
+        },
+        "engagement_axis": {
+          "elasticity": -3.083,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -3.254,
+          "arpu": 14.32,
+          "upsell_propensity": 0.09
+        }
+      },
+      "habitual_streamers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.732,
+          "cac_sensitivity": 0.25,
+          "frequency_score": 1.471
+        },
+        "engagement_axis": {
+          "elasticity": -3.296,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.831,
+          "arpu": 20.0,
+          "upsell_propensity": 0.454
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.646,
+          "cac_sensitivity": 0.23,
+          "frequency_score": 1.892
+        },
+        "engagement_axis": {
+          "elasticity": -1.777,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.293,
+          "arpu": 23.0,
+          "upsell_propensity": 0.174
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.678,
+          "cac_sensitivity": 0.65,
+          "frequency_score": 1.816
+        },
+        "engagement_axis": {
+          "elasticity": -1.866,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.018,
+          "arpu": 28.0,
+          "upsell_propensity": 0.734
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.664,
+          "cac_sensitivity": 0.47,
+          "frequency_score": 1.034
+        },
+        "engagement_axis": {
+          "elasticity": -1.827,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.83,
+          "arpu": 32.0,
+          "upsell_propensity": 0.684
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.7,
+          "cac_sensitivity": 0.91,
+          "frequency_score": 0.892
+        },
+        "engagement_axis": {
+          "elasticity": -1.924,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -3.323,
+          "arpu": 14.32,
+          "upsell_propensity": 0.245
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.717,
+          "cac_sensitivity": 0.71,
+          "frequency_score": 1.507
+        },
+        "engagement_axis": {
+          "elasticity": -1.972,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.793,
+          "arpu": 20.0,
+          "upsell_propensity": 0.289
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.687,
+          "cac_sensitivity": 0.38,
+          "frequency_score": 2.19
+        },
+        "engagement_axis": {
+          "elasticity": -0.859,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.375,
+          "arpu": 23.0,
+          "upsell_propensity": 0.62
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.657,
+          "cac_sensitivity": 0.52,
+          "frequency_score": 1.151
+        },
+        "engagement_axis": {
+          "elasticity": -0.822,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.986,
+          "arpu": 28.0,
+          "upsell_propensity": 0.225
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.634,
+          "cac_sensitivity": 0.65,
+          "frequency_score": 2.052
+        },
+        "engagement_axis": {
+          "elasticity": -0.792,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.792,
+          "arpu": 32.0,
+          "upsell_propensity": 0.621
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.696,
+          "cac_sensitivity": 0.96,
+          "frequency_score": 0.513
+        },
+        "engagement_axis": {
+          "elasticity": -0.87,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.305,
+          "arpu": 14.32,
+          "upsell_propensity": 0.154
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.627,
+          "cac_sensitivity": 0.64,
+          "frequency_score": 2.247
+        },
+        "engagement_axis": {
+          "elasticity": -0.784,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.567,
+          "arpu": 20.0,
+          "upsell_propensity": 0.181
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.679,
+          "cac_sensitivity": 0.72,
+          "frequency_score": 0.855
+        },
+        "engagement_axis": {
+          "elasticity": -2.716,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.358,
+          "arpu": 23.0,
+          "upsell_propensity": 0.471
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.705,
+          "cac_sensitivity": 0.97,
+          "frequency_score": 1.833
+        },
+        "engagement_axis": {
+          "elasticity": -2.82,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.058,
+          "arpu": 28.0,
+          "upsell_propensity": 0.216
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.654,
+          "cac_sensitivity": 0.67,
+          "frequency_score": 2.426
+        },
+        "engagement_axis": {
+          "elasticity": -2.616,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.817,
+          "arpu": 32.0,
+          "upsell_propensity": 0.769
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.699,
+          "cac_sensitivity": 0.45,
+          "frequency_score": 1.644
+        },
+        "engagement_axis": {
+          "elasticity": -2.797,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.321,
+          "arpu": 14.32,
+          "upsell_propensity": 0.129
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.673,
+          "cac_sensitivity": 0.71,
+          "frequency_score": 0.8
+        },
+        "engagement_axis": {
+          "elasticity": -2.691,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.682,
+          "arpu": 20.0,
+          "upsell_propensity": 0.273
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.632,
+          "cac_sensitivity": 0.86,
+          "frequency_score": 2.465
+        },
+        "engagement_axis": {
+          "elasticity": -1.422,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.264,
+          "arpu": 23.0,
+          "upsell_propensity": 0.484
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.714,
+          "cac_sensitivity": 0.23,
+          "frequency_score": 0.679
+        },
+        "engagement_axis": {
+          "elasticity": -1.606,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.071,
+          "arpu": 28.0,
+          "upsell_propensity": 0.765
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.627,
+          "cac_sensitivity": 0.47,
+          "frequency_score": 2.057
+        },
+        "engagement_axis": {
+          "elasticity": -1.41,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.783,
+          "arpu": 32.0,
+          "upsell_propensity": 0.931
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.653,
+          "cac_sensitivity": 0.84,
+          "frequency_score": 1.003
+        },
+        "engagement_axis": {
+          "elasticity": -1.47,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.103,
+          "arpu": 14.32,
+          "upsell_propensity": 0.154
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.69,
+          "cac_sensitivity": 0.23,
+          "frequency_score": 1.367
+        },
+        "engagement_axis": {
+          "elasticity": -1.552,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.724,
+          "arpu": 20.0,
+          "upsell_propensity": 0.435
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.057,
+          "cac_sensitivity": 1.4,
+          "frequency_score": 0.836
+        },
+        "engagement_axis": {
+          "elasticity": -3.17,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.409,
+          "arpu": 23.0,
+          "upsell_propensity": 0.223
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.022,
+          "cac_sensitivity": 0.38,
+          "frequency_score": 1.025
+        },
+        "engagement_axis": {
+          "elasticity": -3.065,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.022,
+          "arpu": 28.0,
+          "upsell_propensity": 0.819
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.086,
+          "cac_sensitivity": 0.35,
+          "frequency_score": 1.574
+        },
+        "engagement_axis": {
+          "elasticity": -3.259,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.905,
+          "arpu": 32.0,
+          "upsell_propensity": 0.306
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.96,
+          "cac_sensitivity": 1.1,
+          "frequency_score": 0.449
+        },
+        "engagement_axis": {
+          "elasticity": -2.88,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -3.04,
+          "arpu": 14.32,
+          "upsell_propensity": 0.219
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.994,
+          "cac_sensitivity": 1.46,
+          "frequency_score": 0.734
+        },
+        "engagement_axis": {
+          "elasticity": -2.982,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.657,
+          "arpu": 20.0,
+          "upsell_propensity": 0.218
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.941,
+          "cac_sensitivity": 0.43,
+          "frequency_score": 1.564
+        },
+        "engagement_axis": {
+          "elasticity": -1.725,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.255,
+          "arpu": 23.0,
+          "upsell_propensity": 0.546
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.981,
+          "cac_sensitivity": 1.25,
+          "frequency_score": 0.593
+        },
+        "engagement_axis": {
+          "elasticity": -1.798,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.981,
+          "arpu": 28.0,
+          "upsell_propensity": 0.458
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.028,
+          "cac_sensitivity": 0.76,
+          "frequency_score": 1.599
+        },
+        "engagement_axis": {
+          "elasticity": -1.885,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.857,
+          "arpu": 32.0,
+          "upsell_propensity": 0.614
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.059,
+          "cac_sensitivity": 1.45,
+          "frequency_score": 0.429
+        },
+        "engagement_axis": {
+          "elasticity": -1.942,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -3.354,
+          "arpu": 14.32,
+          "upsell_propensity": 0.075
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.101,
+          "cac_sensitivity": 0.43,
+          "frequency_score": 1.265
+        },
+        "engagement_axis": {
+          "elasticity": -2.018,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.834,
+          "arpu": 20.0,
+          "upsell_propensity": 0.129
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.017,
+          "cac_sensitivity": 1.35,
+          "frequency_score": 0.797
+        },
+        "engagement_axis": {
+          "elasticity": -0.847,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.356,
+          "arpu": 23.0,
+          "upsell_propensity": 0.165
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.0,
+          "cac_sensitivity": 1.14,
+          "frequency_score": 1.35
+        },
+        "engagement_axis": {
+          "elasticity": -0.834,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.0,
+          "arpu": 28.0,
+          "upsell_propensity": 0.212
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.019,
+          "cac_sensitivity": 1.23,
+          "frequency_score": 0.671
+        },
+        "engagement_axis": {
+          "elasticity": -0.849,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.849,
+          "arpu": 32.0,
+          "upsell_propensity": 0.571
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.081,
+          "cac_sensitivity": 1.21,
+          "frequency_score": 1.477
+        },
+        "engagement_axis": {
+          "elasticity": -0.9,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.422,
+          "arpu": 14.32,
+          "upsell_propensity": 0.092
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.05,
+          "cac_sensitivity": 0.94,
+          "frequency_score": 1.435
+        },
+        "engagement_axis": {
+          "elasticity": -0.875,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.75,
+          "arpu": 20.0,
+          "upsell_propensity": 0.137
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.048,
+          "cac_sensitivity": 0.43,
+          "frequency_score": 1.436
+        },
+        "engagement_axis": {
+          "elasticity": -2.795,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.398,
+          "arpu": 23.0,
+          "upsell_propensity": 0.455
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.044,
+          "cac_sensitivity": 0.59,
+          "frequency_score": 1.06
+        },
+        "engagement_axis": {
+          "elasticity": -2.785,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.044,
+          "arpu": 28.0,
+          "upsell_propensity": 0.314
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.973,
+          "cac_sensitivity": 1.45,
+          "frequency_score": 0.568
+        },
+        "engagement_axis": {
+          "elasticity": -2.594,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.811,
+          "arpu": 32.0,
+          "upsell_propensity": 0.389
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.049,
+          "cac_sensitivity": 1.1,
+          "frequency_score": 0.904
+        },
+        "engagement_axis": {
+          "elasticity": -2.798,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.323,
+          "arpu": 14.32,
+          "upsell_propensity": 0.125
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.97,
+          "cac_sensitivity": 1.38,
+          "frequency_score": 1.572
+        },
+        "engagement_axis": {
+          "elasticity": -2.587,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.617,
+          "arpu": 20.0,
+          "upsell_propensity": 0.327
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.967,
+          "cac_sensitivity": 1.2,
+          "frequency_score": 1.341
+        },
+        "engagement_axis": {
+          "elasticity": -1.451,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.29,
+          "arpu": 23.0,
+          "upsell_propensity": 0.419
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.09,
+          "cac_sensitivity": 0.75,
+          "frequency_score": 1.646
+        },
+        "engagement_axis": {
+          "elasticity": -1.635,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.09,
+          "arpu": 28.0,
+          "upsell_propensity": 0.272
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.984,
+          "cac_sensitivity": 0.63,
+          "frequency_score": 0.887
+        },
+        "engagement_axis": {
+          "elasticity": -1.477,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.82,
+          "arpu": 32.0,
+          "upsell_propensity": 0.274
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.962,
+          "cac_sensitivity": 0.93,
+          "frequency_score": 1.579
+        },
+        "engagement_axis": {
+          "elasticity": -1.443,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.045,
+          "arpu": 14.32,
+          "upsell_propensity": 0.055
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.005,
+          "cac_sensitivity": 0.79,
+          "frequency_score": 0.439
+        },
+        "engagement_axis": {
+          "elasticity": -1.507,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.675,
+          "arpu": 20.0,
+          "upsell_propensity": 0.49
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.017,
+          "cac_sensitivity": 2.76,
+          "frequency_score": 0.229
+        },
+        "engagement_axis": {
+          "elasticity": -3.026,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.345,
+          "arpu": 23.0,
+          "upsell_propensity": 0.215
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.092,
+          "cac_sensitivity": 0.61,
+          "frequency_score": 0.6
+        },
+        "engagement_axis": {
+          "elasticity": -3.138,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.046,
+          "arpu": 28.0,
+          "upsell_propensity": 0.764
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.959,
+          "cac_sensitivity": 0.64,
+          "frequency_score": 0.264
+        },
+        "engagement_axis": {
+          "elasticity": -2.938,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.816,
+          "arpu": 32.0,
+          "upsell_propensity": 0.903
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.892,
+          "cac_sensitivity": 0.9,
+          "frequency_score": 0.704
+        },
+        "engagement_axis": {
+          "elasticity": -2.838,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.996,
+          "arpu": 14.32,
+          "upsell_propensity": 0.188
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.198,
+          "cac_sensitivity": 2.9,
+          "frequency_score": 0.652
+        },
+        "engagement_axis": {
+          "elasticity": -3.298,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.832,
+          "arpu": 20.0,
+          "upsell_propensity": 0.263
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.908,
+          "cac_sensitivity": 2.5,
+          "frequency_score": 0.577
+        },
+        "engagement_axis": {
+          "elasticity": -1.749,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.272,
+          "arpu": 23.0,
+          "upsell_propensity": 0.283
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.998,
+          "cac_sensitivity": 1.33,
+          "frequency_score": 0.705
+        },
+        "engagement_axis": {
+          "elasticity": -1.831,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.999,
+          "arpu": 28.0,
+          "upsell_propensity": 0.633
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.997,
+          "cac_sensitivity": 2.88,
+          "frequency_score": 0.821
+        },
+        "engagement_axis": {
+          "elasticity": -1.831,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.832,
+          "arpu": 32.0,
+          "upsell_propensity": 0.44
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.165,
+          "cac_sensitivity": 2.9,
+          "frequency_score": 0.214
+        },
+        "engagement_axis": {
+          "elasticity": -1.985,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -3.428,
+          "arpu": 14.32,
+          "upsell_propensity": 0.241
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.127,
+          "cac_sensitivity": 2.28,
+          "frequency_score": 0.407
+        },
+        "engagement_axis": {
+          "elasticity": -1.95,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.772,
+          "arpu": 20.0,
+          "upsell_propensity": 0.171
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.073,
+          "cac_sensitivity": 2.8,
+          "frequency_score": 0.775
+        },
+        "engagement_axis": {
+          "elasticity": -0.864,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.382,
+          "arpu": 23.0,
+          "upsell_propensity": 0.379
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.092,
+          "cac_sensitivity": 2.72,
+          "frequency_score": 0.549
+        },
+        "engagement_axis": {
+          "elasticity": -0.872,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.046,
+          "arpu": 28.0,
+          "upsell_propensity": 0.561
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.073,
+          "cac_sensitivity": 2.31,
+          "frequency_score": 0.457
+        },
+        "engagement_axis": {
+          "elasticity": -0.864,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.864,
+          "arpu": 32.0,
+          "upsell_propensity": 0.946
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.198,
+          "cac_sensitivity": 2.07,
+          "frequency_score": 0.44
+        },
+        "engagement_axis": {
+          "elasticity": -0.916,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.48,
+          "arpu": 14.32,
+          "upsell_propensity": 0.122
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.029,
+          "cac_sensitivity": 0.86,
+          "frequency_score": 0.265
+        },
+        "engagement_axis": {
+          "elasticity": -0.846,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.691,
+          "arpu": 20.0,
+          "upsell_propensity": 0.38
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.886,
+          "cac_sensitivity": 2.43,
+          "frequency_score": 0.416
+        },
+        "engagement_axis": {
+          "elasticity": -2.514,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.257,
+          "arpu": 23.0,
+          "upsell_propensity": 0.502
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.983,
+          "cac_sensitivity": 1.81,
+          "frequency_score": 0.304
+        },
+        "engagement_axis": {
+          "elasticity": -2.644,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.992,
+          "arpu": 28.0,
+          "upsell_propensity": 0.341
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.072,
+          "cac_sensitivity": 2.98,
+          "frequency_score": 0.395
+        },
+        "engagement_axis": {
+          "elasticity": -2.763,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.863,
+          "arpu": 32.0,
+          "upsell_propensity": 0.354
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.124,
+          "cac_sensitivity": 2.96,
+          "frequency_score": 0.248
+        },
+        "engagement_axis": {
+          "elasticity": -2.831,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.362,
+          "arpu": 14.32,
+          "upsell_propensity": 0.075
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.981,
+          "cac_sensitivity": 2.22,
+          "frequency_score": 0.362
+        },
+        "engagement_axis": {
+          "elasticity": -2.642,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.651,
+          "arpu": 20.0,
+          "upsell_propensity": 0.226
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.081,
+          "cac_sensitivity": 0.65,
+          "frequency_score": 0.325
+        },
+        "engagement_axis": {
+          "elasticity": -1.561,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.387,
+          "arpu": 23.0,
+          "upsell_propensity": 0.329
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.967,
+          "cac_sensitivity": 2.23,
+          "frequency_score": 0.803
+        },
+        "engagement_axis": {
+          "elasticity": -1.476,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.984,
+          "arpu": 28.0,
+          "upsell_propensity": 0.633
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.035,
+          "cac_sensitivity": 1.6,
+          "frequency_score": 0.633
+        },
+        "engagement_axis": {
+          "elasticity": -1.526,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.848,
+          "arpu": 32.0,
+          "upsell_propensity": 0.916
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.937,
+          "cac_sensitivity": 2.6,
+          "frequency_score": 0.529
+        },
+        "engagement_axis": {
+          "elasticity": -1.453,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.068,
+          "arpu": 14.32,
+          "upsell_propensity": 0.16
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.049,
+          "cac_sensitivity": 1.56,
+          "frequency_score": 0.177
+        },
+        "engagement_axis": {
+          "elasticity": -1.537,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.707,
+          "arpu": 20.0,
+          "upsell_propensity": 0.372
+        }
+      },
+      "promo_only_users|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.129,
+          "cac_sensitivity": 3.93,
+          "frequency_score": 0.448
+        },
+        "engagement_axis": {
+          "elasticity": -2.816,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.252,
+          "arpu": 23.0,
+          "upsell_propensity": 0.326
+        }
+      },
+      "promo_only_users|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.304,
+          "cac_sensitivity": 2.08,
+          "frequency_score": 0.24
+        },
+        "engagement_axis": {
+          "elasticity": -2.973,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.991,
+          "arpu": 28.0,
+          "upsell_propensity": 0.551
+        }
+      },
+      "promo_only_users|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.531,
+          "cac_sensitivity": 4.66,
+          "frequency_score": 0.33
+        },
+        "engagement_axis": {
+          "elasticity": -3.178,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.883,
+          "arpu": 32.0,
+          "upsell_propensity": 0.272
+        }
+      },
+      "promo_only_users|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.663,
+          "cac_sensitivity": 2.4,
+          "frequency_score": 0.381
+        },
+        "engagement_axis": {
+          "elasticity": -3.296,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -3.479,
+          "arpu": 14.32,
+          "upsell_propensity": 0.186
+        }
+      },
+      "promo_only_users|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.329,
+          "cac_sensitivity": 2.64,
+          "frequency_score": 0.207
+        },
+        "engagement_axis": {
+          "elasticity": -2.996,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.665,
+          "arpu": 20.0,
+          "upsell_propensity": 0.239
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.636,
+          "cac_sensitivity": 3.96,
+          "frequency_score": 0.278
+        },
+        "engagement_axis": {
+          "elasticity": -2.0,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.454,
+          "arpu": 23.0,
+          "upsell_propensity": 0.589
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.273,
+          "cac_sensitivity": 4.49,
+          "frequency_score": 0.317
+        },
+        "engagement_axis": {
+          "elasticity": -1.8,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.982,
+          "arpu": 28.0,
+          "upsell_propensity": 0.557
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.232,
+          "cac_sensitivity": 3.82,
+          "frequency_score": 0.107
+        },
+        "engagement_axis": {
+          "elasticity": -1.778,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.808,
+          "arpu": 32.0,
+          "upsell_propensity": 0.841
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.359,
+          "cac_sensitivity": 2.13,
+          "frequency_score": 0.362
+        },
+        "engagement_axis": {
+          "elasticity": -1.847,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -3.191,
+          "arpu": 14.32,
+          "upsell_propensity": 0.22
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.389,
+          "cac_sensitivity": 1.96,
+          "frequency_score": 0.334
+        },
+        "engagement_axis": {
+          "elasticity": -1.864,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.694,
+          "arpu": 20.0,
+          "upsell_propensity": 0.286
+        }
+      },
+      "promo_only_users|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.231,
+          "cac_sensitivity": 4.91,
+          "frequency_score": 0.434
+        },
+        "engagement_axis": {
+          "elasticity": -0.808,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.292,
+          "arpu": 23.0,
+          "upsell_propensity": 0.337
+        }
+      },
+      "promo_only_users|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.522,
+          "cac_sensitivity": 3.58,
+          "frequency_score": 0.44
+        },
+        "engagement_axis": {
+          "elasticity": -0.881,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.057,
+          "arpu": 28.0,
+          "upsell_propensity": 0.408
+        }
+      },
+      "promo_only_users|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.232,
+          "cac_sensitivity": 3.24,
+          "frequency_score": 0.463
+        },
+        "engagement_axis": {
+          "elasticity": -0.808,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.808,
+          "arpu": 32.0,
+          "upsell_propensity": 0.393
+        }
+      },
+      "promo_only_users|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.257,
+          "cac_sensitivity": 3.54,
+          "frequency_score": 0.28
+        },
+        "engagement_axis": {
+          "elasticity": -0.814,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.095,
+          "arpu": 14.32,
+          "upsell_propensity": 0.24
+        }
+      },
+      "promo_only_users|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.212,
+          "cac_sensitivity": 4.62,
+          "frequency_score": 0.101
+        },
+        "engagement_axis": {
+          "elasticity": -0.803,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.606,
+          "arpu": 20.0,
+          "upsell_propensity": 0.439
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.545,
+          "cac_sensitivity": 3.71,
+          "frequency_score": 0.298
+        },
+        "engagement_axis": {
+          "elasticity": -2.836,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.418,
+          "arpu": 23.0,
+          "upsell_propensity": 0.277
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.452,
+          "cac_sensitivity": 2.87,
+          "frequency_score": 0.474
+        },
+        "engagement_axis": {
+          "elasticity": -2.762,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.036,
+          "arpu": 28.0,
+          "upsell_propensity": 0.211
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.659,
+          "cac_sensitivity": 1.45,
+          "frequency_score": 0.156
+        },
+        "engagement_axis": {
+          "elasticity": -2.927,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.915,
+          "arpu": 32.0,
+          "upsell_propensity": 0.92
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.382,
+          "cac_sensitivity": 1.61,
+          "frequency_score": 0.268
+        },
+        "engagement_axis": {
+          "elasticity": -2.705,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.213,
+          "arpu": 14.32,
+          "upsell_propensity": 0.062
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.527,
+          "cac_sensitivity": 2.99,
+          "frequency_score": 0.122
+        },
+        "engagement_axis": {
+          "elasticity": -2.821,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.763,
+          "arpu": 20.0,
+          "upsell_propensity": 0.197
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.243,
+          "cac_sensitivity": 1.91,
+          "frequency_score": 0.464
+        },
+        "engagement_axis": {
+          "elasticity": -1.459,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.297,
+          "arpu": 23.0,
+          "upsell_propensity": 0.321
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.135,
+          "cac_sensitivity": 2.53,
+          "frequency_score": 0.234
+        },
+        "engagement_axis": {
+          "elasticity": -1.411,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.94,
+          "arpu": 28.0,
+          "upsell_propensity": 0.204
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.179,
+          "cac_sensitivity": 1.91,
+          "frequency_score": 0.203
+        },
+        "engagement_axis": {
+          "elasticity": -1.43,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.795,
+          "arpu": 32.0,
+          "upsell_propensity": 0.59
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.173,
+          "cac_sensitivity": 2.85,
+          "frequency_score": 0.187
+        },
+        "engagement_axis": {
+          "elasticity": -1.428,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.014,
+          "arpu": 14.32,
+          "upsell_propensity": 0.068
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.557,
+          "cac_sensitivity": 1.27,
+          "frequency_score": 0.397
+        },
+        "engagement_axis": {
+          "elasticity": -1.601,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.778,
+          "arpu": 20.0,
+          "upsell_propensity": 0.367
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.656,
+          "cac_sensitivity": 2.65,
+          "frequency_score": 0.272
+        },
+        "engagement_axis": {
+          "elasticity": -3.187,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.417,
+          "arpu": 23.0,
+          "upsell_propensity": 0.563
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.475,
+          "cac_sensitivity": 2.38,
+          "frequency_score": 0.634
+        },
+        "engagement_axis": {
+          "elasticity": -2.97,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.99,
+          "arpu": 28.0,
+          "upsell_propensity": 0.375
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.68,
+          "cac_sensitivity": 2.64,
+          "frequency_score": 0.154
+        },
+        "engagement_axis": {
+          "elasticity": -3.216,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.893,
+          "arpu": 32.0,
+          "upsell_propensity": 0.562
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.573,
+          "cac_sensitivity": 1.86,
+          "frequency_score": 0.634
+        },
+        "engagement_axis": {
+          "elasticity": -3.088,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -3.259,
+          "arpu": 14.32,
+          "upsell_propensity": 0.176
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.53,
+          "cac_sensitivity": 1.42,
+          "frequency_score": 0.264
+        },
+        "engagement_axis": {
+          "elasticity": -3.036,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.686,
+          "arpu": 20.0,
+          "upsell_propensity": 0.305
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.636,
+          "cac_sensitivity": 1.11,
+          "frequency_score": 0.346
+        },
+        "engagement_axis": {
+          "elasticity": -1.933,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.406,
+          "arpu": 23.0,
+          "upsell_propensity": 0.554
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.579,
+          "cac_sensitivity": 0.77,
+          "frequency_score": 0.598
+        },
+        "engagement_axis": {
+          "elasticity": -1.891,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.032,
+          "arpu": 28.0,
+          "upsell_propensity": 0.509
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.495,
+          "cac_sensitivity": 3.11,
+          "frequency_score": 0.143
+        },
+        "engagement_axis": {
+          "elasticity": -1.83,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.832,
+          "arpu": 32.0,
+          "upsell_propensity": 0.222
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.693,
+          "cac_sensitivity": 2.6,
+          "frequency_score": 0.63
+        },
+        "engagement_axis": {
+          "elasticity": -1.975,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -3.411,
+          "arpu": 14.32,
+          "upsell_propensity": 0.09
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.74,
+          "cac_sensitivity": 2.31,
+          "frequency_score": 0.554
+        },
+        "engagement_axis": {
+          "elasticity": -2.009,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.827,
+          "arpu": 20.0,
+          "upsell_propensity": 0.32
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.461,
+          "cac_sensitivity": 3.39,
+          "frequency_score": 0.647
+        },
+        "engagement_axis": {
+          "elasticity": -0.82,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.313,
+          "arpu": 23.0,
+          "upsell_propensity": 0.246
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.46,
+          "cac_sensitivity": 1.17,
+          "frequency_score": 0.214
+        },
+        "engagement_axis": {
+          "elasticity": -0.82,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.984,
+          "arpu": 28.0,
+          "upsell_propensity": 0.516
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.503,
+          "cac_sensitivity": 3.56,
+          "frequency_score": 0.246
+        },
+        "engagement_axis": {
+          "elasticity": -0.834,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.834,
+          "arpu": 32.0,
+          "upsell_propensity": 0.633
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.712,
+          "cac_sensitivity": 1.6,
+          "frequency_score": 0.331
+        },
+        "engagement_axis": {
+          "elasticity": -0.904,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.435,
+          "arpu": 14.32,
+          "upsell_propensity": 0.245
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.413,
+          "cac_sensitivity": 3.6,
+          "frequency_score": 0.332
+        },
+        "engagement_axis": {
+          "elasticity": -0.804,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.608,
+          "arpu": 20.0,
+          "upsell_propensity": 0.343
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.403,
+          "cac_sensitivity": 2.92,
+          "frequency_score": 0.377
+        },
+        "engagement_axis": {
+          "elasticity": -2.563,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.282,
+          "arpu": 23.0,
+          "upsell_propensity": 0.525
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.61,
+          "cac_sensitivity": 1.13,
+          "frequency_score": 0.393
+        },
+        "engagement_axis": {
+          "elasticity": -2.784,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.044,
+          "arpu": 28.0,
+          "upsell_propensity": 0.363
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.437,
+          "cac_sensitivity": 2.85,
+          "frequency_score": 0.184
+        },
+        "engagement_axis": {
+          "elasticity": -2.6,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.812,
+          "arpu": 32.0,
+          "upsell_propensity": 0.462
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.6,
+          "cac_sensitivity": 1.31,
+          "frequency_score": 0.287
+        },
+        "engagement_axis": {
+          "elasticity": -2.774,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.294,
+          "arpu": 14.32,
+          "upsell_propensity": 0.198
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.4,
+          "cac_sensitivity": 3.32,
+          "frequency_score": 0.451
+        },
+        "engagement_axis": {
+          "elasticity": -2.56,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.6,
+          "arpu": 20.0,
+          "upsell_propensity": 0.205
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.689,
+          "cac_sensitivity": 2.49,
+          "frequency_score": 0.44
+        },
+        "engagement_axis": {
+          "elasticity": -1.613,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.434,
+          "arpu": 23.0,
+          "upsell_propensity": 0.29
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.467,
+          "cac_sensitivity": 1.84,
+          "frequency_score": 0.415
+        },
+        "engagement_axis": {
+          "elasticity": -1.48,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.987,
+          "arpu": 28.0,
+          "upsell_propensity": 0.62
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.531,
+          "cac_sensitivity": 0.93,
+          "frequency_score": 0.185
+        },
+        "engagement_axis": {
+          "elasticity": -1.518,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.844,
+          "arpu": 32.0,
+          "upsell_propensity": 0.509
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.415,
+          "cac_sensitivity": 1.29,
+          "frequency_score": 0.224
+        },
+        "engagement_axis": {
+          "elasticity": -1.449,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.059,
+          "arpu": 14.32,
+          "upsell_propensity": 0.233
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.431,
+          "cac_sensitivity": 1.5,
+          "frequency_score": 0.466
+        },
+        "engagement_axis": {
+          "elasticity": -1.459,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.621,
+          "arpu": 20.0,
+          "upsell_propensity": 0.327
+        }
+      }
+    }
+  },
+  "annual": {
+    "tier_name": "Annual",
+    "base_elasticity": -1.5,
+    "segment_elasticity": {
+      "habitual_streamers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.603,
+          "cac_sensitivity": 0.4,
+          "frequency_score": 0.845
+        },
+        "engagement_axis": {
+          "elasticity": -2.714,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.206,
+          "arpu": 23.0,
+          "upsell_propensity": 0.23
+        }
+      },
+      "habitual_streamers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.635,
+          "cac_sensitivity": 0.28,
+          "frequency_score": 1.364
+        },
+        "engagement_axis": {
+          "elasticity": -2.859,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.953,
+          "arpu": 28.0,
+          "upsell_propensity": 0.716
+        }
+      },
+      "habitual_streamers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.565,
+          "cac_sensitivity": 0.54,
+          "frequency_score": 2.408
+        },
+        "engagement_axis": {
+          "elasticity": -2.543,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.706,
+          "arpu": 32.0,
+          "upsell_propensity": 0.251
+        }
+      },
+      "habitual_streamers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.571,
+          "cac_sensitivity": 0.9,
+          "frequency_score": 0.591
+        },
+        "engagement_axis": {
+          "elasticity": -2.571,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.714,
+          "arpu": 14.32,
+          "upsell_propensity": 0.152
+        }
+      },
+      "habitual_streamers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.557,
+          "cac_sensitivity": 0.91,
+          "frequency_score": 2.131
+        },
+        "engagement_axis": {
+          "elasticity": -2.505,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.392,
+          "arpu": 20.0,
+          "upsell_propensity": 0.484
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.565,
+          "cac_sensitivity": 0.64,
+          "frequency_score": 1.332
+        },
+        "engagement_axis": {
+          "elasticity": -1.554,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.13,
+          "arpu": 23.0,
+          "upsell_propensity": 0.157
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.562,
+          "cac_sensitivity": 0.61,
+          "frequency_score": 1.506
+        },
+        "engagement_axis": {
+          "elasticity": -1.546,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.843,
+          "arpu": 28.0,
+          "upsell_propensity": 0.669
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.601,
+          "cac_sensitivity": 0.31,
+          "frequency_score": 2.363
+        },
+        "engagement_axis": {
+          "elasticity": -1.654,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.752,
+          "arpu": 32.0,
+          "upsell_propensity": 0.447
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.602,
+          "cac_sensitivity": 0.69,
+          "frequency_score": 2.467
+        },
+        "engagement_axis": {
+          "elasticity": -1.655,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.858,
+          "arpu": 14.32,
+          "upsell_propensity": 0.226
+        }
+      },
+      "habitual_streamers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.626,
+          "cac_sensitivity": 0.9,
+          "frequency_score": 0.971
+        },
+        "engagement_axis": {
+          "elasticity": -1.72,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.564,
+          "arpu": 20.0,
+          "upsell_propensity": 0.146
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.585,
+          "cac_sensitivity": 0.63,
+          "frequency_score": 0.766
+        },
+        "engagement_axis": {
+          "elasticity": -0.731,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.17,
+          "arpu": 23.0,
+          "upsell_propensity": 0.351
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.61,
+          "cac_sensitivity": 0.88,
+          "frequency_score": 1.828
+        },
+        "engagement_axis": {
+          "elasticity": -0.762,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.914,
+          "arpu": 28.0,
+          "upsell_propensity": 0.476
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.642,
+          "cac_sensitivity": 0.83,
+          "frequency_score": 2.143
+        },
+        "engagement_axis": {
+          "elasticity": -0.803,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.803,
+          "arpu": 32.0,
+          "upsell_propensity": 0.491
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.633,
+          "cac_sensitivity": 0.2,
+          "frequency_score": 2.38
+        },
+        "engagement_axis": {
+          "elasticity": -0.792,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.009,
+          "arpu": 14.32,
+          "upsell_propensity": 0.077
+        }
+      },
+      "habitual_streamers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.622,
+          "cac_sensitivity": 0.74,
+          "frequency_score": 1.506
+        },
+        "engagement_axis": {
+          "elasticity": -0.777,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.554,
+          "arpu": 20.0,
+          "upsell_propensity": 0.418
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.623,
+          "cac_sensitivity": 0.99,
+          "frequency_score": 0.522
+        },
+        "engagement_axis": {
+          "elasticity": -2.492,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.246,
+          "arpu": 23.0,
+          "upsell_propensity": 0.371
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.579,
+          "cac_sensitivity": 0.54,
+          "frequency_score": 1.441
+        },
+        "engagement_axis": {
+          "elasticity": -2.314,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.868,
+          "arpu": 28.0,
+          "upsell_propensity": 0.548
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.59,
+          "cac_sensitivity": 0.6,
+          "frequency_score": 1.65
+        },
+        "engagement_axis": {
+          "elasticity": -2.36,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.738,
+          "arpu": 32.0,
+          "upsell_propensity": 0.692
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.633,
+          "cac_sensitivity": 0.29,
+          "frequency_score": 2.492
+        },
+        "engagement_axis": {
+          "elasticity": -2.531,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.005,
+          "arpu": 14.32,
+          "upsell_propensity": 0.262
+        }
+      },
+      "habitual_streamers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.623,
+          "cac_sensitivity": 0.96,
+          "frequency_score": 2.169
+        },
+        "engagement_axis": {
+          "elasticity": -2.493,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.558,
+          "arpu": 20.0,
+          "upsell_propensity": 0.184
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.602,
+          "cac_sensitivity": 0.38,
+          "frequency_score": 1.569
+        },
+        "engagement_axis": {
+          "elasticity": -1.354,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.204,
+          "arpu": 23.0,
+          "upsell_propensity": 0.411
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.646,
+          "cac_sensitivity": 0.71,
+          "frequency_score": 1.716
+        },
+        "engagement_axis": {
+          "elasticity": -1.453,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.969,
+          "arpu": 28.0,
+          "upsell_propensity": 0.428
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.607,
+          "cac_sensitivity": 0.64,
+          "frequency_score": 1.87
+        },
+        "engagement_axis": {
+          "elasticity": -1.366,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.759,
+          "arpu": 32.0,
+          "upsell_propensity": 0.625
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.647,
+          "cac_sensitivity": 0.29,
+          "frequency_score": 0.742
+        },
+        "engagement_axis": {
+          "elasticity": -1.455,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.072,
+          "arpu": 14.32,
+          "upsell_propensity": 0.059
+        }
+      },
+      "habitual_streamers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.641,
+          "cac_sensitivity": 0.44,
+          "frequency_score": 2.069
+        },
+        "engagement_axis": {
+          "elasticity": -1.442,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.602,
+          "arpu": 20.0,
+          "upsell_propensity": 0.281
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.845,
+          "cac_sensitivity": 0.91,
+          "frequency_score": 1.08
+        },
+        "engagement_axis": {
+          "elasticity": -2.536,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.127,
+          "arpu": 23.0,
+          "upsell_propensity": 0.292
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.836,
+          "cac_sensitivity": 0.36,
+          "frequency_score": 0.926
+        },
+        "engagement_axis": {
+          "elasticity": -2.509,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.836,
+          "arpu": 28.0,
+          "upsell_propensity": 0.79
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.839,
+          "cac_sensitivity": 1.18,
+          "frequency_score": 1.418
+        },
+        "engagement_axis": {
+          "elasticity": -2.518,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.699,
+          "arpu": 32.0,
+          "upsell_propensity": 0.841
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.925,
+          "cac_sensitivity": 0.99,
+          "frequency_score": 1.591
+        },
+        "engagement_axis": {
+          "elasticity": -2.774,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.928,
+          "arpu": 14.32,
+          "upsell_propensity": 0.236
+        }
+      },
+      "content_anchored_viewers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.946,
+          "cac_sensitivity": 0.74,
+          "frequency_score": 0.906
+        },
+        "engagement_axis": {
+          "elasticity": -2.839,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.577,
+          "arpu": 20.0,
+          "upsell_propensity": 0.11
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.876,
+          "cac_sensitivity": 1.31,
+          "frequency_score": 0.662
+        },
+        "engagement_axis": {
+          "elasticity": -1.606,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.168,
+          "arpu": 23.0,
+          "upsell_propensity": 0.309
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.957,
+          "cac_sensitivity": 0.89,
+          "frequency_score": 1.088
+        },
+        "engagement_axis": {
+          "elasticity": -1.754,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.957,
+          "arpu": 28.0,
+          "upsell_propensity": 0.354
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.931,
+          "cac_sensitivity": 0.82,
+          "frequency_score": 0.36
+        },
+        "engagement_axis": {
+          "elasticity": -1.706,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.776,
+          "arpu": 32.0,
+          "upsell_propensity": 0.701
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.94,
+          "cac_sensitivity": 1.43,
+          "frequency_score": 1.16
+        },
+        "engagement_axis": {
+          "elasticity": -1.723,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.976,
+          "arpu": 14.32,
+          "upsell_propensity": 0.2
+        }
+      },
+      "content_anchored_viewers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.838,
+          "cac_sensitivity": 0.99,
+          "frequency_score": 0.534
+        },
+        "engagement_axis": {
+          "elasticity": -1.536,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.396,
+          "arpu": 20.0,
+          "upsell_propensity": 0.105
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.953,
+          "cac_sensitivity": 0.63,
+          "frequency_score": 0.791
+        },
+        "engagement_axis": {
+          "elasticity": -0.794,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.271,
+          "arpu": 23.0,
+          "upsell_propensity": 0.189
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.924,
+          "cac_sensitivity": 1.21,
+          "frequency_score": 1.165
+        },
+        "engagement_axis": {
+          "elasticity": -0.77,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.924,
+          "arpu": 28.0,
+          "upsell_propensity": 0.616
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.912,
+          "cac_sensitivity": 1.04,
+          "frequency_score": 1.304
+        },
+        "engagement_axis": {
+          "elasticity": -0.76,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.76,
+          "arpu": 32.0,
+          "upsell_propensity": 0.701
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.886,
+          "cac_sensitivity": 1.45,
+          "frequency_score": 1.088
+        },
+        "engagement_axis": {
+          "elasticity": -0.738,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -2.804,
+          "arpu": 14.32,
+          "upsell_propensity": 0.196
+        }
+      },
+      "content_anchored_viewers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.96,
+          "cac_sensitivity": 0.36,
+          "frequency_score": 0.508
+        },
+        "engagement_axis": {
+          "elasticity": -0.8,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.6,
+          "arpu": 20.0,
+          "upsell_propensity": 0.406
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.906,
+          "cac_sensitivity": 0.67,
+          "frequency_score": 1.233
+        },
+        "engagement_axis": {
+          "elasticity": -2.415,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.207,
+          "arpu": 23.0,
+          "upsell_propensity": 0.614
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.928,
+          "cac_sensitivity": 1.16,
+          "frequency_score": 1.615
+        },
+        "engagement_axis": {
+          "elasticity": -2.474,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.928,
+          "arpu": 28.0,
+          "upsell_propensity": 0.544
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.85,
+          "cac_sensitivity": 1.14,
+          "frequency_score": 0.747
+        },
+        "engagement_axis": {
+          "elasticity": -2.268,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.709,
+          "arpu": 32.0,
+          "upsell_propensity": 0.707
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.921,
+          "cac_sensitivity": 0.31,
+          "frequency_score": 0.735
+        },
+        "engagement_axis": {
+          "elasticity": -2.456,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -2.917,
+          "arpu": 14.32,
+          "upsell_propensity": 0.254
+        }
+      },
+      "content_anchored_viewers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.918,
+          "cac_sensitivity": 0.37,
+          "frequency_score": 1.37
+        },
+        "engagement_axis": {
+          "elasticity": -2.449,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.531,
+          "arpu": 20.0,
+          "upsell_propensity": 0.363
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.908,
+          "cac_sensitivity": 0.84,
+          "frequency_score": 1.227
+        },
+        "engagement_axis": {
+          "elasticity": -1.362,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.211,
+          "arpu": 23.0,
+          "upsell_propensity": 0.319
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -0.919,
+          "cac_sensitivity": 0.98,
+          "frequency_score": 0.855
+        },
+        "engagement_axis": {
+          "elasticity": -1.379,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.919,
+          "arpu": 28.0,
+          "upsell_propensity": 0.599
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.951,
+          "cac_sensitivity": 1.02,
+          "frequency_score": 1.579
+        },
+        "engagement_axis": {
+          "elasticity": -1.427,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.793,
+          "arpu": 32.0,
+          "upsell_propensity": 0.303
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -0.864,
+          "cac_sensitivity": 0.75,
+          "frequency_score": 1.6
+        },
+        "engagement_axis": {
+          "elasticity": -1.295,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -2.735,
+          "arpu": 14.32,
+          "upsell_propensity": 0.113
+        }
+      },
+      "content_anchored_viewers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -0.923,
+          "cac_sensitivity": 1.01,
+          "frequency_score": 1.081
+        },
+        "engagement_axis": {
+          "elasticity": -1.384,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.538,
+          "arpu": 20.0,
+          "upsell_propensity": 0.486
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.829,
+          "cac_sensitivity": 2.02,
+          "frequency_score": 0.269
+        },
+        "engagement_axis": {
+          "elasticity": -2.743,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.219,
+          "arpu": 23.0,
+          "upsell_propensity": 0.457
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.856,
+          "cac_sensitivity": 1.67,
+          "frequency_score": 0.655
+        },
+        "engagement_axis": {
+          "elasticity": -2.784,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.928,
+          "arpu": 28.0,
+          "upsell_propensity": 0.606
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.702,
+          "cac_sensitivity": 0.78,
+          "frequency_score": 0.603
+        },
+        "engagement_axis": {
+          "elasticity": -2.552,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.709,
+          "arpu": 32.0,
+          "upsell_propensity": 0.557
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.697,
+          "cac_sensitivity": 1.39,
+          "frequency_score": 0.623
+        },
+        "engagement_axis": {
+          "elasticity": -2.545,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.686,
+          "arpu": 14.32,
+          "upsell_propensity": 0.262
+        }
+      },
+      "at_risk_lapsers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.801,
+          "cac_sensitivity": 2.36,
+          "frequency_score": 0.557
+        },
+        "engagement_axis": {
+          "elasticity": -2.701,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.501,
+          "arpu": 20.0,
+          "upsell_propensity": 0.135
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.942,
+          "cac_sensitivity": 1.19,
+          "frequency_score": 0.386
+        },
+        "engagement_axis": {
+          "elasticity": -1.781,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.295,
+          "arpu": 23.0,
+          "upsell_propensity": 0.362
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.854,
+          "cac_sensitivity": 0.74,
+          "frequency_score": 0.218
+        },
+        "engagement_axis": {
+          "elasticity": -1.699,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.927,
+          "arpu": 28.0,
+          "upsell_propensity": 0.192
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.679,
+          "cac_sensitivity": 1.76,
+          "frequency_score": 0.725
+        },
+        "engagement_axis": {
+          "elasticity": -1.539,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.7,
+          "arpu": 32.0,
+          "upsell_propensity": 0.609
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.839,
+          "cac_sensitivity": 1.06,
+          "frequency_score": 0.168
+        },
+        "engagement_axis": {
+          "elasticity": -1.686,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.913,
+          "arpu": 14.32,
+          "upsell_propensity": 0.234
+        }
+      },
+      "at_risk_lapsers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.755,
+          "cac_sensitivity": 1.88,
+          "frequency_score": 0.83
+        },
+        "engagement_axis": {
+          "elasticity": -1.608,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.462,
+          "arpu": 20.0,
+          "upsell_propensity": 0.241
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.825,
+          "cac_sensitivity": 2.83,
+          "frequency_score": 0.202
+        },
+        "engagement_axis": {
+          "elasticity": -0.761,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.217,
+          "arpu": 23.0,
+          "upsell_propensity": 0.316
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.846,
+          "cac_sensitivity": 2.31,
+          "frequency_score": 0.647
+        },
+        "engagement_axis": {
+          "elasticity": -0.769,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.923,
+          "arpu": 28.0,
+          "upsell_propensity": 0.652
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.779,
+          "cac_sensitivity": 1.95,
+          "frequency_score": 0.348
+        },
+        "engagement_axis": {
+          "elasticity": -0.741,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.741,
+          "arpu": 32.0,
+          "upsell_propensity": 0.914
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.929,
+          "cac_sensitivity": 2.29,
+          "frequency_score": 0.235
+        },
+        "engagement_axis": {
+          "elasticity": -0.804,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -3.055,
+          "arpu": 14.32,
+          "upsell_propensity": 0.234
+        }
+      },
+      "at_risk_lapsers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.74,
+          "cac_sensitivity": 2.97,
+          "frequency_score": 0.795
+        },
+        "engagement_axis": {
+          "elasticity": -0.725,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.45,
+          "arpu": 20.0,
+          "upsell_propensity": 0.298
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.759,
+          "cac_sensitivity": 1.15,
+          "frequency_score": 0.482
+        },
+        "engagement_axis": {
+          "elasticity": -2.345,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.173,
+          "arpu": 23.0,
+          "upsell_propensity": 0.284
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.663,
+          "cac_sensitivity": 0.72,
+          "frequency_score": 0.187
+        },
+        "engagement_axis": {
+          "elasticity": -2.217,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.831,
+          "arpu": 28.0,
+          "upsell_propensity": 0.283
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.705,
+          "cac_sensitivity": 0.74,
+          "frequency_score": 0.82
+        },
+        "engagement_axis": {
+          "elasticity": -2.273,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.71,
+          "arpu": 32.0,
+          "upsell_propensity": 0.5
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.864,
+          "cac_sensitivity": 2.3,
+          "frequency_score": 0.564
+        },
+        "engagement_axis": {
+          "elasticity": -2.485,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -2.951,
+          "arpu": 14.32,
+          "upsell_propensity": 0.213
+        }
+      },
+      "at_risk_lapsers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.859,
+          "cac_sensitivity": 0.62,
+          "frequency_score": 0.468
+        },
+        "engagement_axis": {
+          "elasticity": -2.479,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.549,
+          "arpu": 20.0,
+          "upsell_propensity": 0.168
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.914,
+          "cac_sensitivity": 1.19,
+          "frequency_score": 0.632
+        },
+        "engagement_axis": {
+          "elasticity": -1.436,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.276,
+          "arpu": 23.0,
+          "upsell_propensity": 0.569
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -1.867,
+          "cac_sensitivity": 1.56,
+          "frequency_score": 0.483
+        },
+        "engagement_axis": {
+          "elasticity": -1.4,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.933,
+          "arpu": 28.0,
+          "upsell_propensity": 0.377
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.688,
+          "cac_sensitivity": 1.75,
+          "frequency_score": 0.268
+        },
+        "engagement_axis": {
+          "elasticity": -1.266,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.704,
+          "arpu": 32.0,
+          "upsell_propensity": 0.674
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -1.657,
+          "cac_sensitivity": 2.18,
+          "frequency_score": 0.375
+        },
+        "engagement_axis": {
+          "elasticity": -1.243,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -2.624,
+          "arpu": 14.32,
+          "upsell_propensity": 0.084
+        }
+      },
+      "at_risk_lapsers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -1.927,
+          "cac_sensitivity": 0.83,
+          "frequency_score": 0.358
+        },
+        "engagement_axis": {
+          "elasticity": -1.445,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.606,
+          "arpu": 20.0,
+          "upsell_propensity": 0.269
+        }
+      },
+      "promo_only_users|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.227,
+          "cac_sensitivity": 4.18,
+          "frequency_score": 0.475
+        },
+        "engagement_axis": {
+          "elasticity": -2.904,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.291,
+          "arpu": 23.0,
+          "upsell_propensity": 0.464
+        }
+      },
+      "promo_only_users|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.033,
+          "cac_sensitivity": 4.45,
+          "frequency_score": 0.271
+        },
+        "engagement_axis": {
+          "elasticity": -2.729,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.91,
+          "arpu": 28.0,
+          "upsell_propensity": 0.566
+        }
+      },
+      "promo_only_users|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.05,
+          "cac_sensitivity": 2.6,
+          "frequency_score": 0.395
+        },
+        "engagement_axis": {
+          "elasticity": -2.745,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.763,
+          "arpu": 32.0,
+          "upsell_propensity": 0.439
+        }
+      },
+      "promo_only_users|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.857,
+          "cac_sensitivity": 1.43,
+          "frequency_score": 0.133
+        },
+        "engagement_axis": {
+          "elasticity": -2.571,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.714,
+          "arpu": 14.32,
+          "upsell_propensity": 0.204
+        }
+      },
+      "promo_only_users|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.135,
+          "cac_sensitivity": 2.94,
+          "frequency_score": 0.315
+        },
+        "engagement_axis": {
+          "elasticity": -2.822,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.568,
+          "arpu": 20.0,
+          "upsell_propensity": 0.106
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.129,
+          "cac_sensitivity": 2.97,
+          "frequency_score": 0.348
+        },
+        "engagement_axis": {
+          "elasticity": -1.721,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.252,
+          "arpu": 23.0,
+          "upsell_propensity": 0.256
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.991,
+          "cac_sensitivity": 4.01,
+          "frequency_score": 0.333
+        },
+        "engagement_axis": {
+          "elasticity": -1.645,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.897,
+          "arpu": 28.0,
+          "upsell_propensity": 0.189
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.208,
+          "cac_sensitivity": 3.3,
+          "frequency_score": 0.168
+        },
+        "engagement_axis": {
+          "elasticity": -1.764,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.802,
+          "arpu": 32.0,
+          "upsell_propensity": 0.898
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.945,
+          "cac_sensitivity": 4.68,
+          "frequency_score": 0.404
+        },
+        "engagement_axis": {
+          "elasticity": -1.62,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.798,
+          "arpu": 14.32,
+          "upsell_propensity": 0.07
+        }
+      },
+      "promo_only_users|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.156,
+          "cac_sensitivity": 3.88,
+          "frequency_score": 0.205
+        },
+        "engagement_axis": {
+          "elasticity": -1.736,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.578,
+          "arpu": 20.0,
+          "upsell_propensity": 0.13
+        }
+      },
+      "promo_only_users|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.177,
+          "cac_sensitivity": 2.43,
+          "frequency_score": 0.396
+        },
+        "engagement_axis": {
+          "elasticity": -0.794,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.271,
+          "arpu": 23.0,
+          "upsell_propensity": 0.523
+        }
+      },
+      "promo_only_users|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -3.126,
+          "cac_sensitivity": 2.13,
+          "frequency_score": 0.278
+        },
+        "engagement_axis": {
+          "elasticity": -0.782,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.938,
+          "arpu": 28.0,
+          "upsell_propensity": 0.53
+        }
+      },
+      "promo_only_users|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.202,
+          "cac_sensitivity": 3.51,
+          "frequency_score": 0.318
+        },
+        "engagement_axis": {
+          "elasticity": -0.8,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.8,
+          "arpu": 32.0,
+          "upsell_propensity": 0.442
+        }
+      },
+      "promo_only_users|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.152,
+          "cac_sensitivity": 3.53,
+          "frequency_score": 0.389
+        },
+        "engagement_axis": {
+          "elasticity": -0.788,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -2.994,
+          "arpu": 14.32,
+          "upsell_propensity": 0.187
+        }
+      },
+      "promo_only_users|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.883,
+          "cac_sensitivity": 4.66,
+          "frequency_score": 0.388
+        },
+        "engagement_axis": {
+          "elasticity": -0.721,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.442,
+          "arpu": 20.0,
+          "upsell_propensity": 0.339
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.889,
+          "cac_sensitivity": 4.04,
+          "frequency_score": 0.479
+        },
+        "engagement_axis": {
+          "elasticity": -2.311,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.155,
+          "arpu": 23.0,
+          "upsell_propensity": 0.256
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.761,
+          "cac_sensitivity": 3.32,
+          "frequency_score": 0.156
+        },
+        "engagement_axis": {
+          "elasticity": -2.209,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.828,
+          "arpu": 28.0,
+          "upsell_propensity": 0.685
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.131,
+          "cac_sensitivity": 1.32,
+          "frequency_score": 0.14
+        },
+        "engagement_axis": {
+          "elasticity": -2.504,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.783,
+          "arpu": 32.0,
+          "upsell_propensity": 0.279
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.875,
+          "cac_sensitivity": 4.91,
+          "frequency_score": 0.423
+        },
+        "engagement_axis": {
+          "elasticity": -2.3,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -2.732,
+          "arpu": 14.32,
+          "upsell_propensity": 0.198
+        }
+      },
+      "promo_only_users|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -3.125,
+          "cac_sensitivity": 2.46,
+          "frequency_score": 0.485
+        },
+        "engagement_axis": {
+          "elasticity": -2.5,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.563,
+          "arpu": 20.0,
+          "upsell_propensity": 0.333
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.12,
+          "cac_sensitivity": 3.19,
+          "frequency_score": 0.293
+        },
+        "engagement_axis": {
+          "elasticity": -1.404,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.248,
+          "arpu": 23.0,
+          "upsell_propensity": 0.47
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.775,
+          "cac_sensitivity": 3.66,
+          "frequency_score": 0.374
+        },
+        "engagement_axis": {
+          "elasticity": -1.249,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.833,
+          "arpu": 28.0,
+          "upsell_propensity": 0.723
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.766,
+          "cac_sensitivity": 3.12,
+          "frequency_score": 0.234
+        },
+        "engagement_axis": {
+          "elasticity": -1.245,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.691,
+          "arpu": 32.0,
+          "upsell_propensity": 0.83
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -3.213,
+          "cac_sensitivity": 3.19,
+          "frequency_score": 0.399
+        },
+        "engagement_axis": {
+          "elasticity": -1.446,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -3.052,
+          "arpu": 14.32,
+          "upsell_propensity": 0.122
+        }
+      },
+      "promo_only_users|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.826,
+          "cac_sensitivity": 2.82,
+          "frequency_score": 0.47
+        },
+        "engagement_axis": {
+          "elasticity": -1.272,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.413,
+          "arpu": 20.0,
+          "upsell_propensity": 0.26
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.376,
+          "cac_sensitivity": 1.15,
+          "frequency_score": 0.349
+        },
+        "engagement_axis": {
+          "elasticity": -2.852,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.267,
+          "arpu": 23.0,
+          "upsell_propensity": 0.271
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.13,
+          "cac_sensitivity": 2.92,
+          "frequency_score": 0.408
+        },
+        "engagement_axis": {
+          "elasticity": -2.556,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.852,
+          "arpu": 28.0,
+          "upsell_propensity": 0.824
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.186,
+          "cac_sensitivity": 1.8,
+          "frequency_score": 0.289
+        },
+        "engagement_axis": {
+          "elasticity": -2.623,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -0.729,
+          "arpu": 32.0,
+          "upsell_propensity": 0.505
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.266,
+          "cac_sensitivity": 2.15,
+          "frequency_score": 0.221
+        },
+        "engagement_axis": {
+          "elasticity": -2.72,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -2.871,
+          "arpu": 14.32,
+          "upsell_propensity": 0.089
+        }
+      },
+      "dormant_subscribers|ad_value_seekers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.189,
+          "cac_sensitivity": 2.62,
+          "frequency_score": 0.478
+        },
+        "engagement_axis": {
+          "elasticity": -2.627,
+          "churn_rate": 0.185,
+          "watch_hours": 27.8
+        },
+        "monetization_axis": {
+          "elasticity": -1.46,
+          "arpu": 20.0,
+          "upsell_propensity": 0.188
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.072,
+          "cac_sensitivity": 1.65,
+          "frequency_score": 0.413
+        },
+        "engagement_axis": {
+          "elasticity": -1.519,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.105,
+          "arpu": 23.0,
+          "upsell_propensity": 0.276
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.26,
+          "cac_sensitivity": 2.14,
+          "frequency_score": 0.611
+        },
+        "engagement_axis": {
+          "elasticity": -1.657,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.904,
+          "arpu": 28.0,
+          "upsell_propensity": 0.475
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.278,
+          "cac_sensitivity": 3.11,
+          "frequency_score": 0.407
+        },
+        "engagement_axis": {
+          "elasticity": -1.67,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -0.759,
+          "arpu": 32.0,
+          "upsell_propensity": 0.974
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.227,
+          "cac_sensitivity": 3.11,
+          "frequency_score": 0.542
+        },
+        "engagement_axis": {
+          "elasticity": -1.633,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -2.821,
+          "arpu": 14.32,
+          "upsell_propensity": 0.167
+        }
+      },
+      "dormant_subscribers|ad_tolerant_upgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.228,
+          "cac_sensitivity": 3.41,
+          "frequency_score": 0.217
+        },
+        "engagement_axis": {
+          "elasticity": -1.634,
+          "churn_rate": 0.133,
+          "watch_hours": 45.5
+        },
+        "monetization_axis": {
+          "elasticity": -1.485,
+          "arpu": 20.0,
+          "upsell_propensity": 0.286
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.249,
+          "cac_sensitivity": 1.08,
+          "frequency_score": 0.465
+        },
+        "engagement_axis": {
+          "elasticity": -0.75,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.2,
+          "arpu": 23.0,
+          "upsell_propensity": 0.522
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.344,
+          "cac_sensitivity": 2.0,
+          "frequency_score": 0.409
+        },
+        "engagement_axis": {
+          "elasticity": -0.781,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.938,
+          "arpu": 28.0,
+          "upsell_propensity": 0.418
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.399,
+          "cac_sensitivity": 3.53,
+          "frequency_score": 0.158
+        },
+        "engagement_axis": {
+          "elasticity": -0.8,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -0.8,
+          "arpu": 32.0,
+          "upsell_propensity": 0.23
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.083,
+          "cac_sensitivity": 3.36,
+          "frequency_score": 0.167
+        },
+        "engagement_axis": {
+          "elasticity": -0.694,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -2.639,
+          "arpu": 14.32,
+          "upsell_propensity": 0.194
+        }
+      },
+      "dormant_subscribers|ad_free_loyalists|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.282,
+          "cac_sensitivity": 2.24,
+          "frequency_score": 0.463
+        },
+        "engagement_axis": {
+          "elasticity": -0.761,
+          "churn_rate": 0.087,
+          "watch_hours": 100.0
+        },
+        "monetization_axis": {
+          "elasticity": -1.522,
+          "arpu": 20.0,
+          "upsell_propensity": 0.372
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.201,
+          "cac_sensitivity": 2.13,
+          "frequency_score": 0.663
+        },
+        "engagement_axis": {
+          "elasticity": -2.348,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.174,
+          "arpu": 23.0,
+          "upsell_propensity": 0.45
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.312,
+          "cac_sensitivity": 3.25,
+          "frequency_score": 0.326
+        },
+        "engagement_axis": {
+          "elasticity": -2.467,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.925,
+          "arpu": 28.0,
+          "upsell_propensity": 0.172
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.3,
+          "cac_sensitivity": 3.25,
+          "frequency_score": 0.53
+        },
+        "engagement_axis": {
+          "elasticity": -2.453,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -0.767,
+          "arpu": 32.0,
+          "upsell_propensity": 0.615
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.374,
+          "cac_sensitivity": 3.36,
+          "frequency_score": 0.51
+        },
+        "engagement_axis": {
+          "elasticity": -2.532,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -3.007,
+          "arpu": 14.32,
+          "upsell_propensity": 0.058
+        }
+      },
+      "dormant_subscribers|price_triggered_downgraders|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.184,
+          "cac_sensitivity": 1.43,
+          "frequency_score": 0.657
+        },
+        "engagement_axis": {
+          "elasticity": -2.33,
+          "churn_rate": 0.17,
+          "watch_hours": 31.2
+        },
+        "monetization_axis": {
+          "elasticity": -1.456,
+          "arpu": 20.0,
+          "upsell_propensity": 0.349
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|platform_bundled_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.159,
+          "cac_sensitivity": 0.85,
+          "frequency_score": 0.256
+        },
+        "engagement_axis": {
+          "elasticity": -1.295,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.151,
+          "arpu": 23.0,
+          "upsell_propensity": 0.558
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|tvod_to_svod_converters": {
+        "acquisition_axis": {
+          "elasticity": -2.159,
+          "cac_sensitivity": 3.04,
+          "frequency_score": 0.414
+        },
+        "engagement_axis": {
+          "elasticity": -1.295,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.864,
+          "arpu": 28.0,
+          "upsell_propensity": 0.448
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|content_triggered_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.082,
+          "cac_sensitivity": 1.52,
+          "frequency_score": 0.338
+        },
+        "engagement_axis": {
+          "elasticity": -1.249,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -0.694,
+          "arpu": 32.0,
+          "upsell_propensity": 0.993
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|deal_responsive_acquirers": {
+        "acquisition_axis": {
+          "elasticity": -2.251,
+          "cac_sensitivity": 1.72,
+          "frequency_score": 0.601
+        },
+        "engagement_axis": {
+          "elasticity": -1.351,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -2.852,
+          "arpu": 14.32,
+          "upsell_propensity": 0.149
+        }
+      },
+      "dormant_subscribers|tvod_inclined_buyers|value_perception_buyers": {
+        "acquisition_axis": {
+          "elasticity": -2.318,
+          "cac_sensitivity": 3.47,
+          "frequency_score": 0.224
+        },
+        "engagement_axis": {
+          "elasticity": -1.391,
+          "churn_rate": 0.118,
+          "watch_hours": 55.6
+        },
+        "monetization_axis": {
+          "elasticity": -1.545,
+          "arpu": 20.0,
+          "upsell_propensity": 0.337
+        }
+      }
+    }
+  }
+}

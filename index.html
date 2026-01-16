@@ -267,6 +267,46 @@
     .current-marker:hover, .new-marker:hover {
       transform: scale(1.1);
     }
+
+    /* Customer Segmentation Section Styles */
+    .segment-filters {
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .filter-pills {
+      min-height: 38px;
+    }
+
+    .filter-pill {
+      padding: 6px 14px;
+      border: 2px solid #0d6efd;
+      border-radius: 20px;
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .filter-pill:hover {
+      background-color: #e7f3ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+    }
+
+    .filter-pill.active {
+      background-color: #0d6efd;
+      color: white;
+      box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+    }
+
+    .filter-pill.active:hover {
+      background-color: #0b5ed7;
+    }
   </style>
 </head>
 
@@ -285,6 +325,11 @@
           <li class="nav-item">
             <a class="nav-link" href="#kpi-section">
               <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#segmentation-section">
+              <i class="bi bi-people me-1"></i> Segmentation
             </a>
           </li>
           <li class="nav-item">
@@ -772,6 +817,108 @@
   </div>
   </div>
 
+  <!-- Customer Segmentation Section -->
+  <div id="segmentation-section" style="display: none;">
+  <div class="container my-4">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="h5 mb-0">
+          <i class="bi bi-people me-2"></i>
+          Customer Segmentation & Elasticity
+        </h2>
+      </div>
+      <div class="card-body">
+        <!-- Control Panel -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Subscription Tier</label>
+            <select id="segment-tier-select" class="form-select">
+              <option value="ad_supported">Ad-Supported</option>
+              <option value="ad_free" selected>Ad-Free</option>
+              <option value="annual">Annual</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Analysis Axis</label>
+            <select id="segment-axis-select" class="form-select">
+              <option value="acquisition">Axis 3: Acquisition Price Sensitivity</option>
+              <option value="engagement" selected>Axis 2: Engagement & Churn Propensity</option>
+              <option value="monetization">Axis 1: Monetization & Plan Type</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Visualization Type</label>
+            <select id="segment-viz-select" class="form-select">
+              <option value="heatmap" selected>Elasticity Heatmap</option>
+              <option value="3axis">3-Axis Framework (Phase 2)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Segmentation Insights Banner -->
+        <div class="alert alert-info mb-4">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Segmentation Insights:</strong>
+          Analyze how different customer segments respond to pricing changes.
+          Use this to design targeted pricing strategies and reduce churn risk.
+        </div>
+
+        <!-- Segment Filters (Pills) -->
+        <div class="segment-filters mb-4">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold small text-uppercase">Acquisition Price Sensitivity:</label>
+              <div id="acquisition-filters" class="filter-pills d-flex flex-wrap gap-2"></div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small text-uppercase">Engagement & Churn Propensity:</label>
+              <div id="engagement-filters" class="filter-pills d-flex flex-wrap gap-2"></div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small text-uppercase">Monetization & Plan Type:</label>
+              <div id="monetization-filters" class="filter-pills d-flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <button id="clear-filters-btn" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-x-circle me-1"></i> Clear Filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Segment KPI Dashboard -->
+        <div id="segment-kpi-dashboard" class="mb-4"></div>
+
+        <!-- Visualization Container -->
+        <div id="segment-visualization-container">
+          <!-- Elasticity Heatmap -->
+          <div id="heatmap-view" class="chart-container">
+            <h3 class="h6 mb-3">Segment Elasticity Heatmap</h3>
+            <div id="segment-elasticity-heatmap"></div>
+          </div>
+
+          <!-- 3-Axis View (Phase 2) -->
+          <div id="3axis-view" class="chart-container" style="display: none;">
+            <h3 class="h6 mb-3">3-Axis Elasticity Visualization</h3>
+            <p class="text-muted small">
+              Circle size represents subscriber count. Click segments to explore details.
+            </p>
+            <div id="three-axis-radial-viz"></div>
+            <div class="mt-3">
+              <button id="reset-3axis-btn" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-clockwise me-1"></i> Reset View
+              </button>
+              <button id="export-3axis-btn" class="btn btn-sm btn-secondary">
+                <i class="bi bi-download me-1"></i> Export SVG
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
   <!-- Advanced Analytics Section -->
   <div id="analytics-section" style="display: none;">
   <div class="container my-4">
@@ -1021,6 +1168,10 @@
       </div>
     </div>
   </div>
+
+  <!-- Segmentation Modules -->
+  <script src="./js/segmentation-engine.js"></script>
+  <script type="module" src="./js/segment-charts.js"></script>
 
   <!-- Main Application Script -->
   <script type="module" src="./js/app.js"></script>

@@ -10,6 +10,7 @@ import { simulateScenario, compareScenarios as compareScenariosEngine } from './
 import { renderDemandCurve, renderElasticityHeatmap, renderTierMixShift, renderTradeoffsScatter, renderComparisonBarChart, renderRadarChart } from './charts.js';
 import { initializeChat, configureLLM, sendMessage, clearHistory } from './chat.js';
 import { initializeDataViewer } from './data-viewer.js';
+import { renderSegmentKPICards, renderSegmentElasticityHeatmap, render3AxisRadialChart, exportSVG } from './segment-charts.js';
 
 // Global state
 let selectedScenario = null;
@@ -927,6 +928,18 @@ async function loadData() {
         await loadKPIs();
       } else if (stage.progress === 60) {
         await loadScenarioCards();
+        // Load segmentation data
+        if (window.segmentEngine) {
+          console.log('Loading segmentation data...');
+          const segmentDataLoaded = await window.segmentEngine.loadSegmentData();
+          if (segmentDataLoaded) {
+            console.log('✓ Segmentation data loaded successfully');
+          } else {
+            console.error('✗ Failed to load segmentation data');
+          }
+        } else {
+          console.error('✗ window.segmentEngine not available');
+        }
       } else if (stage.progress === 75) {
         await loadElasticityAnalytics();
       } else if (stage.progress === 85) {
@@ -947,6 +960,12 @@ async function loadData() {
     document.getElementById('analytics-section').style.display = 'block';
     document.getElementById('chat-section').style.display = 'block';
     document.getElementById('data-viewer-section').style.display = 'block';
+
+    // Initialize segmentation section if data is available
+    if (window.segmentEngine && window.segmentEngine.isDataLoaded()) {
+      document.getElementById('segmentation-section').style.display = 'block';
+      initializeSegmentationSection();
+    }
 
     // Re-initialize popovers for newly visible sections
     initializePopovers();
@@ -1187,6 +1206,178 @@ function initializePopovers() {
     });
   });
   console.log(`Initialized ${popoverList.length} ML methodology popovers`);
+}
+
+// ========== Segmentation Section Functions ==========
+
+/**
+ * Initialize the segmentation section
+ */
+function initializeSegmentationSection() {
+  console.log('Initializing Customer Segmentation section...');
+
+  // Populate filter pills for each axis
+  populateFilterPills(
+    'acquisition-filters',
+    window.segmentEngine.axisDefinitions.acquisition,
+    'acquisition'
+  );
+  populateFilterPills(
+    'engagement-filters',
+    window.segmentEngine.axisDefinitions.engagement,
+    'engagement'
+  );
+  populateFilterPills(
+    'monetization-filters',
+    window.segmentEngine.axisDefinitions.monetization,
+    'monetization'
+  );
+
+  // Set up event listeners for controls
+  const tierSelector = document.getElementById('segment-tier-select');
+  const axisSelector = document.getElementById('segment-axis-select');
+  const vizTypeSelector = document.getElementById('segment-viz-select');
+  const clearFiltersBtn = document.getElementById('clear-filters-btn');
+
+  tierSelector.addEventListener('change', updateSegmentVisualization);
+  axisSelector.addEventListener('change', updateSegmentVisualization);
+  vizTypeSelector.addEventListener('change', updateSegmentVisualization);
+  clearFiltersBtn.addEventListener('click', clearAllFilters);
+
+  // 3-axis view buttons
+  const reset3AxisBtn = document.getElementById('reset-3axis-btn');
+  const export3AxisBtn = document.getElementById('export-3axis-btn');
+
+  if (reset3AxisBtn) {
+    reset3AxisBtn.addEventListener('click', () => {
+      console.log('Resetting 3-axis view...');
+      updateSegmentVisualization();
+    });
+  }
+
+  if (export3AxisBtn) {
+    export3AxisBtn.addEventListener('click', () => {
+      const tier = document.getElementById('segment-tier-select').value;
+      const filename = `segment-3axis-${tier}-${new Date().toISOString().slice(0, 10)}.svg`;
+      exportSVG('three-axis-radial-viz', filename);
+    });
+  }
+
+  // Initial render
+  updateSegmentVisualization();
+
+  console.log('✓ Segmentation section initialized');
+}
+
+/**
+ * Populate filter pills for a specific axis
+ * @param {string} containerId - Container element ID
+ * @param {Array<string>} values - Filter values
+ * @param {string} axisType - Axis type (engagement, monetization, acquisition)
+ */
+function populateFilterPills(containerId, values, axisType) {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.warn(`Container not found: ${containerId}`);
+    return;
+  }
+
+  container.innerHTML = '';
+
+  values.forEach(value => {
+    const pill = document.createElement('div');
+    pill.className = 'filter-pill';
+    pill.dataset.value = value;
+    pill.dataset.axis = axisType;
+    pill.textContent = window.segmentEngine.formatSegmentLabel(value);
+
+    // Toggle active state on click
+    pill.addEventListener('click', () => {
+      pill.classList.toggle('active');
+      updateSegmentVisualization();
+    });
+
+    container.appendChild(pill);
+  });
+}
+
+/**
+ * Update segment visualization based on current filters and selections
+ */
+function updateSegmentVisualization() {
+  const tier = document.getElementById('segment-tier-select').value;
+  const axis = document.getElementById('segment-axis-select').value;
+  const vizType = document.getElementById('segment-viz-select').value;
+
+  // Collect active filters
+  const filters = {
+    acquisition: getActivePillValues('acquisition-filters'),
+    engagement: getActivePillValues('engagement-filters'),
+    monetization: getActivePillValues('monetization-filters')
+  };
+
+  console.log('=== updateSegmentVisualization ===');
+  console.log('Selected tier:', tier);
+  console.log('Selected axis:', axis);
+  console.log('Selected vizType:', vizType);
+  console.log('Filters:', filters);
+  console.log('segmentEngine loaded?', window.segmentEngine && window.segmentEngine.isDataLoaded());
+
+  // Get filtered segments
+  const filteredSegments = window.segmentEngine.filterSegments(filters);
+
+  // Filter by selected tier
+  const tierSegments = filteredSegments.filter(s => s.tier === tier);
+
+  // Aggregate KPIs
+  const aggregatedKPIs = window.segmentEngine.aggregateKPIs(tierSegments);
+
+  // Render KPI cards
+  renderSegmentKPICards('segment-kpi-dashboard', aggregatedKPIs);
+
+  // Show/hide views based on visualization type
+  const heatmapView = document.getElementById('heatmap-view');
+  const threeAxisView = document.getElementById('3axis-view');
+
+  if (vizType === 'heatmap') {
+    heatmapView.style.display = 'block';
+    threeAxisView.style.display = 'none';
+    renderSegmentElasticityHeatmap('segment-elasticity-heatmap', tier, filters, axis);
+  } else if (vizType === '3axis') {
+    heatmapView.style.display = 'none';
+    threeAxisView.style.display = 'block';
+    render3AxisRadialChart('three-axis-radial-viz', tier, null);
+  }
+
+  console.log(`✓ Visualization updated: ${tierSegments.length} segments, ${aggregatedKPIs.total_subscribers.toLocaleString()} subscribers`);
+}
+
+/**
+ * Get active pill values from a container
+ * @param {string} containerId - Container element ID
+ * @returns {Array<string>} Array of active filter values
+ */
+function getActivePillValues(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return [];
+
+  const activePills = container.querySelectorAll('.filter-pill.active');
+  return Array.from(activePills).map(pill => pill.dataset.value);
+}
+
+/**
+ * Clear all filter pills
+ */
+function clearAllFilters() {
+  // Remove active class from all pills
+  document.querySelectorAll('.filter-pill.active').forEach(pill => {
+    pill.classList.remove('active');
+  });
+
+  // Update visualization
+  updateSegmentVisualization();
+
+  console.log('✓ All filters cleared');
 }
 
 // Initialize app
