@@ -307,7 +307,28 @@
     .filter-pill.active:hover {
       background-color: #0b5ed7;
     }
+
+    /* Scenario card tabs styling */
+    .scenario-card-tab {
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #dee2e6;
+    }
+
+    .scenario-card-tab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border: 2px solid #0d6efd;
+    }
+
+    .scenario-card-tab.selected {
+      border: 2px solid #0d6efd;
+      background-color: rgba(13, 110, 253, 0.05);
+    }
   </style>
+
+  <!-- Pyodide: Python in Browser -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 </head>
 
 <body>
@@ -327,9 +348,30 @@
               <i class="bi bi-speedometer2 me-1"></i> Dashboard
             </a>
           </li>
+          <!-- NEW: 3-Model Framework -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="elasticityModelsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-calculator me-1"></i> Elasticity Models
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="elasticityModelsDropdown">
+              <li><a class="dropdown-item" href="#elasticity-models-section" onclick="document.getElementById('acquisition-tab').click()">
+                <i class="bi bi-graph-up-arrow me-2"></i>1. Acquisition Elasticity
+              </a></li>
+              <li><a class="dropdown-item" href="#elasticity-models-section" onclick="document.getElementById('churn-tab').click()">
+                <i class="bi bi-hourglass-split me-2"></i>2. Churn Elasticity (Time-Lagged)
+              </a></li>
+              <li><a class="dropdown-item" href="#elasticity-models-section" onclick="document.getElementById('migration-tab').click()">
+                <i class="bi bi-arrows-angle-expand me-2"></i>3. Tier Migration
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-muted small" href="#scenario-section">
+                <i class="bi bi-play-circle me-2"></i>View All Scenarios
+              </a></li>
+            </ul>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="#segmentation-section">
-              <i class="bi bi-people me-1"></i> Segmentation
+              <i class="bi bi-people me-1"></i> Customer Cohorts
             </a>
           </li>
           <li class="nav-item">
@@ -576,57 +618,365 @@
   </div>
   </div>
 
-  <!-- Elasticity Overview -->
-  <div id="elasticity-section" style="display: none;">
+  <!-- NEW: Unified Scenario Engine with 3 Elasticity Models -->
+  <div id="elasticity-models-section" style="display: none;">
   <div class="container my-4">
     <div class="card">
-      <div class="card-header">
+      <div class="card-header bg-primary text-white">
         <h2 class="h5 mb-0">
           <i class="bi bi-calculator me-2"></i>
-          Price Elasticity by Tier
-          <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
-                  data-bs-placement="right"
-                  data-bs-trigger="focus"
-                  data-bs-custom-class="ml-popover"
-                  data-bs-html="true"
-                  data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Price Elasticity"
-                  data-bs-content="<strong>Model:</strong> Log-log regression with demand elasticity coefficients<br><br><strong>Formula:</strong> ε = (∂Q/∂P) × (P/Q)<br><br><strong>Training Data:</strong> 3 years of weekly pricing and subscriber data (2022-2024)<br><br><strong>Features:</strong> Historical price changes, subscriber response, tier characteristics, tenure segments<br><br><strong>Estimation Method:</strong> Hybrid approach combining historical price change analysis and industry benchmarks<br><br><strong>Confidence Level:</strong> 90% (±0.15-0.4 std error)<br><br><strong>Interpretation:</strong> Elasticity of -2.1 means 1% price increase → 2.1% demand decrease">
-            <i class="bi bi-info-circle text-primary"></i>
-          </button>
+          Scenario Engine - 3 Elasticity Models
         </h2>
+        <p class="small mb-0 opacity-75">
+          Simulate pricing scenarios across acquisition, churn, and tier migration models
+        </p>
       </div>
       <div class="card-body">
-        <div class="row g-3" id="elasticity-overview">
-          <div class="col-md-4">
-            <div class="text-center p-3 border rounded">
-              <div class="text-muted mb-2">Ad-Supported</div>
-              <span class="badge bg-danger fs-6 px-3 py-2">-2.1</span>
-              <div class="small text-muted mt-2">Highly Elastic</div>
-              <div class="small mt-1">Current Price: $5.99</div>
+
+        <!-- Reference to RFP Framework -->
+        <div class="alert alert-info mb-4">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>3-Model Framework:</strong>
+          Each tab represents a distinct elasticity model with different customer responses and decision metrics.
+        </div>
+
+        <!-- Bootstrap Tabs for 3 Models -->
+        <ul class="nav nav-tabs nav-fill mb-4" id="elasticityTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="acquisition-tab" data-bs-toggle="tab" data-bs-target="#acquisition-pane" type="button" role="tab">
+              <i class="bi bi-graph-up-arrow me-2"></i>
+              <strong>1. Acquisition Elasticity</strong>
+              <small class="d-block text-muted" style="font-size: 0.75rem;">Gross Adds Response</small>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="churn-tab" data-bs-toggle="tab" data-bs-target="#churn-pane" type="button" role="tab">
+              <i class="bi bi-hourglass-split me-2"></i>
+              <strong>2. Churn Elasticity</strong>
+              <small class="d-block text-muted" style="font-size: 0.75rem;">Time-Lagged Response</small>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="migration-tab" data-bs-toggle="tab" data-bs-target="#migration-pane" type="button" role="tab">
+              <i class="bi bi-arrows-angle-expand me-2"></i>
+              <strong>3. Tier Migration</strong>
+              <small class="d-block text-muted" style="font-size: 0.75rem;">Mix-Shift Response</small>
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="elasticityTabContent">
+
+          <!-- TAB 1: Acquisition Elasticity -->
+          <div class="tab-pane fade show active" id="acquisition-pane" role="tabpanel">
+            <!-- Model Description -->
+            <div class="card mb-4 border-primary">
+              <div class="card-header bg-primary-subtle">
+                <h4 class="h6 mb-0">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Model 1: Acquisition Elasticity (Gross Adds)
+                </h4>
+              </div>
+              <div class="card-body">
+                <p class="mb-2">
+                  <strong>What it captures:</strong> How gross adds change across candidate price points and promos
+                </p>
+                <p class="mb-0">
+                  <strong>Key Insight:</strong> High-intent joiners remain stable across P+Δ. Price-sensitive joiners show accelerated adds loss beyond P+Δ.
+                </p>
+              </div>
+            </div>
+
+            <!-- Decision Pack Outputs -->
+            <div class="alert alert-secondary mb-3">
+              <strong><i class="bi bi-file-earmark-text me-2"></i>Decision Pack Outputs:</strong>
+              Gross Adds, Revenue Impact, Payback Horizon, Promo Required
+            </div>
+
+            <!-- Acquisition Scenarios (filtered from scenarios.json) -->
+            <h5 class="mb-3">Acquisition-Focused Scenarios</h5>
+            <div class="row g-3" id="acquisition-scenarios">
+              <!-- Will be populated by JavaScript with scenarios:
+                  - scenario_003: Launch 50% Off Promo
+                  - scenario_004: Launch 30% Off Promo
+                  - scenario_007: Decrease Ad-supported to $4.99
+                  - scenario_009: Annual Plan Discount
+              -->
+            </div>
+
+            <!-- Cohort Breakdown Table -->
+            <div class="card mt-4">
+              <div class="card-header">
+                <h5 class="h6 mb-0">Cohort-Level Acquisition Response</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table id="acquisition-cohort-table" class="table table-sm table-hover">
+                    <thead>
+                      <tr>
+                        <th>Cohort</th>
+                        <th>Size</th>
+                        <th>Adds Elasticity</th>
+                        <th>Adds Lift @ P-5%</th>
+                        <th>Adds Lift @ P+5%</th>
+                        <th>Confidence</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Dynamically populated after simulation -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Deep Dive Navigation -->
+            <div class="alert alert-primary border-primary mt-4">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <i class="bi bi-arrow-right-circle me-2"></i>
+                  <strong>Deep Dive:</strong> Explore acquisition-focused customer segments and their price sensitivity
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="navigateToSegments('acquisition')">
+                  <i class="bi bi-graph-up me-1"></i>
+                  Explore Acquisition Segments
+                </button>
+              </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="text-center p-3 border rounded">
-              <div class="text-muted mb-2">Ad-Free</div>
-              <span class="badge bg-warning fs-6 px-3 py-2">-1.7</span>
-              <div class="small text-muted mt-2">Moderately Elastic</div>
-              <div class="small mt-1">Current Price: $8.99</div>
+
+          <!-- TAB 2: Churn Elasticity -->
+          <div class="tab-pane fade" id="churn-pane" role="tabpanel">
+            <!-- Model Description -->
+            <div class="card mb-4 border-warning">
+              <div class="card-header bg-warning-subtle">
+                <h4 class="h6 mb-0">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Model 2: Churn Elasticity (Lagged/Horizon-Based)
+                </h4>
+              </div>
+              <div class="card-body">
+                <p class="mb-2">
+                  <strong>What it captures:</strong> When churn shows up after price changes or promo roll-offs (time-lag effect)
+                </p>
+                <p class="mb-0">
+                  <strong>Key Insight:</strong> Churn impact arrives <strong>weeks after</strong> the event. Roll-off concentrates churn after discount ends. Peak typically at 8-12 weeks.
+                </p>
+              </div>
+            </div>
+
+            <!-- Churn Scenarios (filtered from scenarios.json) -->
+            <h5 class="mb-3">Churn-Focused Scenarios</h5>
+            <div class="row g-3" id="churn-scenarios">
+              <!-- Will be populated by JavaScript with scenarios:
+                  - scenario_001: Increase Ad-supported by $1.00
+                  - scenario_002: Increase Ad-free by $1.00
+                  - scenario_006: Remove Free Trial
+              -->
+            </div>
+
+            <!-- Cohort Churn Uplift Heatmap -->
+            <div class="card mt-4">
+              <div class="card-header">
+                <h5 class="h6 mb-0">Cohort Churn Uplift Heatmap (Δ vs baseline)</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table id="churn-heatmap-table" class="table table-sm table-hover">
+                    <thead>
+                      <tr>
+                        <th>Cohort</th>
+                        <th>0-4 Weeks</th>
+                        <th>4-8 Weeks</th>
+                        <th>8-12 Weeks</th>
+                        <th>12+ Weeks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Dynamically populated after simulation -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Deep Dive Navigation -->
+            <div class="alert alert-warning border-warning mt-4">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <i class="bi bi-arrow-right-circle me-2"></i>
+                  <strong>Deep Dive:</strong> Explore churn-prone customer segments and time-lagged responses
+                </div>
+                <button class="btn btn-warning btn-sm" onclick="navigateToSegments('churn')">
+                  <i class="bi bi-hourglass-split me-1"></i>
+                  Explore Churn Segments
+                </button>
+              </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="text-center p-3 border rounded">
-              <div class="text-muted mb-2">Annual</div>
-              <span class="badge bg-success fs-6 px-3 py-2">-1.5</span>
-              <div class="small text-muted mt-2">Less Elastic</div>
-              <div class="small mt-1">Current Price: $5.99/mo equiv</div>
+
+          <!-- TAB 3: Tier Migration -->
+          <div class="tab-pane fade" id="migration-pane" role="tabpanel">
+            <!-- Model Description -->
+            <div class="card mb-4 border-success">
+              <div class="card-header bg-success-subtle">
+                <h4 class="h6 mb-0">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Model 3: Tier Migration & Mix-Shift Elasticity
+                </h4>
+              </div>
+              <div class="card-body">
+                <p class="mb-2">
+                  <strong>What it captures:</strong> Upgrade/downgrade behavior driven by tier price gaps and promo structure
+                </p>
+                <p class="mb-0">
+                  <strong>Decision Takeaway:</strong> Choose the narrowest gap that increases Ad-Free share while keeping downgrade + cancel within guardrails.
+                </p>
+              </div>
+            </div>
+
+            <!-- Migration Scenarios (filtered from scenarios.json) -->
+            <h5 class="mb-3">Tier Migration Scenarios</h5>
+            <div class="row g-3" id="migration-scenarios">
+              <!-- Will be populated by JavaScript with scenarios:
+                  - scenario_005: Introduce Basic Tier
+                  - scenario_008: Bundle Discovery+ & Max
+                  - scenario_010: Platform-Specific: iOS +$0.99
+              -->
+            </div>
+
+            <!-- Tier Transition Matrix -->
+            <div class="card mt-4">
+              <div class="card-header">
+                <h5 class="h6 mb-0">Tier Transition Matrix (Δ vs baseline)</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table id="migration-matrix-table" class="table table-sm table-hover">
+                    <thead>
+                      <!-- Dynamic header - populated by JavaScript -->
+                    </thead>
+                    <tbody>
+                      <!-- Dynamically populated after simulation -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Deep Dive Navigation -->
+            <div class="alert alert-success border-success mt-4">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <i class="bi bi-arrow-right-circle me-2"></i>
+                  <strong>Deep Dive:</strong> Explore tier migration patterns and upgrade/downgrade behaviors
+                </div>
+                <button class="btn btn-success btn-sm" onclick="navigateToSegments('migration')">
+                  <i class="bi bi-arrows-angle-expand me-1"></i>
+                  Explore Migration Patterns
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Simulate Button -->
+        <div class="text-center my-4">
+          <button id="simulate-btn-models" class="btn btn-primary btn-lg" disabled>
+            <i class="bi bi-play-fill me-2"></i>
+            Simulate Selected Scenario
+          </button>
+        </div>
+
+        <!-- Results Container -->
+        <div id="result-container-models" style="display: none;">
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="h5 mb-0">Simulation Results</h3>
+            <button id="save-scenario-btn-models" class="btn btn-success">
+              <i class="bi bi-save me-2"></i>
+              Save Scenario
+            </button>
+          </div>
+
+          <!-- New Tier Warning (shown only for new tier scenarios) -->
+          <div id="new-tier-warning" style="display: none;">
+            <!-- Will be populated if scenario introduces new tier -->
+          </div>
+
+          <!-- Result Summary Cards -->
+          <div id="result-cards-models" class="row g-3 mb-4">
+            <!-- Will be populated with KPI cards -->
+          </div>
+
+          <!-- Charts -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h4 class="h6 mb-0">Revenue Impact</h4>
+                </div>
+                <div class="card-body">
+                  <canvas id="revenue-chart-models"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h4 class="h6 mb-0">Subscriber Impact</h4>
+                </div>
+                <div class="card-body">
+                  <canvas id="subscriber-chart-models"></canvas>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="mt-3">
-          <small class="text-muted">
-            <i class="bi bi-info-circle me-1"></i>
-            Elasticity indicates how subscriber demand changes with price. More negative = more sensitive to price changes.
-          </small>
+
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div id="analytics-section" style="display: none;">
+  <div class="container my-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h2 class="h5 mb-0">
+            <i class="bi bi-bar-chart-line me-2"></i>
+            Elasticity Analysis
+            <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
+                    data-bs-placement="right"
+                    data-bs-trigger="focus"
+                    data-bs-custom-class="ml-popover"
+                    data-bs-html="true"
+                    data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Elasticity Analysis"
+                    data-bs-content="<strong>Demand Curve Model:</strong><br>Q = Q₀ × (P/P₀)^ε<br>Non-linear demand function based on constant elasticity<br><br><strong>Segmentation:</strong><br>• Tenure-based cohorts (0-3mo, 3-12mo, 12+mo)<br>• Age demographics<br>• Device type<br>• Channel acquisition<br><br><strong>Heatmap Algorithm:</strong><br>Hierarchical clustering of elasticity coefficients across segments using Ward's method<br><br><strong>Cross-Elasticity:</strong><br>Measures tier substitution effects using multivariate regression<br><br><strong>Feature Engineering:</strong><br>• Lagged price variables (1-week, 4-week)<br>• Lagged subscriber metrics<br>• Promotional flags<br>• Content score (releases - removals)">
+              <i class="bi bi-info-circle text-primary"></i>
+            </button>
+          </h2>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary btn-sm" onclick="scrollToScenarioEngine()">
+              <i class="bi bi-arrow-up-circle me-1"></i>
+              Back to Scenario Engine
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Demand Curve -->
+        <div class="mb-4">
+          <div id="demand-curve-chart"></div>
+        </div>
+
+        <!-- Elasticity Heatmap -->
+        <div class="mb-4">
+          <div id="elasticity-heatmap"></div>
         </div>
       </div>
     </div>
@@ -634,179 +984,6 @@
   </div>
 
   <!-- Scenario Simulation -->
-  <div id="scenario-section" style="display: none;">
-  <div class="container my-4">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="h5 mb-0">
-          <i class="bi bi-play-circle me-2"></i>
-          Scenario Simulation
-          <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
-                  data-bs-placement="right"
-                  data-bs-trigger="focus"
-                  data-bs-custom-class="ml-popover"
-                  data-bs-html="true"
-                  data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Scenario Forecasting"
-                  data-bs-content="<strong>Model:</strong> Multi-variate time series forecasting with elasticity constraints<br><br><strong>Algorithm:</strong> Monte Carlo simulation with stochastic demand modeling<br><br><strong>Inputs:</strong><br>• Price elasticity coefficients by tier<br>• Cross-tier elasticity (substitution effects)<br>• Churn elasticity<br>• Acquisition elasticity<br>• Seasonal patterns<br>• External factors (macro indicators, competitor pricing)<br><br><strong>Forecast Horizon:</strong> 12 months<br><br><strong>Confidence Intervals:</strong> 90% CI shown as bands around forecast<br><br><strong>Validation:</strong> Backtesting on holdout data (MAE < 5%)">
-            <i class="bi bi-info-circle text-primary"></i>
-          </button>
-        </h2>
-      </div>
-      <div class="card-body">
-        <p class="mb-3">Select a pricing scenario to simulate its impact on key metrics.</p>
-        <div class="alert alert-info alert-dismissible fade show small" role="alert">
-          <i class="bi bi-info-circle me-2"></i>
-          <strong> POC:</strong> Includes scenarios for ad-supported, ad-free, annual, and bundle tiers. Bundle scenarios use estimated baseline derived from ad-free tier data.
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <!-- Scenario Selection -->
-        <div class="row g-3" id="scenario-cards">
-          <!-- Scenarios will be loaded here -->
-        </div>
-
-        <!-- Segment Targeting Options -->
-        <div class="card mt-4 mb-3 bg-light border-0">
-          <div class="card-body">
-            <h6 class="fw-bold mb-3">
-              <i class="bi bi-bullseye me-2"></i>
-              Targeting Options <span class="badge bg-secondary">Optional</span>
-            </h6>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Target Segment</label>
-                <select id="scenario-target-segment" class="form-select">
-                  <option value="all" selected>All Customers (Tier-wide Pricing)</option>
-                  <optgroup label="Acquisition Price Sensitivity">
-                    <option value="habitual_streamers">Habitual Streamers</option>
-                    <option value="content_anchored_viewers">Content-Anchored Viewers</option>
-                    <option value="at_risk_lapsers">At-Risk Lapsers</option>
-                    <option value="promo_only_users">Promo-Only Users</option>
-                    <option value="dormant_subscribers">Dormant Subscribers</option>
-                  </optgroup>
-                  <optgroup label="Engagement & Churn Propensity">
-                    <option value="ad_value_seekers">Ad-Value Seekers</option>
-                    <option value="ad_tolerant_upgraders">Ad-Tolerant Upgraders</option>
-                    <option value="ad_free_loyalists">Ad-Free Loyalists</option>
-                    <option value="price_triggered_downgraders">Price-Triggered Downgraders</option>
-                    <option value="tvod_inclined_buyers">TVOD-Inclined Buyers</option>
-                  </optgroup>
-                  <optgroup label="Monetization & Plan Type">
-                    <option value="platform_bundled_acquirers">Platform-Bundled Acquirers</option>
-                    <option value="tvod_to_svod_converters">TVOD-to-SVOD Converters</option>
-                    <option value="content_triggered_buyers">Content-Triggered Buyers</option>
-                    <option value="deal_responsive_acquirers">Deal-Responsive Acquirers</option>
-                    <option value="value_perception_buyers">Value-Perception Buyers</option>
-                  </optgroup>
-                </select>
-                <div class="form-text">
-                  Apply this price change only to a specific customer segment.
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Segment Axis</label>
-                <select id="scenario-segment-axis" class="form-select">
-                  <option value="" selected>Auto-detect from segment</option>
-                  <option value="acquisition">Acquisition</option>
-                  <option value="engagement">Engagement</option>
-                  <option value="monetization">Monetization</option>
-                </select>
-                <div class="form-text">
-                  Which axis to use for elasticity calculation.
-                </div>
-              </div>
-            </div>
-            <div class="alert alert-info mt-3 mb-0 small">
-              <i class="bi bi-info-circle me-1"></i>
-              <strong>Targeted Pricing:</strong> When a segment is selected, the price change applies only to customers
-              in that segment. The model will estimate spillover effects on other segments (migration patterns).
-            </div>
-          </div>
-        </div>
-
-        <!-- Simulate Button -->
-        <div class="text-center my-4">
-          <button id="simulate-btn" class="btn btn-primary btn-lg" disabled>
-            <i class="bi bi-play-fill me-2"></i>
-            Simulate Selected Scenario
-          </button>
-        </div>
-
-        <!-- Results Container -->
-        <div id="result-container" style="display: none;">
-          <hr class="my-4">
-
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="h5 mb-0">Simulation Results</h3>
-            <button id="save-scenario-btn" class="btn btn-success">
-              <i class="bi bi-save me-2"></i>
-              Save Scenario
-            </button>
-          </div>
-
-          <!-- Result Cards -->
-          <div class="row g-3 mb-4" id="result-cards">
-            <!-- Results will be rendered here -->
-          </div>
-
-          <!-- Warnings -->
-          <div id="warnings-container" class="alert alert-warning" style="display: none;">
-            <h5 class="alert-heading">
-              <i class="bi bi-exclamation-triangle me-2"></i>
-              Warnings
-            </h5>
-            <ul id="warnings-list" class="mb-0"></ul>
-          </div>
-
-          <!-- Time Series Chart -->
-          <div class="card mt-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h4 class="h6 mb-0">12-Month Forecast</h4>
-              <button class="btn btn-sm btn-link p-0" data-bs-toggle="popover"
-                      data-bs-placement="left"
-                      data-bs-trigger="focus"
-                      data-bs-custom-class="ml-popover"
-                      data-bs-html="true"
-                      data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Time Series Forecasting"
-                      data-bs-content="<strong>Model:</strong> ARIMA with elasticity-adjusted demand<br><br><strong>Components:</strong><br>• Trend: Linear/polynomial regression<br>• Seasonality: Fourier series decomposition<br>• Elasticity Effect: ΔQ = Q₀ × ε × (ΔP/P)<br>• Noise: Gaussian random walk<br><br><strong>Confidence Bands:</strong> ±10% interval (90% CI) based on historical variance<br><br><strong>Update Frequency:</strong> Real-time recalculation on scenario change<br><br><strong>Assumptions:</strong> Stable market conditions, no black swan events">
-                <i class="bi bi-info-circle-fill text-info" style="font-size: 0.875rem;"></i>
-              </button>
-            </div>
-            <div class="card-body">
-              <div class="chart-container">
-                <canvas id="forecast-chart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tier Mix and Trade-offs Charts - Side by Side -->
-          <div class="row g-3 mt-4">
-            <div class="col-md-6">
-              <div class="card h-100">
-                <div class="card-header">
-                  <h4 class="h6 mb-0">Tier Mix: Baseline vs Forecasted</h4>
-                </div>
-                <div class="card-body">
-                  <div id="tier-mix-chart"></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card h-100">
-                <div class="card-header">
-                  <h4 class="h6 mb-0">Revenue vs Growth Trade-offs</h4>
-                </div>
-                <div class="card-body">
-                  <div id="tradeoffs-chart"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
 
   <!-- Scenario Comparison Section -->
   <div id="comparison-section" style="display: none;">
@@ -876,15 +1053,36 @@
   </div>
   </div>
 
-  <!-- Customer Segmentation Section -->
+  <!-- Customer Cohorts Section -->
   <div id="segmentation-section" style="display: none;">
   <div class="container my-4">
     <div class="card">
       <div class="card-header">
-        <h2 class="h5 mb-0">
-          <i class="bi bi-people me-2"></i>
-          Customer Segmentation & Elasticity
-        </h2>
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h2 class="h5 mb-0">
+              <i class="bi bi-people me-2"></i>
+              Customer Cohorts & Elasticity
+            </h2>
+            <p class="small text-muted mb-0">
+              Pricing changes don't affect everyone the same way
+            </p>
+          </div>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary btn-sm" onclick="scrollToTab('acquisition')">
+              <i class="bi bi-arrow-up-circle me-1"></i>
+              Acquisition
+            </button>
+            <button class="btn btn-outline-warning btn-sm" onclick="scrollToTab('churn')">
+              <i class="bi bi-arrow-up-circle me-1"></i>
+              Churn
+            </button>
+            <button class="btn btn-outline-success btn-sm" onclick="scrollToTab('migration')">
+              <i class="bi bi-arrow-up-circle me-1"></i>
+              Migration
+            </button>
+          </div>
+        </div>
       </div>
       <div class="card-body">
         <!-- Control Panel -->
@@ -898,7 +1096,7 @@
             </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label fw-bold">Analysis Axis</label>
+            <label class="form-label fw-bold">Behavioral Axis</label>
             <select id="segment-axis-select" class="form-select">
               <option value="acquisition">Axis 3: Acquisition Price Sensitivity</option>
               <option value="engagement" selected>Axis 2: Engagement & Churn Propensity</option>
@@ -915,12 +1113,12 @@
           </div>
         </div>
 
-        <!-- Segmentation Insights Banner -->
+        <!-- Cohort Insights Banner -->
         <div class="alert alert-info mb-4">
           <i class="bi bi-info-circle me-2"></i>
-          <strong>Segmentation Insights:</strong>
-          Analyze how different customer segments respond to pricing changes.
-          Use this to design targeted pricing strategies and reduce churn risk.
+          <strong>Cohort Segmentation:</strong>
+          Customers are segmented by price sensitivity because pricing changes don't affect everyone the same way.
+          Promo-driven joiners have high acquisition elasticity. Content-led joiners have low elasticity. Long-tenure loyalists have very low churn.
         </div>
 
         <!-- Filter Summary Stats -->
@@ -1007,10 +1205,26 @@
   <div id="segment-analysis-section" class="container my-5" style="display: none;">
     <div class="card">
       <div class="card-header bg-primary text-white">
-        <h2 class="h5 mb-0">
-          <i class="bi bi-bar-chart-line me-2"></i>
-          Segment Elasticity Comparison
-        </h2>
+        <div class="d-flex justify-content-between align-items-center">
+          <h2 class="h5 mb-0">
+            <i class="bi bi-bar-chart-line me-2"></i>
+            Segment Elasticity Comparison
+          </h2>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-light btn-sm" onclick="scrollToTab('acquisition')">
+              <i class="bi bi-arrow-up-circle me-1"></i>
+              Acquisition
+            </button>
+            <button class="btn btn-outline-light btn-sm" onclick="scrollToTab('churn')">
+              <i class="bi bi-arrow-up-circle me-1"></i>
+              Churn
+            </button>
+            <button class="btn btn-outline-light btn-sm" onclick="scrollToTab('migration')">
+              <i class="bi bi-arrow-up-circle me-1"></i>
+              Migration
+            </button>
+          </div>
+        </div>
       </div>
       <div class="card-body">
         <!-- Controls -->
@@ -1055,39 +1269,6 @@
   </div>
 
   <!-- Advanced Analytics Section -->
-  <div id="analytics-section" style="display: none;">
-  <div class="container my-4">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="h5 mb-0">
-          <i class="bi bi-bar-chart-line me-2"></i>
-          Elasticity Analysis
-          <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
-                  data-bs-placement="right"
-                  data-bs-trigger="focus"
-                  data-bs-custom-class="ml-popover"
-                  data-bs-html="true"
-                  data-bs-title="<i class='bi bi-cpu me-2'></i>ML Methodology: Elasticity Analysis"
-                  data-bs-content="<strong>Demand Curve Model:</strong><br>Q = Q₀ × (P/P₀)^ε<br>Non-linear demand function based on constant elasticity<br><br><strong>Segmentation:</strong><br>• Tenure-based cohorts (0-3mo, 3-12mo, 12+mo)<br>• Age demographics<br>• Device type<br>• Channel acquisition<br><br><strong>Heatmap Algorithm:</strong><br>Hierarchical clustering of elasticity coefficients across segments using Ward's method<br><br><strong>Cross-Elasticity:</strong><br>Measures tier substitution effects using multivariate regression<br><br><strong>Feature Engineering:</strong><br>• Lagged price variables (1-week, 4-week)<br>• Lagged subscriber metrics<br>• Promotional flags<br>• Content score (releases - removals)">
-            <i class="bi bi-info-circle text-primary"></i>
-          </button>
-        </h2>
-      </div>
-      <div class="card-body">
-        <!-- Demand Curve -->
-        <div class="mb-4">
-          <div id="demand-curve-chart"></div>
-        </div>
-
-        <!-- Elasticity Heatmap -->
-        <div class="mb-4">
-          <div id="elasticity-heatmap"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
-
   <!-- GenAI Conversational Search -->
   <div id="chat-section" style="display: none;">
   <div class="container my-4">

@@ -2,7 +2,7 @@
  * Scenario Engine Module
  * Simulate pricing scenarios and forecast KPIs
  *
- * Dependencies: elasticity-model.js, data-loader.js
+ * Dependencies: elasticity-model.js, data-loader.js, pyodide-bridge.js
  */
 
 import {
@@ -13,6 +13,8 @@ import {
 } from './elasticity-model.js';
 
 import { getWeeklyData, getCurrentPrices, loadElasticityParams } from './data-loader.js';
+
+import { pyodideBridge } from './pyodide-bridge.js';
 
 /**
  * Simulate a pricing scenario
@@ -38,13 +40,28 @@ export async function simulateScenario(scenario, options = {}) {
   try {
     console.log('Simulating scenario:', scenario.id, 'for tier:', scenario.config.tier);
 
+    // Map new/hypothetical tiers to proxy tiers for baseline data
+    const tierMap = {
+      'basic': 'ad_supported',  // Basic tier uses ad_supported as proxy
+      'premium': 'ad_free',      // Premium tier uses ad_free as proxy
+      'bundle': 'ad_free'        // Bundle uses ad_free (already handled)
+    };
+
+    const baselineTier = tierMap[scenario.config.tier] || scenario.config.tier;
+    // Only "basic" and "premium" are truly new tiers; "bundle" is just a pricing variation of ad_free
+    const isNewTier = (scenario.config.tier === 'basic' || scenario.config.tier === 'premium');
+
+    if (tierMap[scenario.config.tier] && isNewTier) {
+      console.log(`⚠️ New tier "${scenario.config.tier}" - using "${baselineTier}" as baseline proxy`);
+    }
+
     // Get baseline data (pass scenario for bundle handling)
-    const baseline = await getBaselineMetrics(scenario.config.tier, scenario);
+    const baseline = await getBaselineMetrics(baselineTier, scenario);
     console.log('Baseline metrics retrieved:', baseline);
 
-    // Calculate elasticity for this scenario
+    // Calculate elasticity for this scenario (use baseline tier for new tiers)
     const elasticityInfo = await calculateElasticity(
-      scenario.config.tier,
+      baselineTier,
       null,
       { timeHorizon }
     );
@@ -1004,4 +1021,143 @@ async function calculateTierTotals(tier, impactData) {
       revenue_pct: ((forecastedRevenue - baselineRevenue) / baselineRevenue) * 100
     }
   };
+}
+
+/**
+ * NEW: Simulate scenario using Pyodide Python models
+ * Uses real statistical models (Poisson, Logit, Multinomial Logit)
+ * 
+ * @param {Object} scenario - Scenario configuration
+ * @param {Object} options - Additional options
+ * @returns {Promise<Object>} Simulation results with Python model predictions
+ */
+export async function simulateScenarioWithPyodide(scenario, options = {}) {
+  console.log('🐍 Simulating scenario with Pyodide Python models:', scenario.id);
+
+  try {
+    // Map new/hypothetical tiers to proxy tiers for baseline data
+    const tierMap = {
+      'basic': 'ad_supported',
+      'premium': 'ad_free',
+      'bundle': 'ad_free'
+    };
+
+    const baselineTier = tierMap[scenario.config.tier] || scenario.config.tier;
+    // Only "basic" and "premium" are truly new tiers; "bundle" is just a pricing variation of ad_free
+    const isNewTier = (scenario.config.tier === 'basic' || scenario.config.tier === 'premium');
+
+    if (tierMap[scenario.config.tier] && isNewTier) {
+      console.log(`⚠️ New tier "${scenario.config.tier}" - using "${baselineTier}" as baseline proxy`);
+    }
+
+    // Get baseline data
+    const baseline = await getBaselineMetrics(baselineTier, scenario);
+
+    // Prepare scenario for Python models
+    const pythonScenario = {
+      new_price: scenario.config.new_price,
+      current_price: scenario.config.current_price,
+      price_change_pct: ((scenario.config.new_price - scenario.config.current_price) / scenario.config.current_price) * 100,
+      promotion: scenario.config.promotion,
+      segment_elasticity: options.segmentElasticity || -1.8,
+      baseline_churn: baseline.churnRate || 0.05,
+      ad_supported_price: 5.99,  // TODO: Get from pricing data
+      ad_free_price: 8.99
+    };
+
+    // Run Python model predictions in parallel
+    const [acquisitionResult, churnResult, migrationResult] = await Promise.all([
+      pyodideBridge.predictAcquisition(pythonScenario),
+      pyodideBridge.predictChurn(pythonScenario),
+      pyodideBridge.predictMigration(pythonScenario)
+    ]);
+
+    console.log('✅ Python predictions received:', {
+      acquisition: acquisitionResult,
+      churn: churnResult,
+      migration: migrationResult
+    });
+
+    // Calculate forecasted KPIs using Python model outputs
+    // Acquisition adds are absolute numbers (e.g., 5000 new subs)
+    // Churn rate is a fraction (e.g., 0.05 = 5%)
+    const churnedSubs = baseline.activeSubscribers * churnResult['0-4 Weeks'].churn_rate;
+    const netAdds = acquisitionResult.predicted_adds - churnedSubs;
+
+    const forecasted = {
+      activeSubscribers: baseline.activeSubscribers + netAdds,
+      revenue: baseline.revenue * (1 + (pythonScenario.price_change_pct / 100)),
+      arpu: scenario.config.new_price,
+      churnRate: churnResult['0-4 Weeks'].churn_rate,
+      grossAdds: acquisitionResult.predicted_adds,
+      netAdds: netAdds
+    };
+
+    // Calculate deltas
+    const delta = {
+      subscribers: forecasted.activeSubscribers - baseline.activeSubscribers,
+      subscribers_pct: ((forecasted.activeSubscribers - baseline.activeSubscribers) / baseline.activeSubscribers) * 100,
+      revenue: forecasted.revenue - baseline.revenue,
+      revenue_pct: ((forecasted.revenue - baseline.revenue) / baseline.revenue) * 100,
+      arpu: forecasted.arpu - baseline.arpu,
+      arpu_pct: ((forecasted.arpu - baseline.arpu) / baseline.arpu) * 100,
+      churn_rate: forecasted.churnRate - baseline.churnRate,
+      churn_rate_pct: ((forecasted.churnRate - baseline.churnRate) / baseline.churnRate) * 100
+    };
+
+    // Build result object
+    const result = {
+      scenario_id: scenario.id,
+      scenario_name: scenario.name,
+      scenario_config: {
+        ...scenario.config,
+        baseline_tier: baselineTier  // Store proxy tier used for baseline
+      },
+
+      baseline: baseline,
+      forecasted: forecasted,
+      delta: delta,
+
+      // Python model outputs
+      python_models: {
+        acquisition: acquisitionResult,
+        churn: churnResult,
+        migration: migrationResult
+      },
+
+      is_new_tier: isNewTier,  // Flag to indicate hypothetical tier
+      model_source: 'pyodide-python',
+      timestamp: new Date().toISOString()
+    };
+
+    return result;
+
+  } catch (error) {
+    console.error('❌ Pyodide simulation failed:', error);
+    // Fallback to JavaScript simulation
+    console.log('⚠️ Falling back to JavaScript simulation');
+    return await simulateScenario(scenario, options);
+  }
+}
+
+/**
+ * Check if Pyodide models are available
+ */
+export function isPyodideAvailable() {
+  return pyodideBridge.isReady();
+}
+
+/**
+ * Initialize Pyodide models (call during app startup)
+ */
+export async function initializePyodideModels() {
+  try {
+    console.log('🚀 Initializing Pyodide models in background...');
+    await pyodideBridge.loadModels();
+    console.log('✅ Pyodide models ready');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to initialize Pyodide:', error);
+    return false;
+  }
 }

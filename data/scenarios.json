@@ -3,6 +3,7 @@
     "id": "scenario_001",
     "name": "Increase Ad-supported by $1.00",
     "category": "price_increase",
+    "model_type": "churn",
     "description": "Test $1 price increase on ad-supported tier (from $5.99 to $6.99)",
     "impact_summary": "Projected +3.5% revenue, -2.1% subscribers, +0.9% churn",
     "config": {
@@ -29,6 +30,7 @@
     "id": "scenario_002",
     "name": "Increase Ad-free by $1.00",
     "category": "price_increase",
+    "model_type": "churn",
     "description": "Test $1 price increase on ad-free tier (from $8.99 to $9.99)",
     "impact_summary": "Projected +4.2% revenue, -1.7% subscribers, +0.6% churn",
     "config": {
@@ -55,6 +57,7 @@
     "id": "scenario_003",
     "name": "Launch 50% Off Promo (3 months)",
     "category": "promotion",
+    "model_type": "acquisition",
     "description": "Offer 50% discount for 3 months on ad-supported tier ($2.99 for 3mo, then $5.99)",
     "impact_summary": "Projected +35% new subs during promo, -18% revenue short-term, net positive after 12mo",
     "config": {
@@ -89,6 +92,7 @@
     "id": "scenario_004",
     "name": "Launch 30% Off Promo (6 months)",
     "category": "promotion",
+    "model_type": "acquisition",
     "description": "Offer 30% discount for 6 months on ad-free tier ($6.29 for 6mo, then $8.99)",
     "impact_summary": "Projected +22% new subs, -12% revenue short-term, net positive after 18mo due to lower churn",
     "config": {
@@ -123,6 +127,7 @@
     "id": "scenario_005",
     "name": "Introduce Basic Tier at $2.99",
     "category": "new_tier",
+    "model_type": "migration",
     "description": "Launch new Basic tier at $2.99/mo with limited content library and ad-supported",
     "impact_summary": "Projected +25% total subs, -8% tier mix to Basic, net revenue neutral due to volume",
     "config": {
@@ -155,6 +160,7 @@
     "id": "scenario_006",
     "name": "Remove Free Trial",
     "category": "policy_change",
+    "model_type": "churn",
     "description": "Remove 7-day free trial, require immediate payment on signup",
     "impact_summary": "Projected -15% new sign-ups, but +20% conversion quality (lower early churn)",
     "config": {
@@ -186,6 +192,7 @@
     "id": "scenario_007",
     "name": "Decrease Ad-supported to $4.99",
     "category": "price_decrease",
+    "model_type": "acquisition",
     "description": "Lower ad-supported tier price from $5.99 to $4.99 to compete with basic tiers",
     "impact_summary": "Projected +15% new subs, +8% total subs, -8% ARPU, net revenue flat",
     "config": {
@@ -212,6 +219,7 @@
     "id": "scenario_008",
     "name": "Bundle Discovery+ & Max at $14.99",
     "category": "bundling",
+    "model_type": "migration",
     "description": "Launch bundle: Discovery+ Ad-free ($8.99) + Max Ad-free ($9.99) = $14.99 (save $3.99)",
     "impact_summary": "Projected +40% cross-sell to Max, +12% overall revenue, +8% retention",
     "config": {
@@ -250,6 +258,7 @@
     "id": "scenario_009",
     "name": "Annual Plan Discount: $59.99",
     "category": "promotion",
+    "model_type": "acquisition",
     "description": "Discount annual plan from $71.88 to $59.99 (17% off, equiv to $5/mo vs $5.99)",
     "impact_summary": "Projected +30% annual conversions, +5% overall revenue due to upfront payment",
     "config": {
@@ -284,6 +293,7 @@
     "id": "scenario_010",
     "name": "Platform-Specific: iOS +$0.99",
     "category": "price_increase",
+    "model_type": "migration",
     "description": "Increase iOS prices by $0.99 to offset Apple's 30% commission (ad-free: $8.99→$9.99 iOS only)",
     "impact_summary": "Projected +5% revenue from iOS, -3% iOS subs (migrate to web/other platforms)",
     "config": {
@@ -316,6 +326,7 @@
     "id": "scenario_baseline",
     "name": "Do Nothing (Baseline)",
     "category": "baseline",
+    "model_type": "baseline",
     "description": "Maintain current pricing and promotional strategy with no changes",
     "impact_summary": "Baseline scenario for comparison - organic growth continues at current trajectory",
     "config": {

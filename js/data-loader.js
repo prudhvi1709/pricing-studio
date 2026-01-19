@@ -102,7 +102,8 @@ export async function loadScenarios() {
   }
 
   try {
-    const response = await fetch('data/scenarios.json');
+    // Add cache-busting parameter to force reload
+    const response = await fetch(`data/scenarios.json?v=${Date.now()}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

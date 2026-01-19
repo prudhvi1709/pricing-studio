@@ -6,11 +6,19 @@
  */
 
 import { loadAllData, loadScenarios, getWeeklyData, loadElasticityParams } from './data-loader.js';
-import { simulateScenario, compareScenarios as compareScenariosEngine } from './scenario-engine.js';
+import {
+  simulateScenario,
+  simulateScenarioWithPyodide,
+  initializePyodideModels,
+  isPyodideAvailable,
+  compareScenarios as compareScenariosEngine
+} from './scenario-engine.js';
 import { renderDemandCurve, renderElasticityHeatmap, renderTierMixShift, renderTradeoffsScatter, renderComparisonBarChart, renderRadarChart } from './charts.js';
 import { initializeChat, configureLLM, sendMessage, clearHistory } from './chat.js';
 import { initializeDataViewer } from './data-viewer.js';
 import { renderSegmentKPICards, renderSegmentElasticityHeatmap, render3AxisRadialChart, renderSegmentScatterPlot, exportSVG } from './segment-charts.js';
+import { getAcquisitionCohorts, getChurnCohorts } from './cohort-aggregator.js';
+import { pyodideBridge } from './pyodide-bridge.js';
 
 // Global state
 let selectedScenario = null;
@@ -79,518 +87,17 @@ async function loadKPIs() {
   }
 }
 
-// Load scenarios
-async function loadScenarioCards() {
+// Load scenarios data only (no UI rendering)
+async function loadScenariosData() {
   try {
     allScenarios = await loadScenarios();
-
-    // Filter to most interesting scenarios for  (including bundle scenario)
-    const featuredScenarios = allScenarios.filter(s =>
-      ['scenario_001', 'scenario_002', 'scenario_003', 'scenario_008', 'scenario_baseline'].includes(s.id)
-    );
-
-    const container = document.getElementById('scenario-cards');
-    container.innerHTML = '';
-
-    featuredScenarios.forEach(scenario => {
-      const card = document.createElement('div');
-      card.className = 'col-md-6 col-lg-4';
-      card.innerHTML = `
-        <div class="card scenario-card h-100" data-scenario-id="${scenario.id}">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <h5 class="card-title flex-grow-1 mb-0">${scenario.name}</h5>
-              <button class="btn btn-sm btn-outline-secondary edit-scenario-btn" data-scenario-id="${scenario.id}" title="Edit parameters">
-                <i class="bi bi-pencil"></i>
-              </button>
-            </div>
-            <p class="card-text small">${scenario.description}</p>
-            <div class="mt-auto">
-              <span class="badge bg-secondary">${scenario.category}</span>
-              ${scenario.priority ? `<span class="badge bg-info">${scenario.priority}</span>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-    // Add click handlers for scenario selection
-    document.querySelectorAll('.scenario-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        // Don't select if clicking edit button
-        if (e.target.closest('.edit-scenario-btn')) return;
-
-        document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        selectedScenario = allScenarios.find(s => s.id === card.dataset.scenarioId);
-        document.getElementById('simulate-btn').disabled = false;
-      });
-    });
-
-    // Add click handlers for edit buttons
-    document.querySelectorAll('.edit-scenario-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const scenarioId = btn.dataset.scenarioId;
-        openScenarioEditor(scenarioId);
-      });
-    });
-
+    console.log(`✅ Loaded ${allScenarios.length} scenarios`);
   } catch (error) {
     console.error('Error loading scenarios:', error);
   }
 }
 
-// Simulate scenario
-async function runSimulation() {
-  if (!selectedScenario) return;
-
-  const btn = document.getElementById('simulate-btn');
-  const resultContainer = document.getElementById('result-container');
-
-  try {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating...';
-
-    // Get segment targeting options
-    const targetSegment = document.getElementById('scenario-target-segment')?.value || 'all';
-    const segmentAxis = document.getElementById('scenario-segment-axis')?.value || null;
-
-    // Run simulation with segment targeting
-    const result = await simulateScenario(selectedScenario, {
-      targetSegment,
-      segmentAxis
-    });
-
-    // Display results
-    displayResults(result);
-
-    resultContainer.style.display = 'block';
-    resultContainer.scrollIntoView({ behavior: 'smooth' });
-
-  } catch (error) {
-    console.error('Error simulating scenario:', error);
-    alert('Error running simulation: ' + error.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-play-fill me-2"></i>Simulate Selected Scenario';
-  }
-}
-
-// Display segment-targeted simulation results
-function displaySegmentResults(result) {
-  const segmentLabel = window.segmentEngine.formatSegmentLabel(result.target_segment);
-  const container = document.getElementById('result-cards');
-
-  container.innerHTML = `
-    <!-- Segment Target Banner -->
-    <div class="col-12">
-      <div class="alert alert-primary d-flex align-items-center">
-        <i class="bi bi-bullseye me-3 fs-4"></i>
-        <div>
-          <strong>Targeted Segment:</strong> ${segmentLabel}
-          <span class="badge bg-secondary ms-2">${result.segment_axis} axis</span>
-          <div class="small mt-1">
-            This price change targets ${result.segment_impact.baseline.subscribers.toLocaleString()} subscribers
-            (${((result.segment_impact.baseline.subscribers / result.tier_impact.baseline.subscribers) * 100).toFixed(1)}% of ${result.tier} tier)
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Segment-Level Impact -->
-    <div class="col-12 mt-2">
-      <h6 class="fw-bold text-primary">
-        <i class="bi bi-bar-chart me-2"></i>Direct Impact on Target Segment
-      </h6>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-primary">
-        <div class="card-body text-center">
-          <div class="text-muted small">Segment Subscribers</div>
-          <div class="h4 mb-1">${formatNumber(result.segment_impact.forecasted.subscribers)}</div>
-          <div class="small ${result.segment_impact.delta.subscribers >= 0 ? 'text-success' : 'text-danger'}">
-            ${result.segment_impact.delta.subscribers >= 0 ? '+' : ''}${formatNumber(result.segment_impact.delta.subscribers)}
-            (${formatPercent(result.segment_impact.delta.subscribers_pct, 1)})
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-primary">
-        <div class="card-body text-center">
-          <div class="text-muted small">Segment Revenue</div>
-          <div class="h4 mb-1">${formatCurrency(result.segment_impact.forecasted.revenue)}</div>
-          <div class="small ${result.segment_impact.delta.revenue >= 0 ? 'text-success' : 'text-danger'}">
-            ${result.segment_impact.delta.revenue >= 0 ? '+' : ''}${formatCurrency(result.segment_impact.delta.revenue)}
-            (${formatPercent(result.segment_impact.delta.revenue_pct, 1)})
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-primary">
-        <div class="card-body text-center">
-          <div class="text-muted small">Segment Churn Rate</div>
-          <div class="h4 mb-1">${formatPercent(result.segment_impact.forecasted.churn_rate * 100, 2)}</div>
-          <div class="small ${result.segment_impact.delta.churn_rate <= 0 ? 'text-success' : 'text-danger'}">
-            ${result.segment_impact.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(result.segment_impact.delta.churn_rate * 100, 2)}
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-primary">
-        <div class="card-body text-center">
-          <div class="text-muted small">Price Elasticity</div>
-          <div class="h4 mb-1">${result.segment_impact.elasticity.toFixed(2)}</div>
-          <div class="small text-muted">
-            ${Math.abs(result.segment_impact.elasticity) > 2.5 ? 'Highly Elastic' :
-              Math.abs(result.segment_impact.elasticity) > 2.0 ? 'Elastic' : 'Moderately Elastic'}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Spillover Effects -->
-    ${result.spillover_effects && result.spillover_effects.length > 0 ? `
-      <div class="col-12 mt-4">
-        <h6 class="fw-bold text-info">
-          <i class="bi bi-arrow-left-right me-2"></i>Spillover Effects (Migration Patterns)
-        </h6>
-        <p class="text-muted small mb-2">
-          Estimated migration: ~${result.spillover_summary.total_migration.toLocaleString()} subscribers may move to/from other segments
-        </p>
-      </div>
-      <div class="col-12">
-        <div class="table-responsive">
-          <table class="table table-sm table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>Affected Segment</th>
-                <th class="text-end">Baseline Subs</th>
-                <th class="text-end">Migration Impact</th>
-                <th class="text-end">Change %</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${result.spillover_effects.slice(0, 5).map(sp => `
-                <tr>
-                  <td><small>${window.segmentEngine.formatCompositeKey(sp.compositeKey)}</small></td>
-                  <td class="text-end">${formatNumber(sp.baseline_subscribers)}</td>
-                  <td class="text-end ${sp.delta_subscribers >= 0 ? 'text-success' : 'text-danger'}">
-                    ${sp.delta_subscribers >= 0 ? '+' : ''}${formatNumber(sp.delta_subscribers)}
-                  </td>
-                  <td class="text-end ${sp.delta_pct >= 0 ? 'text-success' : 'text-danger'}">
-                    ${sp.delta_pct >= 0 ? '+' : ''}${formatPercent(sp.delta_pct, 1)}
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          ${result.spillover_effects.length > 5 ? `
-            <p class="small text-muted mb-0">
-              Showing top 5 of ${result.spillover_effects.length} affected segments
-            </p>
-          ` : ''}
-        </div>
-      </div>
-    ` : ''}
-
-    <!-- Tier-Level Totals -->
-    <div class="col-12 mt-4">
-      <h6 class="fw-bold text-secondary">
-        <i class="bi bi-layers me-2"></i>Overall ${result.tier.replace('_', ' ').toUpperCase()} Tier Impact
-        <small class="text-muted ms-2">(includes direct + spillover effects)</small>
-      </h6>
-    </div>
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-body text-center">
-          <div class="text-muted small">Total Tier Subscribers</div>
-          <div class="h5 mb-1">${formatNumber(result.tier_impact.forecasted.subscribers)}</div>
-          <div class="small ${result.tier_impact.delta.subscribers >= 0 ? 'text-success' : 'text-danger'}">
-            ${result.tier_impact.delta.subscribers >= 0 ? '+' : ''}${formatNumber(result.tier_impact.delta.subscribers)}
-            (${formatPercent(result.tier_impact.delta.subscribers_pct, 1)})
-          </div>
-          <div class="text-muted small mt-1">
-            Baseline: ${formatNumber(result.tier_impact.baseline.subscribers)}
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-body text-center">
-          <div class="text-muted small">Total Tier Revenue</div>
-          <div class="h5 mb-1">${formatCurrency(result.tier_impact.forecasted.revenue)}</div>
-          <div class="small ${result.tier_impact.delta.revenue >= 0 ? 'text-success' : 'text-danger'}">
-            ${result.tier_impact.delta.revenue >= 0 ? '+' : ''}${formatCurrency(result.tier_impact.delta.revenue)}
-            (${formatPercent(result.tier_impact.delta.revenue_pct, 1)})
-          </div>
-          <div class="text-muted small mt-1">
-            Baseline: ${formatCurrency(result.tier_impact.baseline.revenue)}
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-body text-center">
-          <div class="text-muted small">Average Tier ARPU</div>
-          <div class="h5 mb-1">${formatCurrency(result.tier_impact.forecasted.arpu)}</div>
-          <div class="small ${(result.tier_impact.forecasted.arpu - result.tier_impact.baseline.arpu) >= 0 ? 'text-success' : 'text-danger'}">
-            ${(result.tier_impact.forecasted.arpu - result.tier_impact.baseline.arpu) >= 0 ? '+' : ''}${formatCurrency(result.tier_impact.forecasted.arpu - result.tier_impact.baseline.arpu)}
-          </div>
-          <div class="text-muted small mt-1">
-            Baseline: ${formatCurrency(result.tier_impact.baseline.arpu)}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Display warnings
-  const warningsContainer = document.getElementById('warnings-container');
-  const warningsList = document.getElementById('warnings-list');
-
-  if (result.warnings && result.warnings.length > 0) {
-    warningsContainer.style.display = 'block';
-    warningsList.innerHTML = result.warnings.map(w => `<li>${w}</li>`).join('');
-  } else {
-    warningsContainer.style.display = 'none';
-  }
-
-  // Render charts for segment scenarios
-  if (result.time_series && result.time_series.length > 0) {
-    renderForecastChart(result);
-  }
-
-  // Update elasticity analysis with scenario data
-  updateElasticityAnalysis(result);
-
-  // Render tier mix and tradeoffs charts using tier-level totals
-  renderTierMixChart(result);
-  renderTradeoffsChart(result);
-}
-
-// Display simulation results
-function displayResults(result) {
-  currentResult = result; // Store for saving
-
-  // Store in all simulation results for chatbot access
-  if (!allSimulationResults.find(r => r.scenario_id === result.scenario_id)) {
-    allSimulationResults.push(result);
-  }
-
-  // Check if this is a segment-targeted result
-  if (result.target_segment && result.target_segment !== 'all' && result.segment_impact) {
-    displaySegmentResults(result);
-    return;
-  }
-
-  const container = document.getElementById('result-cards');
-  container.innerHTML = `
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body text-center">
-          <div class="text-muted small">Subscribers</div>
-          <div class="h4 mb-1">${formatNumber(result.forecasted.subscribers)}</div>
-          <div class="small ${result.delta.subscribers >= 0 ? 'text-success' : 'text-danger'}">
-            ${result.delta.subscribers >= 0 ? '+' : ''}${formatNumber(result.delta.subscribers)}
-            (${formatPercent(result.delta.subscribers_pct, 1)})
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body text-center">
-          <div class="text-muted small">Revenue (Monthly)</div>
-          <div class="h4 mb-1">${formatCurrency(result.forecasted.revenue)}</div>
-          <div class="small ${result.delta.revenue >= 0 ? 'text-success' : 'text-danger'}">
-            ${result.delta.revenue >= 0 ? '+' : ''}${formatCurrency(result.delta.revenue)}
-            (${formatPercent(result.delta.revenue_pct, 1)})
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body text-center">
-          <div class="text-muted small">ARPU</div>
-          <div class="h4 mb-1">${formatCurrency(result.forecasted.arpu)}</div>
-          <div class="small ${result.delta.arpu >= 0 ? 'text-success' : 'text-danger'}">
-            ${result.delta.arpu >= 0 ? '+' : ''}${formatCurrency(result.delta.arpu)}
-            (${formatPercent(result.delta.arpu_pct, 1)})
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body text-center">
-          <div class="text-muted small">Churn Rate</div>
-          <div class="h4 mb-1">${formatPercent(result.forecasted.churn_rate * 100, 2)}</div>
-          <div class="small ${result.delta.churn_rate <= 0 ? 'text-success' : 'text-danger'}">
-            ${result.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(result.delta.churn_rate * 100, 2)}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Display warnings
-  const warningsContainer = document.getElementById('warnings-container');
-  const warningsList = document.getElementById('warnings-list');
-
-  if (result.warnings && result.warnings.length > 0) {
-    warningsContainer.style.display = 'block';
-    warningsList.innerHTML = result.warnings.map(w => `<li>${w}</li>`).join('');
-  } else {
-    warningsContainer.style.display = 'none';
-  }
-
-  // Render charts
-  renderForecastChart(result);
-
-  // Update elasticity analysis with scenario data
-  updateElasticityAnalysis(result);
-  renderTierMixChart(result);
-  renderTradeoffsChart(result);
-}
-
-// Render forecast chart
-function renderForecastChart(result) {
-  const ctx = document.getElementById('forecast-chart');
-
-  // Destroy existing chart if any
-  if (window.forecastChart) {
-    window.forecastChart.destroy();
-  }
-
-  // Calculate confidence intervals (±10% as approximation)
-  const confidenceFactor = 0.10;
-  const upperBound = result.time_series.map(d => d.subscribers * (1 + confidenceFactor));
-  const lowerBound = result.time_series.map(d => d.subscribers * (1 - confidenceFactor));
-
-  const data = {
-    labels: result.time_series.map(d => `Month ${d.month}`),
-    datasets: [
-      {
-        label: 'Baseline',
-        data: result.time_series.map(d => d.month === 0 ? d.subscribers : result.baseline.subscribers),
-        borderColor: '#6c757d',
-        borderDash: [5, 5],
-        backgroundColor: 'transparent',
-        tension: 0.1,
-        pointRadius: 0
-      },
-      {
-        label: 'Upper Bound (90% CI)',
-        data: upperBound,
-        borderColor: 'rgba(13, 110, 253, 0.3)',
-        borderWidth: 1,
-        borderDash: [3, 3],
-        backgroundColor: 'transparent',
-        pointRadius: 0,
-        fill: '+1'
-      },
-      {
-        label: 'Forecasted',
-        data: result.time_series.map(d => d.subscribers),
-        borderColor: '#0d6efd',
-        borderWidth: 3,
-        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-        tension: 0.4,
-        fill: false,
-        pointRadius: 3,
-        pointHoverRadius: 5
-      },
-      {
-        label: 'Lower Bound (90% CI)',
-        data: lowerBound,
-        borderColor: 'rgba(13, 110, 253, 0.3)',
-        borderWidth: 1,
-        borderDash: [3, 3],
-        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-        pointRadius: 0,
-        fill: '-1'
-      }
-    ]
-  };
-
-  window.forecastChart = new Chart(ctx, {
-    type: 'line',
-    data: data,
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          position: 'top',
-        },
-        title: {
-          display: true,
-          text: 'Subscriber Forecast'
-        }
-      },
-      scales: {
-        x: {
-          grid: {
-            display: true,
-            color: 'rgba(0, 0, 0, 0.05)',
-            lineWidth: 1
-          }
-        },
-        y: {
-          beginAtZero: false,
-          grid: {
-            display: true,
-            color: 'rgba(0, 0, 0, 0.1)',
-            lineWidth: 1
-          },
-          ticks: {
-            callback: function(value) {
-              return formatNumber(value);
-            }
-          }
-        }
-      }
-    }
-  });
-}
-
-// Render Tier Mix Shift Chart
-function renderTierMixChart(result) {
-  const data = {
-    baseline: {
-      ad_supported: result.baseline.subscribers * 0.45, // Approximate distribution
-      ad_free: result.baseline.subscribers * 0.35,
-      annual: result.baseline.subscribers * 0.20
-    },
-    forecasted: {
-      ad_supported: result.forecasted.subscribers * 0.45,
-      ad_free: result.forecasted.subscribers * 0.35,
-      annual: result.forecasted.subscribers * 0.20
-    }
-  };
-
-  renderTierMixShift('tier-mix-chart', data, { width: 550, height: 380 });
-}
-
-// Render Trade-offs Scatter Chart
-function renderTradeoffsChart(result) {
-  const data = [{
-    name: result.scenario_name || 'Current Scenario',
-    revenueChange: result.delta.revenue_pct,
-    subsChange: result.delta.subscribers_pct,
-    churnChange: result.delta.churn_rate_pct
-  }];
-
-  renderTradeoffsScatter('tradeoffs-chart', data, { width: 550, height: 380 });
-}
+// [OLD SIMULATION FUNCTIONS REMOVED - Using tabbed interface]
 
 // Update elasticity analysis with scenario data
 async function updateElasticityAnalysis(result) {
@@ -1147,7 +654,9 @@ async function loadData() {
       if (stage.progress === 45) {
         await loadKPIs();
       } else if (stage.progress === 60) {
-        await loadScenarioCards();
+        await loadScenariosData();
+        // Populate elasticity model tabs with filtered scenarios
+        populateElasticityModelTabs();
         // Load segmentation data
         if (window.segmentEngine) {
           const segmentDataLoaded = await window.segmentEngine.loadSegmentData();
@@ -1172,15 +681,23 @@ async function loadData() {
     // Hide load button section, show all data sections
     document.getElementById('load-data-section').style.display = 'none';
     document.getElementById('kpi-section').style.display = 'block';
-    document.getElementById('elasticity-section').style.display = 'block';
-    document.getElementById('scenario-section').style.display = 'block';
-    document.getElementById('analytics-section').style.display = 'block';
+
+    // NEW: Show Elasticity Models section (tabbed interface)
+    document.getElementById('elasticity-models-section').style.display = 'block';
+
+    // Old scenario-section is hidden - replaced by elasticity-models-section (tabbed interface)
+    // document.getElementById('scenario-section').style.display = 'block';
+
+    // Deep dive sections are hidden initially - shown only when user clicks "Explore X Segments"
+    // document.getElementById('analytics-section').style.display = 'block';
+    // document.getElementById('segmentation-section').style.display = 'block';
+    // document.getElementById('segment-analysis-section').style.display = 'block';
+
     document.getElementById('chat-section').style.display = 'block';
     document.getElementById('data-viewer-section').style.display = 'block';
 
-    // Initialize segmentation section if data is available
+    // Initialize segmentation section if data is available (but keep hidden)
     if (window.segmentEngine && window.segmentEngine.isDataLoaded()) {
-      document.getElementById('segmentation-section').style.display = 'block';
       initializeSegmentationSection();
       initializeSegmentComparison();
       // initializeFilterPresets(); // Removed - Quick Presets feature removed from UI
@@ -1191,6 +708,16 @@ async function loadData() {
     initializePopovers();
 
     dataLoaded = true;
+
+    // Initialize Pyodide models in background (non-blocking)
+    initializePyodideModels().then(success => {
+      if (success) {
+        console.log('✅ Pyodide Python models ready to use');
+      } else {
+        console.log('⚠️ Pyodide initialization failed, using JavaScript fallback');
+      }
+    });
+
   } catch (error) {
     console.error('Error loading data:', error);
 
@@ -1418,8 +945,9 @@ async function saveEditedScenario() {
   // Wait for modal to close animation
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  // Reload scenario cards
-  await loadScenarioCards();
+  // Reload scenario data and refresh tabs
+  await loadScenariosData();
+  populateElasticityModelTabs();
 
   // If this was the selected scenario, re-select it
   if (selectedScenario && selectedScenario.id === scenarioId) {
@@ -1752,8 +1280,8 @@ function initializeSegmentComparison() {
   // Initial render
   renderSegmentComparisonTable();
 
-  // Show section
-  document.getElementById('segment-analysis-section').style.display = 'block';
+  // Section stays hidden until user clicks "Explore Segments" button
+  // document.getElementById('segment-analysis-section').style.display = 'block';
 }
 
 /**
@@ -1995,8 +1523,8 @@ function initializeExportButtons() {
 async function init() {
   // Add event listeners
   document.getElementById('load-data-btn').addEventListener('click', loadData);
-  document.getElementById('simulate-btn').addEventListener('click', runSimulation);
-  document.getElementById('save-scenario-btn').addEventListener('click', saveScenario);
+  // Old simulate-btn and save-scenario-btn removed - using tabbed interface now
+  document.getElementById('save-scenario-btn-models')?.addEventListener('click', saveScenario);
   document.getElementById('compare-btn').addEventListener('click', compareScenarios);
   document.getElementById('clear-scenarios-btn').addEventListener('click', clearScenarios);
 
@@ -2032,3 +1560,731 @@ init().catch(error => {
   console.error('Failed to initialize app:', error);
   alert('Failed to load application. Please check console for details.');
 });
+
+/**
+ * Populate scenarios into elasticity model tabs
+ * Filters scenarios by model_type and displays them in respective tabs
+ */
+function populateElasticityModelTabs() {
+  const scenarios = allScenarios;
+  if (!scenarios || scenarios.length === 0) {
+    console.error('No scenarios loaded');
+    return;
+  }
+
+  // Filter scenarios by model type
+  const acquisitionScenarios = scenarios.filter(s => s.model_type === 'acquisition');
+  const churnScenarios = scenarios.filter(s => s.model_type === 'churn');
+  const migrationScenarios = scenarios.filter(s => s.model_type === 'migration');
+
+  console.log(`Populating tabs: Acquisition(${acquisitionScenarios.length}), Churn(${churnScenarios.length}), Migration(${migrationScenarios.length})`);
+
+  // Populate acquisition tab
+  const acquisitionContainer = document.getElementById('acquisition-scenarios');
+  if (acquisitionContainer) {
+    acquisitionContainer.innerHTML = acquisitionScenarios.map(scenario => createScenarioCard(scenario)).join('');
+  }
+
+  // Populate churn tab
+  const churnContainer = document.getElementById('churn-scenarios');
+  if (churnContainer) {
+    churnContainer.innerHTML = churnScenarios.map(scenario => createScenarioCard(scenario)).join('');
+  }
+
+  // Populate migration tab with custom order
+  const migrationContainer = document.getElementById('migration-scenarios');
+  if (migrationContainer) {
+    // Custom order: Bundle first, iOS second, Basic last
+    const migrationOrder = ['scenario_008', 'scenario_010', 'scenario_005'];
+    const sortedMigration = migrationScenarios.sort((a, b) => {
+      const indexA = migrationOrder.indexOf(a.id);
+      const indexB = migrationOrder.indexOf(b.id);
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+    migrationContainer.innerHTML = sortedMigration.map(scenario => createScenarioCard(scenario)).join('');
+  }
+
+  // Add click handlers for scenario cards
+  document.querySelectorAll('.scenario-card-tab').forEach(card => {
+    card.addEventListener('click', function(e) {
+      // Don't select if clicking edit button
+      if (e.target.closest('.edit-scenario-btn-tab')) return;
+
+      // Remove selected class from all cards in all tabs
+      document.querySelectorAll('.scenario-card-tab').forEach(c => c.classList.remove('selected'));
+      // Add selected class to clicked card
+      this.classList.add('selected');
+      // Enable simulate button
+      const scenarioId = this.dataset.scenarioId;
+      const selected = scenarios.find(s => s.id === scenarioId);
+      if (selected) {
+        selectedScenario = selected;
+        document.getElementById('simulate-btn-models').disabled = false;
+        console.log('Selected scenario:', scenarioId);
+      }
+    });
+  });
+
+  // Add click handlers for edit buttons in tabs
+  document.querySelectorAll('.edit-scenario-btn-tab').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const scenarioId = btn.dataset.scenarioId;
+      openScenarioEditor(scenarioId);
+    });
+  });
+
+  // Add simulate button handler
+  const simulateBtn = document.getElementById('simulate-btn-models');
+  if (simulateBtn) {
+    simulateBtn.addEventListener('click', async function() {
+      if (!selectedScenario) return;
+
+      const resultContainer = document.getElementById('result-container-models');
+
+      try {
+        simulateBtn.disabled = true;
+        simulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating...';
+
+        console.log('Simulating scenario:', selectedScenario.id);
+
+        // Run simulation with Pyodide if available, otherwise fallback to JS
+        let result;
+        if (isPyodideAvailable()) {
+          console.log('✅ Using Pyodide Python models');
+          simulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running Python models...';
+          result = await simulateScenarioWithPyodide(selectedScenario, {
+            targetSegment: 'all',
+            segmentAxis: null
+          });
+        } else {
+          console.log('⚠️ Pyodide not ready, using JavaScript simulation');
+          result = await simulateScenario(selectedScenario, {
+            targetSegment: 'all',
+            segmentAxis: null
+          });
+        }
+
+        // Display results in the new containers
+        displayResultsInTabs(result);
+
+        resultContainer.style.display = 'block';
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (error) {
+        console.error('Error simulating scenario:', error);
+        alert('Error running simulation: ' + error.message);
+      } finally {
+        simulateBtn.disabled = false;
+        simulateBtn.innerHTML = '<i class="bi bi-play-fill me-2"></i>Simulate Selected Scenario';
+      }
+    });
+  }
+}
+
+/**
+ * Create scenario card HTML for tabs
+ */
+function createScenarioCard(scenario) {
+  const priorityBadge = {
+    'high': '<span class="badge bg-danger">High</span>',
+    'medium': '<span class="badge bg-warning">Medium</span>',
+    'low': '<span class="badge bg-secondary">Low</span>',
+    'n/a': ''
+  }[scenario.priority] || '';
+
+  return `
+    <div class="col-md-4">
+      <div class="card scenario-card-tab h-100" data-scenario-id="${scenario.id}">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0 flex-grow-1">${scenario.name}</h6>
+            <div>
+              ${priorityBadge}
+              <button class="btn btn-sm btn-outline-secondary edit-scenario-btn-tab ms-1" data-scenario-id="${scenario.id}" title="Edit parameters">
+                <i class="bi bi-pencil"></i>
+              </button>
+            </div>
+          </div>
+          <p class="card-text small text-muted mb-2">${scenario.description}</p>
+          <div class="small text-muted">
+            <i class="bi bi-lightbulb me-1"></i>
+            ${scenario.business_rationale}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Display simulation results in the tabbed interface
+ */
+function displayResultsInTabs(result) {
+  currentResult = result; // Store for saving
+
+  // Store in all simulation results for chatbot access
+  if (!allSimulationResults.find(r => r.scenario_id === result.scenario_id)) {
+    allSimulationResults.push(result);
+  }
+
+  // Display warning for new tier scenarios
+  const warningContainer = document.getElementById('new-tier-warning');
+  if (result.is_new_tier && warningContainer) {
+    warningContainer.innerHTML = `
+      <div class="alert alert-info border-info mb-3">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>New Tier Simulation:</strong> This scenario introduces a hypothetical "${result.scenario_config.tier}" tier that doesn't exist in historical data.
+        Results use "${result.scenario_config.baseline_tier}" tier as baseline proxy for modeling.
+      </div>
+    `;
+    warningContainer.style.display = 'block';
+  } else if (warningContainer) {
+    warningContainer.style.display = 'none';
+  }
+
+  // Display KPI cards
+  const container = document.getElementById('result-cards-models');
+  const subscribers = result.forecasted.activeSubscribers || result.forecasted.subscribers;
+  const deltaSubscribers = result.delta.subscribers;
+  const deltaSubscribersPct = result.delta.subscribers_pct;
+
+  container.innerHTML = `
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="text-muted small">Subscribers</div>
+          <div class="h4 mb-1">${formatNumber(subscribers)}</div>
+          <div class="small ${deltaSubscribers >= 0 ? 'text-success' : 'text-danger'}">
+            ${deltaSubscribers >= 0 ? '+' : ''}${formatNumber(deltaSubscribers)}
+            (${formatPercent(deltaSubscribersPct, 1)})
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="text-muted small">Revenue (Monthly)</div>
+          <div class="h4 mb-1">${formatCurrency(result.forecasted.revenue)}</div>
+          <div class="small ${result.delta.revenue >= 0 ? 'text-success' : 'text-danger'}">
+            ${result.delta.revenue >= 0 ? '+' : ''}${formatCurrency(result.delta.revenue)}
+            (${formatPercent(result.delta.revenue_pct, 1)})
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="text-muted small">ARPU</div>
+          <div class="h4 mb-1">${formatCurrency(result.forecasted.arpu)}</div>
+          <div class="small ${result.delta.arpu >= 0 ? 'text-success' : 'text-danger'}">
+            ${result.delta.arpu >= 0 ? '+' : ''}${formatCurrency(result.delta.arpu)}
+            (${formatPercent(result.delta.arpu_pct, 1)})
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="text-muted small">Churn Rate</div>
+          <div class="h4 mb-1">${formatPercent((result.forecasted.churnRate || result.forecasted.churn_rate || 0) * 100, 2)}</div>
+          <div class="small ${result.delta.churn_rate <= 0 ? 'text-success' : 'text-danger'}">
+            ${result.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(result.delta.churn_rate * 100, 2)}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Render charts
+  renderRevenueChartInTabs(result);
+  renderSubscriberChartInTabs(result);
+
+  // Render dynamic cohort tables
+  renderAcquisitionCohortTable(result);
+  renderChurnHeatmap(result);
+  renderMigrationMatrix(result);
+}
+
+/**
+ * Render revenue chart in tabs
+ */
+function renderRevenueChartInTabs(result) {
+  const ctx = document.getElementById('revenue-chart-models');
+
+  if (window.revenueChartModels) {
+    window.revenueChartModels.destroy();
+  }
+
+  window.revenueChartModels = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Baseline', 'Scenario'],
+      datasets: [{
+        label: 'Monthly Revenue',
+        data: [result.baseline.revenue, result.forecasted.revenue],
+        backgroundColor: ['rgba(108, 117, 125, 0.8)', 'rgba(13, 110, 253, 0.8)']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => formatCurrency(context.parsed.y)
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (value) => formatCurrency(value)
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Render subscriber chart in tabs
+ */
+function renderSubscriberChartInTabs(result) {
+  const ctx = document.getElementById('subscriber-chart-models');
+
+  if (window.subscriberChartModels) {
+    window.subscriberChartModels.destroy();
+  }
+
+  window.subscriberChartModels = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Baseline', 'Scenario'],
+      datasets: [{
+        label: 'Subscribers',
+        data: [
+          result.baseline.activeSubscribers || result.baseline.subscribers,
+          result.forecasted.activeSubscribers || result.forecasted.subscribers
+        ],
+        backgroundColor: ['rgba(108, 117, 125, 0.8)', 'rgba(13, 110, 253, 0.8)']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => formatNumber(context.parsed.y)
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (value) => formatNumber(value)
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Navigation Functions for Contextual Links
+ */
+
+// Navigate to segmentation section and optionally filter by model type
+window.navigateToSegments = function(modelType) {
+  const segmentSection = document.getElementById('segmentation-section');
+  const analyticsSection = document.getElementById('analytics-section');
+  const comparisonSection = document.getElementById('segment-analysis-section');
+
+  if (segmentSection) {
+    // Show the deep dive sections
+    segmentSection.style.display = 'block';
+    if (analyticsSection) analyticsSection.style.display = 'block';
+    if (comparisonSection) comparisonSection.style.display = 'block';
+
+    // Scroll to segmentation section
+    segmentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Optional: Auto-filter segments based on model type
+    // This could be enhanced to actually filter the segments
+    console.log(`Navigating to segments with focus on: ${modelType}`);
+  }
+};
+
+// Scroll back to scenario engine
+window.scrollToScenarioEngine = function() {
+  const scenarioEngine = document.getElementById('elasticity-models-section');
+  if (scenarioEngine) {
+    scenarioEngine.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+// Scroll to scenario engine and switch to specific tab
+window.scrollToTab = function(tabName) {
+  const scenarioEngine = document.getElementById('elasticity-models-section');
+  if (scenarioEngine) {
+    scenarioEngine.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Switch to the specified tab after scrolling
+    setTimeout(() => {
+      const tabButton = document.getElementById(`${tabName}-tab`);
+      if (tabButton) {
+        tabButton.click();
+      }
+    }, 500);
+  }
+};
+
+/**
+ * Render Acquisition Cohort Table dynamically
+ */
+async function renderAcquisitionCohortTable(result) {
+  const tableBody = document.querySelector('#acquisition-cohort-table tbody');
+  if (!tableBody) return;
+
+  try {
+    // Get tier from scenario
+    const tier = result.scenario_config?.tier || 'ad_supported';
+
+    // Get cohorts
+    const cohorts = await getAcquisitionCohorts(tier);
+
+    if (!cohorts || cohorts.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No cohort data available</td></tr>';
+      return;
+    }
+
+    // Get Python model predictions if available
+    let predictions = [];
+    if (isPyodideAvailable() && result.python_models) {
+      const scenario = {
+        new_price: result.scenario_config.new_price,
+        current_price: result.scenario_config.current_price,
+        promotion: result.scenario_config.promotion
+      };
+
+      predictions = await pyodideBridge.predictAcquisitionBySegment(scenario, cohorts);
+    }
+
+    // Render table rows
+    tableBody.innerHTML = cohorts.map((cohort, index) => {
+      const prediction = predictions[index] || {};
+      // Correct elasticity formula: elasticity × price_change
+      // -5% price change: elasticity × (-5) = lift
+      // +5% price change: elasticity × (+5) = lift
+      const addsLiftMinus5 = prediction.lift_at_minus_5pct || (cohort.elasticity * (-5));
+      const addsLiftPlus5 = prediction.lift_at_plus_5pct || (cohort.elasticity * 5);
+      const confidence = prediction.confidence || 2.5;
+
+      // Badge color based on elasticity
+      const elasticityBadge = Math.abs(cohort.elasticity) > 2.5 ? 'bg-danger' :
+                              Math.abs(cohort.elasticity) > 1.5 ? 'bg-warning' : 'bg-success';
+
+      return `
+        <tr>
+          <td><strong>${cohort.name}</strong></td>
+          <td>${formatNumber(cohort.size)}</td>
+          <td><span class="badge ${elasticityBadge}">${cohort.elasticity.toFixed(2)}</span></td>
+          <td class="text-success">${addsLiftMinus5 > 0 ? '+' : ''}${addsLiftMinus5.toFixed(1)}%</td>
+          <td class="text-danger">${addsLiftPlus5 > 0 ? '+' : ''}${addsLiftPlus5.toFixed(1)}%</td>
+          <td><span class="text-muted">±${confidence.toFixed(1)}%</span></td>
+        </tr>
+      `;
+    }).join('');
+
+    console.log(`✅ Rendered ${cohorts.length} acquisition cohorts`);
+  } catch (error) {
+    console.error('Error rendering acquisition cohort table:', error);
+    tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading cohort data</td></tr>';
+  }
+}
+
+/**
+ * Render Churn Heatmap dynamically
+ */
+async function renderChurnHeatmap(result) {
+  const tableBody = document.querySelector('#churn-heatmap-table tbody');
+  if (!tableBody) return;
+
+  try {
+    const tier = result.scenario_config?.tier || 'ad_supported';
+    const cohorts = await getChurnCohorts(tier);
+
+    if (!cohorts || cohorts.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No cohort data available</td></tr>';
+      return;
+    }
+
+    // Get Python model predictions by time horizon
+    let predictions = [];
+    if (isPyodideAvailable() && result.python_models) {
+      const scenario = {
+        new_price: result.scenario_config.new_price,
+        current_price: result.scenario_config.current_price,
+        price_change_pct: ((result.scenario_config.new_price - result.scenario_config.current_price) / result.scenario_config.current_price) * 100,
+        baseline_churn: result.baseline.churnRate || 0.05,
+        promotion: result.scenario_config.promotion
+      };
+
+      predictions = await pyodideBridge.predictChurnBySegment(scenario, cohorts);
+    }
+
+    // Render heatmap rows
+    tableBody.innerHTML = cohorts.map((cohort, index) => {
+      const prediction = predictions[index] || {};
+
+      // Extract churn uplift by horizon (in percentage points)
+      const churn_0_4 = prediction.churn_0_4_weeks || (cohort.elasticity * 0.015 * 100);
+      const churn_4_8 = prediction.churn_4_8_weeks || (cohort.elasticity * 0.035 * 100);
+      const churn_8_12 = prediction.churn_8_12_weeks || (cohort.elasticity * 0.045 * 100);
+      const churn_12plus = prediction.churn_12plus_weeks || (cohort.elasticity * 0.020 * 100);
+
+      // Simple color coding - green for decreases (good), red for increases (bad)
+      const getColorClass = (value) => {
+        if (value < 0) return 'text-success';  // Negative = churn decrease = GOOD
+        if (value > 0) return 'text-danger';   // Positive = churn increase = BAD
+        return 'text-muted';                    // Zero = no change
+      };
+
+      const formatChurn = (val) => `${val > 0 ? '+' : ''}${val.toFixed(1)} pp`;
+
+      return `
+        <tr>
+          <td><strong>${cohort.name}</strong></td>
+          <td class="${getColorClass(churn_0_4)}">${formatChurn(churn_0_4)}</td>
+          <td class="${getColorClass(churn_4_8)}">${formatChurn(churn_4_8)}</td>
+          <td class="${getColorClass(churn_8_12)}">${formatChurn(churn_8_12)}</td>
+          <td class="${getColorClass(churn_12plus)}">${formatChurn(churn_12plus)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    console.log(`✅ Rendered ${cohorts.length} churn cohorts`);
+  } catch (error) {
+    console.error('Error rendering churn heatmap:', error);
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading cohort data</td></tr>';
+  }
+}
+
+/**
+ * Render Migration Matrix dynamically
+ */
+async function renderMigrationMatrix(result) {
+  const tableBody = document.querySelector('#migration-matrix-table tbody');
+  const tableCard = tableBody?.closest('.card');
+  const tableHeader = document.querySelector('#migration-matrix-table thead');
+
+  if (!tableBody) return;
+
+  // Show the card
+  if (tableCard) {
+    tableCard.style.display = 'block';
+  }
+
+  try {
+    // Use Python model migration predictions
+    if (!result.python_models || !result.python_models.migration) {
+      console.log('⚠️ No migration predictions available');
+      return;
+    }
+
+    const migration = result.python_models.migration;
+    const tierConfig = migration.tier_config || '2-tier';
+
+    console.log('📊 Rendering migration matrix - Tier config:', tierConfig);
+
+    // Render based on tier configuration
+    if (tierConfig === '3-tier-bundle') {
+      renderBundleMigrationMatrix(tableHeader, tableBody, migration);
+    } else if (tierConfig === '3-tier-basic') {
+      renderBasicMigrationMatrix(tableHeader, tableBody, migration);
+    } else {
+      render2TierMigrationMatrix(tableHeader, tableBody, migration);
+    }
+
+    console.log(`✅ Rendered migration matrix (${tierConfig})`);
+  } catch (error) {
+    console.error('Error rendering migration matrix:', error);
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading migration data</td></tr>';
+  }
+}
+
+/**
+ * Render 2-tier migration matrix (original)
+ */
+function render2TierMigrationMatrix(tableHeader, tableBody, migration) {
+  // Simple single-row header
+  tableHeader.innerHTML = `
+    <tr>
+      <th>Current Tier</th>
+      <th>→ Ad-Free</th>
+      <th>→ Ad-Supp</th>
+      <th>Cancel</th>
+      <th>Net Change</th>
+    </tr>
+  `;
+
+  // Ad-Supported row
+  const adSuppUpgrade = (migration.from_ad_supported?.to_ad_free || 0) * 100;
+  const adSuppCancel = (migration.from_ad_supported?.cancel || 0) * 100;
+  const adSuppNetMix = adSuppUpgrade - adSuppCancel;
+
+  // Ad-Free row
+  const adFreeDowngrade = (migration.from_ad_free?.to_ad_supported || 0) * 100;
+  const adFreeCancel = (migration.from_ad_free?.cancel || 0) * 100;
+  const adFreeNetMix = -adFreeDowngrade - adFreeCancel;
+
+  tableBody.innerHTML = `
+    <tr>
+      <td><strong>Ad-Supported</strong></td>
+      <td class="text-success">${adSuppUpgrade > 0 ? '+' : ''}${adSuppUpgrade.toFixed(1)}%</td>
+      <td class="text-muted">—</td>
+      <td class="text-danger">${adSuppCancel > 0 ? '+' : ''}${adSuppCancel.toFixed(1)}%</td>
+      <td class="${adSuppNetMix >= 0 ? 'text-success' : 'text-danger'}"><strong>${adSuppNetMix > 0 ? '+' : ''}${adSuppNetMix.toFixed(1)}%</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Ad-Free</strong></td>
+      <td class="text-muted">—</td>
+      <td class="text-warning">${adFreeDowngrade > 0 ? '+' : ''}${adFreeDowngrade.toFixed(1)}%</td>
+      <td class="text-danger">${adFreeCancel > 0 ? '+' : ''}${adFreeCancel.toFixed(1)}%</td>
+      <td class="${adFreeNetMix >= 0 ? 'text-success' : 'text-danger'}"><strong>${adFreeNetMix > 0 ? '+' : ''}${adFreeNetMix.toFixed(1)}%</strong></td>
+    </tr>
+  `;
+}
+
+/**
+ * Render 3-tier Bundle migration matrix
+ */
+function renderBundleMigrationMatrix(tableHeader, tableBody, migration) {
+  // Simple single-row header
+  tableHeader.innerHTML = `
+    <tr>
+      <th>Current Tier</th>
+      <th>→ Ad-Free</th>
+      <th>→ Bundle</th>
+      <th>→ Ad-Supp</th>
+      <th>Cancel</th>
+      <th>Net Change</th>
+    </tr>
+  `;
+
+  // FROM AD-SUPPORTED
+  const as_to_af = (migration.from_ad_supported?.to_ad_free || 0) * 100;
+  const as_to_bundle = (migration.from_ad_supported?.to_bundle || 0) * 100;
+  const as_cancel = (migration.from_ad_supported?.cancel || 0) * 100;
+  const as_net = as_to_af + as_to_bundle - as_cancel;
+
+  // FROM AD-FREE
+  const af_to_bundle = (migration.from_ad_free?.to_bundle || 0) * 100;
+  const af_to_as = (migration.from_ad_free?.to_ad_supported || 0) * 100;
+  const af_cancel = (migration.from_ad_free?.cancel || 0) * 100;
+  const af_net = af_to_bundle - af_to_as - af_cancel;
+
+  // FROM BUNDLE
+  const bundle_to_af = (migration.from_bundle?.to_ad_free || 0) * 100;
+  const bundle_to_as = (migration.from_bundle?.to_ad_supported || 0) * 100;
+  const bundle_cancel = (migration.from_bundle?.cancel || 0) * 100;
+  const bundle_net = -bundle_to_af - bundle_to_as - bundle_cancel;
+
+  tableBody.innerHTML = `
+    <tr>
+      <td><strong>Ad-Supported</strong></td>
+      <td class="text-success">${as_to_af > 0 ? '+' : ''}${as_to_af.toFixed(1)}%</td>
+      <td class="text-primary">${as_to_bundle > 0 ? '+' : ''}${as_to_bundle.toFixed(1)}%</td>
+      <td class="text-muted">—</td>
+      <td class="text-danger">${as_cancel > 0 ? '+' : ''}${as_cancel.toFixed(1)}%</td>
+      <td class="${as_net >= 0 ? 'text-success' : 'text-danger'}"><strong>${as_net > 0 ? '+' : ''}${as_net.toFixed(1)}%</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Ad-Free</strong></td>
+      <td class="text-muted">—</td>
+      <td class="text-primary">${af_to_bundle > 0 ? '+' : ''}${af_to_bundle.toFixed(1)}%</td>
+      <td class="text-warning">${af_to_as > 0 ? '+' : ''}${af_to_as.toFixed(1)}%</td>
+      <td class="text-danger">${af_cancel > 0 ? '+' : ''}${af_cancel.toFixed(1)}%</td>
+      <td class="${af_net >= 0 ? 'text-success' : 'text-danger'}"><strong>${af_net > 0 ? '+' : ''}${af_net.toFixed(1)}%</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Bundle</strong></td>
+      <td class="text-warning">${bundle_to_af > 0 ? '+' : ''}${bundle_to_af.toFixed(1)}%</td>
+      <td class="text-muted">—</td>
+      <td class="text-warning">${bundle_to_as > 0 ? '+' : ''}${bundle_to_as.toFixed(1)}%</td>
+      <td class="text-danger">${bundle_cancel > 0 ? '+' : ''}${bundle_cancel.toFixed(1)}%</td>
+      <td class="${bundle_net >= 0 ? 'text-success' : 'text-danger'}"><strong>${bundle_net > 0 ? '+' : ''}${bundle_net.toFixed(1)}%</strong></td>
+    </tr>
+  `;
+}
+
+/**
+ * Render 3-tier Basic migration matrix
+ */
+function renderBasicMigrationMatrix(tableHeader, tableBody, migration) {
+  // Simple single-row header
+  tableHeader.innerHTML = `
+    <tr>
+      <th>Current Tier</th>
+      <th>→ Ad-Supp</th>
+      <th>→ Ad-Free</th>
+      <th>→ Basic</th>
+      <th>Cancel</th>
+      <th>Net Change</th>
+    </tr>
+  `;
+
+  // FROM BASIC
+  const basic_to_as = (migration.from_basic?.to_ad_supported || 0) * 100;
+  const basic_to_af = (migration.from_basic?.to_ad_free || 0) * 100;
+  const basic_cancel = (migration.from_basic?.cancel || 0) * 100;
+  const basic_net = basic_to_as + basic_to_af - basic_cancel;
+
+  // FROM AD-SUPPORTED
+  const as_to_af = (migration.from_ad_supported?.to_ad_free || 0) * 100;
+  const as_to_basic = (migration.from_ad_supported?.to_basic || 0) * 100;
+  const as_cancel = (migration.from_ad_supported?.cancel || 0) * 100;
+  const as_net = as_to_af - as_to_basic - as_cancel;
+
+  // FROM AD-FREE
+  const af_to_as = (migration.from_ad_free?.to_ad_supported || 0) * 100;
+  const af_to_basic = (migration.from_ad_free?.to_basic || 0) * 100;
+  const af_cancel = (migration.from_ad_free?.cancel || 0) * 100;
+  const af_net = -af_to_as - af_to_basic - af_cancel;
+
+  tableBody.innerHTML = `
+    <tr>
+      <td><strong>Basic</strong></td>
+      <td class="text-success">${basic_to_as > 0 ? '+' : ''}${basic_to_as.toFixed(1)}%</td>
+      <td class="text-primary">${basic_to_af > 0 ? '+' : ''}${basic_to_af.toFixed(1)}%</td>
+      <td class="text-muted">—</td>
+      <td class="text-danger">${basic_cancel > 0 ? '+' : ''}${basic_cancel.toFixed(1)}%</td>
+      <td class="${basic_net >= 0 ? 'text-success' : 'text-danger'}"><strong>${basic_net > 0 ? '+' : ''}${basic_net.toFixed(1)}%</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Ad-Supported</strong></td>
+      <td class="text-muted">—</td>
+      <td class="text-success">${as_to_af > 0 ? '+' : ''}${as_to_af.toFixed(1)}%</td>
+      <td class="text-warning">${as_to_basic > 0 ? '+' : ''}${as_to_basic.toFixed(1)}%</td>
+      <td class="text-danger">${as_cancel > 0 ? '+' : ''}${as_cancel.toFixed(1)}%</td>
+      <td class="${as_net >= 0 ? 'text-success' : 'text-danger'}"><strong>${as_net > 0 ? '+' : ''}${as_net.toFixed(1)}%</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Ad-Free</strong></td>
+      <td class="text-warning">${af_to_as > 0 ? '+' : ''}${af_to_as.toFixed(1)}%</td>
+      <td class="text-muted">—</td>
+      <td class="text-warning">${af_to_basic > 0 ? '+' : ''}${af_to_basic.toFixed(1)}%</td>
+      <td class="text-danger">${af_cancel > 0 ? '+' : ''}${af_cancel.toFixed(1)}%</td>
+      <td class="${af_net >= 0 ? 'text-success' : 'text-danger'}"><strong>${af_net > 0 ? '+' : ''}${af_net.toFixed(1)}%</strong></td>
+    </tr>
+  `;
+}
