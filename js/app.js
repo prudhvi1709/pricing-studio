@@ -19,6 +19,9 @@ import { initializeDataViewer } from './data-viewer.js';
 import { renderSegmentKPICards, renderSegmentElasticityHeatmap, render3AxisRadialChart, renderSegmentScatterPlot, exportSVG } from './segment-charts.js';
 import { getAcquisitionCohorts, getChurnCohorts } from './cohort-aggregator.js';
 import { pyodideBridge } from './pyodide-bridge.js';
+import { initializeEventCalendar } from './event-calendar.js';
+import { rankScenarios, getObjectiveDescription } from './decision-engine.js';
+import { exportToPDF, exportToXLSX } from './decision-pack.js';
 
 // Global state
 let selectedScenario = null;
@@ -695,6 +698,7 @@ async function loadData() {
 
     document.getElementById('chat-section').style.display = 'block';
     document.getElementById('data-viewer-section').style.display = 'block';
+    document.getElementById('event-calendar-section').style.display = 'block';
 
     // Initialize segmentation section if data is available (but keep hidden)
     if (window.segmentEngine && window.segmentEngine.isDataLoaded()) {
@@ -702,6 +706,14 @@ async function loadData() {
       initializeSegmentComparison();
       // initializeFilterPresets(); // Removed - Quick Presets feature removed from UI
       initializeExportButtons();
+    }
+
+    // Initialize Event Calendar (RFP-aligned: Slide 12)
+    try {
+      await initializeEventCalendar();
+      console.log('✅ Event Calendar initialized');
+    } catch (error) {
+      console.error('⚠️ Event Calendar initialization failed:', error);
     }
 
     // Re-initialize popovers for newly visible sections
@@ -1637,6 +1649,76 @@ function populateElasticityModelTabs() {
     });
   });
 
+  // Add decision engine event listeners (RFP Slide 18)
+  const objectiveLensSelect = document.getElementById('objective-lens-select');
+  if (objectiveLensSelect) {
+    objectiveLensSelect.addEventListener('change', (e) => {
+      const description = getObjectiveDescription(e.target.value);
+      document.getElementById('objective-description').textContent = description;
+    });
+  }
+
+  const rankScenariosBtn = document.getElementById('rank-scenarios-btn');
+  if (rankScenariosBtn) {
+    rankScenariosBtn.addEventListener('click', rankAndDisplayScenarios);
+  }
+
+  // Export button event listeners
+  const exportPdfBtn = document.getElementById('export-pdf-btn');
+  const exportXlsxBtn = document.getElementById('export-xlsx-btn');
+
+  if (exportPdfBtn) {
+    exportPdfBtn.addEventListener('click', async () => {
+      try {
+        exportPdfBtn.disabled = true;
+        exportPdfBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating PDF...';
+
+        // Get current top 3 scenarios from the UI
+        const top3Container = document.getElementById('top-scenarios-list');
+        if (!top3Container || !window.currentTop3Scenarios || window.currentTop3Scenarios.length === 0) {
+          alert('Please rank scenarios first to generate a decision pack.');
+          return;
+        }
+
+        const objective = document.getElementById('objective-lens-select').value;
+        const churnCap = parseFloat(document.getElementById('churn-cap-input').value) / 100;
+
+        await exportToPDF(window.currentTop3Scenarios, objective, { churn_cap: churnCap });
+
+      } catch (error) {
+        console.error('Error exporting PDF:', error);
+        alert('Error generating PDF: ' + error.message);
+      } finally {
+        exportPdfBtn.disabled = false;
+        exportPdfBtn.innerHTML = '<i class="bi bi-file-pdf me-2"></i>Export to PDF';
+      }
+    });
+  }
+
+  if (exportXlsxBtn) {
+    exportXlsxBtn.addEventListener('click', async () => {
+      try {
+        exportXlsxBtn.disabled = true;
+        exportXlsxBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating Excel...';
+
+        // Export all saved scenarios with top 3 highlighted
+        if (!savedScenarios || savedScenarios.length === 0) {
+          alert('No saved scenarios to export. Please save at least one scenario first.');
+          return;
+        }
+
+        await exportToXLSX(savedScenarios, window.currentTop3Scenarios || null);
+
+      } catch (error) {
+        console.error('Error exporting XLSX:', error);
+        alert('Error generating Excel file: ' + error.message);
+      } finally {
+        exportXlsxBtn.disabled = false;
+        exportXlsxBtn.innerHTML = '<i class="bi bi-file-excel me-2"></i>Export to Excel';
+      }
+    });
+  }
+
   // Add simulate button handler
   const simulateBtn = document.getElementById('simulate-btn-models');
   if (simulateBtn) {
@@ -1721,6 +1803,93 @@ function createScenarioCard(scenario) {
 }
 
 /**
+ * Calculate acquisition payback period (RFP Slide 15)
+ * Payback = Months to recover customer acquisition cost through revenue
+ * Formula: CAC / (ARPU - marginal costs)
+ */
+function calculateAcquisitionPayback(result) {
+  try {
+    // Estimate CAC based on industry benchmarks (streaming: $25-50)
+    // For promos, CAC is higher due to discount
+    const isPromo = result.scenario_config?.promotional_status === true;
+    const baseCAC = 35; // Industry median
+    const promoCACMultiplier = isPromo ? 1.4 : 1.0;
+    const estimatedCAC = baseCAC * promoCACMultiplier;
+
+    // Monthly contribution margin = ARPU - marginal costs (~30% of ARPU for content/platform)
+    const arpu = result.forecasted.arpu || 0;
+    const marginPercent = 0.70; // 70% contribution margin
+    const monthlyContribution = arpu * marginPercent;
+
+    if (monthlyContribution <= 0) {
+      return { value: 'N/A', label: 'Negative margin' };
+    }
+
+    const paybackMonths = estimatedCAC / monthlyContribution;
+
+    // Format output
+    if (paybackMonths > 24) {
+      return { value: '>24', label: 'months' };
+    } else if (paybackMonths < 1) {
+      return { value: '<1', label: 'month' };
+    } else {
+      return { value: paybackMonths.toFixed(1), label: 'months' };
+    }
+  } catch (error) {
+    console.error('Error calculating acquisition payback:', error);
+    return { value: 'N/A', label: 'calc error' };
+  }
+}
+
+/**
+ * Calculate churn payback period (RFP Slide 16)
+ * Churn Payback = Weeks until churn rate stabilizes after price change
+ * Based on time-lagged churn model: 0-4, 4-8, 8-12, 12+ weeks
+ */
+function calculateChurnPayback(result) {
+  try {
+    // Check if we have time-lagged churn data
+    const churnData = result.forecasted.churn_by_weeks || result.churn_by_weeks;
+
+    if (churnData) {
+      // Find when churn stabilizes (delta < 10% of peak)
+      const weeks_0_4 = churnData.weeks_0_4 || 0;
+      const weeks_4_8 = churnData.weeks_4_8 || 0;
+      const weeks_8_12 = churnData.weeks_8_12 || 0;
+      const weeks_12plus = churnData.weeks_12plus || 0;
+
+      const peak = Math.max(weeks_0_4, weeks_4_8, weeks_8_12, weeks_12plus);
+      const threshold = peak * 0.1;
+
+      if (weeks_0_4 <= threshold) return { value: '<4', label: 'weeks' };
+      if (weeks_4_8 <= threshold) return { value: '4-8', label: 'weeks' };
+      if (weeks_8_12 <= threshold) return { value: '8-12', label: 'weeks' };
+      return { value: '12+', label: 'weeks' };
+    }
+
+    // Fallback: Estimate based on churn delta magnitude
+    const churnDelta = Math.abs(result.delta.churn_rate || 0);
+
+    if (churnDelta < 0.01) {
+      // Low impact: stabilizes quickly
+      return { value: '<4', label: 'weeks' };
+    } else if (churnDelta < 0.03) {
+      // Medium impact: stabilizes in 4-8 weeks
+      return { value: '4-8', label: 'weeks' };
+    } else if (churnDelta < 0.05) {
+      // High impact: stabilizes in 8-12 weeks
+      return { value: '8-12', label: 'weeks' };
+    } else {
+      // Very high impact: takes 12+ weeks
+      return { value: '12+', label: 'weeks' };
+    }
+  } catch (error) {
+    console.error('Error calculating churn payback:', error);
+    return { value: 'N/A', label: 'calc error' };
+  }
+}
+
+/**
  * Display simulation results in the tabbed interface
  */
 function displayResultsInTabs(result) {
@@ -1752,8 +1921,12 @@ function displayResultsInTabs(result) {
   const deltaSubscribers = result.delta.subscribers;
   const deltaSubscribersPct = result.delta.subscribers_pct;
 
+  // Calculate Payback Metrics (RFP Slide 15-16)
+  const acquisitionPayback = calculateAcquisitionPayback(result);
+  const churnPayback = calculateChurnPayback(result);
+
   container.innerHTML = `
-    <div class="col-md-3">
+    <div class="col-md-2">
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">Subscribers</div>
@@ -1765,7 +1938,7 @@ function displayResultsInTabs(result) {
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">Revenue (Monthly)</div>
@@ -1777,7 +1950,7 @@ function displayResultsInTabs(result) {
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">ARPU</div>
@@ -1789,7 +1962,7 @@ function displayResultsInTabs(result) {
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">Churn Rate</div>
@@ -1797,6 +1970,28 @@ function displayResultsInTabs(result) {
           <div class="small ${result.delta.churn_rate <= 0 ? 'text-success' : 'text-danger'}">
             ${result.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(result.delta.churn_rate * 100, 2)}
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card border-primary">
+        <div class="card-body text-center">
+          <div class="text-muted small">
+            <i class="bi bi-calendar-check me-1"></i>Acquisition Payback
+          </div>
+          <div class="h4 mb-1 text-primary">${acquisitionPayback.value}</div>
+          <div class="small text-muted">${acquisitionPayback.label}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card border-info">
+        <div class="card-body text-center">
+          <div class="text-muted small">
+            <i class="bi bi-hourglass-split me-1"></i>Churn Payback
+          </div>
+          <div class="h4 mb-1 text-info">${churnPayback.value}</div>
+          <div class="small text-muted">${churnPayback.label}</div>
         </div>
       </div>
     </div>
@@ -2287,4 +2482,126 @@ function renderBasicMigrationMatrix(tableHeader, tableBody, migration) {
       <td class="${af_net >= 0 ? 'text-success' : 'text-danger'}"><strong>${af_net > 0 ? '+' : ''}${af_net.toFixed(1)}%</strong></td>
     </tr>
   `;
+}
+
+/**
+ * Rank and display scenarios using decision engine (RFP Slide 18)
+ */
+async function rankAndDisplayScenarios() {
+  if (savedScenarios.length === 0) {
+    alert('No saved scenarios to rank. Please simulate and save scenarios first.');
+    return;
+  }
+
+  try {
+    // Get selected objective and constraints
+    const objective = document.getElementById('objective-lens-select').value;
+    const churnCap = parseFloat(document.getElementById('churn-cap-input').value) / 100;
+
+    const constraints = {
+      churn_cap: churnCap
+    };
+
+    // Rank scenarios
+    const rankedScenarios = rankScenarios(savedScenarios, objective, constraints);
+
+    if (rankedScenarios.length === 0) {
+      alert('No scenarios meet the current constraints. Try adjusting the churn cap or saving more scenarios.');
+      return;
+    }
+
+    // Display top 3
+    displayTop3Scenarios(rankedScenarios);
+
+  } catch (error) {
+    console.error('Error ranking scenarios:', error);
+    alert('Error ranking scenarios. See console for details.');
+  }
+}
+
+/**
+ * Display top 3 ranked scenarios
+ */
+function displayTop3Scenarios(top3) {
+  const container = document.getElementById('top-scenarios-container');
+  const list = document.getElementById('top-scenarios-list');
+
+  if (!container || !list) return;
+
+  let html = '';
+  top3.forEach((scenario, index) => {
+    const rankBadge = index === 0 ? 'bg-warning' : index === 1 ? 'bg-secondary' : 'bg-light text-dark';
+    const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
+    const riskBadge = scenario.risk_level === 'Low' ? 'bg-success' :
+                      scenario.risk_level === 'Med' ? 'bg-warning' :
+                      'bg-danger';
+
+    html += `
+      <div class="col-md-4">
+        <div class="card h-100 ${index === 0 ? 'border-warning border-2' : ''}">
+          <div class="card-header ${index === 0 ? 'bg-warning-subtle' : 'bg-light'}">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="badge ${rankBadge}">${rankIcon} Rank #${scenario.rank}</span>
+              <span class="badge ${riskBadge}">${scenario.risk_level} Risk</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <h6 class="card-title">${scenario.scenario_name || scenario.id}</h6>
+            <p class="card-text small text-muted mb-2">
+              ${scenario.description || ''}
+            </p>
+
+            <!-- KPIs -->
+            <div class="mb-2">
+              <div class="row g-1 small">
+                <div class="col-6">
+                  <strong>Revenue:</strong>
+                  <span class="${scenario.delta.revenue >= 0 ? 'text-success' : 'text-danger'}">
+                    ${scenario.delta.revenue >= 0 ? '+' : ''}${formatPercent(scenario.delta.revenue_pct, 1)}
+                  </span>
+                </div>
+                <div class="col-6">
+                  <strong>Subscribers:</strong>
+                  <span class="${scenario.delta.subscribers >= 0 ? 'text-success' : 'text-danger'}">
+                    ${scenario.delta.subscribers >= 0 ? '+' : ''}${formatPercent(scenario.delta.subscribers_pct, 1)}
+                  </span>
+                </div>
+                <div class="col-6">
+                  <strong>Churn:</strong>
+                  <span class="${scenario.delta.churn_rate <= 0 ? 'text-success' : 'text-danger'}">
+                    ${scenario.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(scenario.delta.churn_rate * 100, 2)}pp
+                  </span>
+                </div>
+                <div class="col-6">
+                  <strong>Score:</strong>
+                  <span class="text-primary fw-bold">${scenario.decision_score.toFixed(1)}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rationale -->
+            <div class="alert alert-light mb-0 small">
+              <strong>Why it wins:</strong><br>
+              ${scenario.rationale}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  list.innerHTML = html;
+  container.style.display = 'block';
+
+  // Store top 3 scenarios globally for export functionality
+  window.currentTop3Scenarios = top3;
+
+  // Enable export buttons
+  const exportPdfBtn = document.getElementById('export-pdf-btn');
+  const exportXlsxBtn = document.getElementById('export-xlsx-btn');
+  if (exportPdfBtn) exportPdfBtn.disabled = false;
+  if (exportXlsxBtn) exportXlsxBtn.disabled = false;
+
+  // Scroll to results
+  container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }

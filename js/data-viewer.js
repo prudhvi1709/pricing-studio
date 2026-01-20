@@ -58,6 +58,33 @@ const DATASETS = {
     dateRange: '2022-01-02 to 2024-12-29',
     category: 'Content Data',
     icon: 'bi-play-circle'
+  },
+  event_calendar: {
+    title: 'Event Calendar',
+    description: 'Unified event log with price changes, promotions, and tentpole content releases',
+    file: './data/event_calendar.csv',
+    recordCount: 31,
+    dateRange: '2022-01-02 to 2024-06-16',
+    category: 'Event Data',
+    icon: 'bi-calendar-event'
+  },
+  customer_segments: {
+    title: 'Customer Segments',
+    description: '375 behavioral segments across 3-axis framework (Monetization, Engagement, Acquisition)',
+    file: './data/customer_segments.csv',
+    recordCount: 375,
+    dateRange: 'N/A',
+    category: 'Segmentation Data',
+    icon: 'bi-diagram-3'
+  },
+  segment_kpis: {
+    title: 'Segment KPIs',
+    description: 'Segment-level KPIs including ARPU, churn rate, and engagement metrics',
+    file: './data/segment_kpis.csv',
+    recordCount: 375,
+    dateRange: 'Current snapshot',
+    category: 'Segmentation Data',
+    icon: 'bi-graph-up-arrow'
   }
 };
 
@@ -65,6 +92,8 @@ const DATASETS = {
 const CATEGORIES = {
   'Core Data': ['subscribers', 'weekly_aggregated'],
   'Pricing Data': ['pricing_history'],
+  'Event Data': ['event_calendar'],
+  'Segmentation Data': ['customer_segments', 'segment_kpis'],
   'Marketing Data': ['marketing_spend'],
   'Content Data': ['content_releases'],
   'External Data': ['external_factors']

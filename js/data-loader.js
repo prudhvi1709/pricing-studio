@@ -20,7 +20,11 @@ const dataCache = {
   elasticityParams: null,
   scenarios: null,
   metadata: null,
-  segmentsAvailable: false
+  segmentsAvailable: false,
+  // NEW: RFP-aligned data files
+  eventCalendar: null,
+  promoMetadata: null,
+  validationWindows: null
 };
 
 /**
@@ -35,14 +39,20 @@ export async function loadAllData() {
       metadata,
       weeklyAggregated,
       pricingHistory,
-      externalFactors
+      externalFactors,
+      eventCalendar,
+      promoMetadata,
+      validationWindows
     ] = await Promise.all([
       loadElasticityParams(),
       loadScenarios(),
       loadMetadata(),
       loadWeeklyAggregated(),
       loadPricingHistory(),
-      loadExternalFactors()
+      loadExternalFactors(),
+      loadEventCalendar(),
+      loadPromoMetadata(),
+      loadValidationWindows()
     ]);
 
     // Load segment data (non-blocking - graceful degradation if not available)
@@ -61,6 +71,9 @@ export async function loadAllData() {
       weeklyAggregated,
       pricingHistory,
       externalFactors,
+      eventCalendar,
+      promoMetadata,
+      validationWindows,
       segmentsAvailable: dataCache.segmentsAvailable
     };
   } catch (error) {
@@ -207,6 +220,82 @@ export async function loadExternalFactors() {
     return data;
   } catch (error) {
     console.error('Error loading external factors:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load event calendar from CSV
+ * NEW: RFP-aligned unified event log
+ * @returns {Promise<Array>} Array of event records
+ */
+export async function loadEventCalendar() {
+  if (dataCache.eventCalendar) {
+    return dataCache.eventCalendar;
+  }
+
+  try {
+    const response = await fetch('data/event_calendar.csv');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const csvText = await response.text();
+    const data = parseCSV(csvText);
+    dataCache.eventCalendar = data;
+    console.log(`Loaded ${data.length} events from event calendar`);
+    return data;
+  } catch (error) {
+    console.error('Error loading event calendar:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load promo metadata from JSON
+ * NEW: RFP-aligned promo campaign definitions
+ * @returns {Promise<Object>} Promo metadata object
+ */
+export async function loadPromoMetadata() {
+  if (dataCache.promoMetadata) {
+    return dataCache.promoMetadata;
+  }
+
+  try {
+    const response = await fetch('data/promo_metadata.json');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    dataCache.promoMetadata = data;
+    console.log(`Loaded ${Object.keys(data).length} promo campaigns`);
+    return data;
+  } catch (error) {
+    console.error('Error loading promo metadata:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load validation windows from JSON
+ * NEW: RFP-aligned train/test period definitions
+ * @returns {Promise<Object>} Validation windows object
+ */
+export async function loadValidationWindows() {
+  if (dataCache.validationWindows) {
+    return dataCache.validationWindows;
+  }
+
+  try {
+    const response = await fetch('data/validation_windows.json');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    dataCache.validationWindows = data;
+    console.log(`Loaded validation windows: ${data.validation_windows.length} windows defined`);
+    return data;
+  } catch (error) {
+    console.error('Error loading validation windows:', error);
     throw error;
   }
 }
