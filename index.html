@@ -4,418 +4,414 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Streaming Service Price Elasticity POC</title>
+  <title>Discovery+ Price Elasticity Studio</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTUiIGZpbGw9IiMyNTYzZWIiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJtMTYgNyAyIDcgNyAyLTcgMi0yIDctMi03LTctMiA3LTJaIi8+PC9zdmc+">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
-  <style>
-    /* Smooth scrolling */
-    html {
-      scroll-behavior: smooth;
-    }
-
-    /* Keep custom styles minimal, prefer Bootstrap classes */
-    .kpi-card {
-      transition: transform 0.2s;
-    }
-    .kpi-card:hover {
-      transform: translateY(-2px);
-    }
-    .scenario-card {
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .scenario-card:hover {
-      transform: translateY(-2px);
-    }
-    .scenario-card.selected {
-      border-color: #0d6efd;
-      border-width: 2px;
-    }
-    /* Chat message styles */
-    .chat-message.system {
-      opacity: 0.7;
-      font-size: 0.875rem;
-    }
-    .chat-message.tool {
-      color: #0d6efd;
-    }
-    .chat-message.tool-error {
-      color: #dc3545;
-    }
-    .chat-message.error {
-      color: #dc3545;
-    }
-
-    /* Markdown content styling */
-    .message-content {
-      line-height: 1.6;
-    }
-    .message-content p {
-      margin-bottom: 0.75rem;
-    }
-    .message-content p:last-child {
-      margin-bottom: 0;
-    }
-    .message-content ul, .message-content ol {
-      margin-bottom: 0.75rem;
-      padding-left: 1.5rem;
-    }
-    .message-content li {
-      margin-bottom: 0.25rem;
-    }
-    .message-content code {
-      background-color: #f8f9fa;
-      padding: 0.125rem 0.25rem;
-      border-radius: 0.25rem;
-      font-size: 0.875em;
-      color: #d63384;
-    }
-    .message-content pre {
-      background-color: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 0.375rem;
-      padding: 0.75rem;
-      margin-bottom: 0.75rem;
-      overflow-x: auto;
-    }
-    .message-content pre code {
-      background-color: transparent;
-      padding: 0;
-      color: inherit;
-      font-size: 0.875rem;
-    }
-    .message-content strong {
-      font-weight: 600;
-    }
-    .message-content em {
-      font-style: italic;
-    }
-    .message-content blockquote {
-      border-left: 4px solid #dee2e6;
-      padding-left: 1rem;
-      margin-left: 0;
-      margin-bottom: 0.75rem;
-      color: #6c757d;
-    }
-    .message-content h1, .message-content h2, .message-content h3,
-    .message-content h4, .message-content h5, .message-content h6 {
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-    .message-content h1 { font-size: 1.5rem; }
-    .message-content h2 { font-size: 1.35rem; }
-    .message-content h3 { font-size: 1.2rem; }
-    .message-content h4 { font-size: 1.1rem; }
-    .message-content h5 { font-size: 1rem; }
-    .message-content h6 { font-size: 0.95rem; }
-    .message-content table {
-      width: 100%;
-      margin-bottom: 0.75rem;
-      border-collapse: collapse;
-    }
-    .message-content table th,
-    .message-content table td {
-      padding: 0.5rem;
-      border: 1px solid #dee2e6;
-    }
-    .message-content table th {
-      background-color: #f8f9fa;
-      font-weight: 600;
-    }
-
-    /* Data viewer styles */
-    #data-table-container {
-      max-height: 600px;
-      overflow-y: auto;
-    }
-
-    #data-table thead th {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background-color: #212529;
-    }
-
-    #data-table tbody tr:hover {
-      background-color: rgba(13, 110, 253, 0.1);
-    }
-
-    /* Dataset accordion styles */
-    #datasets-accordion .accordion-button {
-      font-size: 0.9rem;
-      padding: 0.75rem 1rem;
-    }
-
-    #datasets-accordion .accordion-button:not(.collapsed) {
-      background-color: rgba(13, 110, 253, 0.1);
-      color: #0d6efd;
-    }
-
-    #datasets-accordion .accordion-body {
-      padding: 0;
-    }
-
-    .dataset-item {
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-      transition: all 0.2s;
-      font-size: 0.875rem;
-    }
-
-    .dataset-item:hover {
-      background-color: rgba(13, 110, 253, 0.05);
-      border-left-color: #0d6efd;
-    }
-
-    .dataset-item.active {
-      background-color: rgba(13, 110, 253, 0.1);
-      border-left-color: #0d6efd;
-      font-weight: 500;
-    }
-
-    .dataset-item i {
-      width: 20px;
-    }
-
-    /* Loading progress styles */
-    #loading-progress {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    #loading-progress .progress {
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    #loading-progress .progress-bar {
-      transition: width 0.3s ease, background-color 0.5s ease;
-      font-weight: 500;
-    }
-
-    #loading-stage {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #0d6efd;
-      min-height: 20px;
-      display: block;
-    }
-
-    /* ML Methodology Popover Styles */
-    .ml-popover {
-      max-width: 450px;
-      font-size: 0.875rem;
-    }
-
-    .ml-popover .popover-header {
-      background-color: #0d6efd;
-      color: white;
-      font-weight: 600;
-      border-bottom: none;
-    }
-
-    .ml-popover .popover-body {
-      padding: 1rem;
-      line-height: 1.6;
-    }
-
-    .ml-popover .popover-body strong {
-      color: #0d6efd;
-      font-weight: 600;
-    }
-
-    .ml-popover .popover-arrow::after {
-      border-right-color: #0d6efd;
-    }
-
-    /* Info icon hover effect */
-    [data-bs-toggle="popover"]:hover i {
-      transform: scale(1.1);
-      transition: transform 0.2s;
-    }
-
-    /* Interactive Demand Curve styles */
-    .demand-curve-controls {
-      padding: 10px 15px;
-      background-color: #f8f9fa;
-      border-radius: 8px 8px 0 0;
-      border-bottom: 2px solid #dee2e6;
-    }
-
-    .demand-curve-controls .btn {
-      transition: all 0.3s ease;
-    }
-
-    .demand-curve-controls .btn.active {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .demand-curve {
-      transition: stroke-width 0.2s, opacity 0.2s;
-    }
-
-    .current-marker, .new-marker {
-      transition: r 0.2s, transform 0.2s;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-    }
-
-    .current-marker:hover, .new-marker:hover {
-      transform: scale(1.1);
-    }
-
-    /* Customer Segmentation Section Styles */
-    .segment-filters {
-      padding: 20px;
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      border: 1px solid #dee2e6;
-    }
-
-    .filter-pills {
-      min-height: 38px;
-    }
-
-    .filter-pill {
-      padding: 6px 14px;
-      border: 2px solid #0d6efd;
-      border-radius: 20px;
-      background-color: white;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 0.875rem;
-      font-weight: 500;
-      user-select: none;
-    }
-
-    .filter-pill:hover {
-      background-color: #e7f3ff;
-      transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
-    }
-
-    .filter-pill.active {
-      background-color: #0d6efd;
-      color: white;
-      box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
-    }
-
-    .filter-pill.active:hover {
-      background-color: #0b5ed7;
-    }
-
-    /* Scenario card tabs styling */
-    .scenario-card-tab {
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid #dee2e6;
-    }
-
-    .scenario-card-tab:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      border: 2px solid #0d6efd;
-    }
-
-    .scenario-card-tab.selected {
-      border: 2px solid #0d6efd;
-      background-color: rgba(13, 110, 253, 0.05);
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 
   <!-- Pyodide: Python in Browser -->
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href=".">
-        <i class="bi bi-graph-up-arrow me-2"></i>
-        Price Elasticity POC
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="#kpi-section">
-              <i class="bi bi-speedometer2 me-1"></i> Dashboard
-            </a>
-          </li>
-          <!-- NEW: 3-Model Framework -->
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="elasticityModelsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-calculator me-1"></i> Elasticity Models
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="elasticityModelsDropdown">
-              <li><a class="dropdown-item" href="#elasticity-models-section" onclick="document.getElementById('acquisition-tab').click()">
-                <i class="bi bi-graph-up-arrow me-2"></i>1. Acquisition Elasticity
-              </a></li>
-              <li><a class="dropdown-item" href="#elasticity-models-section" onclick="document.getElementById('churn-tab').click()">
-                <i class="bi bi-hourglass-split me-2"></i>2. Churn Elasticity (Time-Lagged)
-              </a></li>
-              <li><a class="dropdown-item" href="#elasticity-models-section" onclick="document.getElementById('migration-tab').click()">
-                <i class="bi bi-arrows-angle-expand me-2"></i>3. Tier Migration
-              </a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-muted small" href="#scenario-section">
-                <i class="bi bi-play-circle me-2"></i>View All Scenarios
-              </a></li>
-            </ul>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#segmentation-section">
-              <i class="bi bi-people me-1"></i> Customer Cohorts
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#event-calendar-section">
-              <i class="bi bi-calendar-event me-1"></i> Event Calendar
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#data-viewer-section">
-              <i class="bi bi-table me-1"></i> View Data
-            </a>
-          </li>
-        </ul>
-        <div class="d-flex align-items-center">
-          <button id="configure-llm" class="btn btn-outline-light btn-sm me-2">
-            <i class="bi bi-key me-1"></i> Configure LLM
-          </button>
-          <button class="btn btn-outline-light btn-sm me-2" data-bs-toggle="modal" data-bs-target="#settingsModal">
-            <i class="bi bi-gear me-1"></i> Settings
-          </button>
-          <div class="nav-item dropdown" role="group" aria-label="Toggle dark mode" title="Toggle Dark Mode">
-          <button class="dark-theme-toggle btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle theme (auto)">
-            <i class="bi bi-circle-half"></i> <span class="d-lg-none ms-2">Toggle theme</span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><button class="dropdown-item" data-bs-theme-value="light"><i class="me-2 bi bi-sun-fill"></i> Light</button></li>
-            <li><button class="dropdown-item" data-bs-theme-value="dark"><i class="me-2 bi bi-moon-stars-fill"></i> Dark</button></li>
-            <li><button class="dropdown-item" data-bs-theme-value="auto"><i class="me-2 bi bi-circle-half"></i> Auto</button></li>
-          </ul>
+  <!-- Step Navigation -->
+  <nav class="step-nav">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="brand">discovery<span>+</span> Price Elasticity Studio</div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="step-indicator">
+            <div class="step-dot active" data-step="0">1</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="1">2</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="2">3</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="3">4</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="4">5</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="5">6</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="6">7</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="7">8</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="8">9</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="9">10</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button id="configure-llm" class="btn btn-sm" style="opacity: 0.8;">
+              <i class="bi bi-key"></i>
+            </button>
+            <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal" style="opacity: 0.8;">
+              <i class="bi bi-gear"></i>
+            </button>
+            <div class="dropdown">
+              <button class="dark-theme-toggle btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle theme" style="opacity: 0.8;">
+                <i class="bi bi-circle-half"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><button class="dropdown-item" data-bs-theme-value="light"><i class="me-2 bi bi-sun-fill"></i> Light</button></li>
+                <li><button class="dropdown-item" data-bs-theme-value="dark"><i class="me-2 bi bi-moon-stars-fill"></i> Dark</button></li>
+                <li><button class="dropdown-item" data-bs-theme-value="auto"><i class="me-2 bi bi-circle-half"></i> Auto</button></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </nav>
 
-  <div class="container mt-4">
-    <h1 class="display-4 mb-2">Price Elasticity & Revenue Optimization</h1>
-    <p class="lead text-muted">United States Market -  POC</p>
-    <div class="alert alert-info mb-4">
-      <i class="bi bi-info-circle me-2"></i>
-      <strong>Data Timeline:</strong> 3 years of historical data (January 2, 2022 - December 29, 2024) with weekly granularity. 156 weeks across 3 subscription tiers.
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Section 0: Welcome/Intro -->
+    <section class="section active" id="section-0">
+      <div class="container">
+        <div class="hero">
+          <div>
+            <h1>Price Elasticity Modeling</h1>
+            <p>Understand how price changes impact subscriber behavior, revenue, and growth. Make data-driven pricing decisions with confidence.</p>
+            <button class="btn btn-primary-custom btn-lg" onclick="goToStep(1)">
+              Start Exploration <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: Dashboard -->
+    <section class="section" id="section-1">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 1</div>
+      <h2 class="section-title">Current State Overview</h2>
+      <p class="section-subtitle">Before exploring price elasticity, let's understand our current pricing tiers and key performance metrics.</p>
     </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(0)"><i class="bi bi-arrow-left me-2"></i> Back to Hero</button>
+      <button class="btn btn-primary-custom" onclick="goToStep(2)">Next: Data Explorer <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+
+    <!-- Auto-Loading Progress -->
+    <div class="text-center my-4" id="load-data-section">
+      <div class="glass-card" style="padding: 2rem;">
+        <h5 class="mb-3">
+          <i class="bi bi-database me-2"></i>
+          Loading Data
+        </h5>
+        <p class="text-muted">Initializing elasticity models and loading sample data...</p>
+
+        <!-- Progress Bar (shown by default) -->
+        <div id="loading-progress" class="mt-4">
+          <div class="mb-2">
+            <small id="loading-stage" class="d-block fw-semibold">Initializing...</small>
+          </div>
+          <div class="progress" style="height: 25px;">
+            <div id="loading-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                 role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <span id="loading-percentage">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden load button as fallback -->
+        <button id="load-data-btn" class="btn btn-primary-custom mt-3" style="display: none;">
+          <i class="bi bi-cloud-download me-2"></i>
+          Load Sample Data
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Summary Cards -->
+    <div id="kpi-section" style="display: none;">
+      <!-- Pricing Tiers -->
+      <h5 class="mb-3" style="color: rgba(255,255,255,0.8);">Current Pricing Tiers</h5>
+      <div class="row g-4 mb-5">
+        <div class="col-md-4">
+          <div class="glass-card tier-card ad-lite">
+            <div class="tier-name">Ad-Supported</div>
+            <div class="tier-price">$5.99<span>/month</span></div>
+            <div class="mt-2" style="color: rgba(255,255,255,0.5); font-size: 0.875rem;">
+              Limited ads • HD streaming
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="glass-card tier-card ad-free">
+            <div class="tier-name">Ad-Free</div>
+            <div class="tier-price">$8.99<span>/month</span></div>
+            <div class="mt-2" style="color: rgba(255,255,255,0.5); font-size: 0.875rem;">
+              No ads • 4K streaming • Downloads
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="glass-card tier-card annual">
+            <div class="tier-name">Annual Plan</div>
+            <div class="tier-price">$71.88<span>/year</span></div>
+            <div class="mt-2" style="color: rgba(255,255,255,0.5); font-size: 0.875rem;">
+              $5.99/mo equivalent • Save 17%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Metrics -->
+      <h5 class="mb-3" style="color: rgba(255,255,255,0.8);">Key Performance Metrics (Latest Week)</h5>
+      <div class="row g-3" id="kpi-cards">
+        <div class="col-md-3">
+          <div class="card kpi-card h-100">
+            <div class="card-body">
+              <div class="text-muted mb-2 small text-uppercase">Total Subscribers</div>
+              <div class="fs-2 fw-bold" id="kpi-subscribers">--</div>
+              <div class="small text-success" id="kpi-subscribers-change">
+                <i class="bi bi-arrow-up"></i> --
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card kpi-card h-100">
+            <div class="card-body">
+              <div class="text-muted mb-2 small text-uppercase">Monthly Revenue</div>
+              <div class="fs-2 fw-bold" id="kpi-revenue">--</div>
+              <div class="small text-success" id="kpi-revenue-change">
+                <i class="bi bi-arrow-up"></i> --
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card kpi-card h-100">
+            <div class="card-body">
+              <div class="text-muted mb-2 small text-uppercase">ARPU</div>
+              <div class="fs-2 fw-bold" id="kpi-arpu">--</div>
+              <div class="small" id="kpi-arpu-change">--</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card kpi-card h-100">
+            <div class="card-body">
+              <div class="text-muted mb-2 small text-uppercase">Churn Rate</div>
+              <div class="fs-2 fw-bold" id="kpi-churn">--</div>
+              <div class="small text-danger" id="kpi-churn-change">
+                <i class="bi bi-arrow-down"></i> --
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insight Box -->
+      <div class="insight-box mt-4">
+        <div class="icon">💡</div>
+        <h5>The Question</h5>
+        <p class="mb-0">What happens if we increase prices by $1? Or offer a 30% discount? Price elasticity modeling helps us predict the impact on subscribers, revenue, and churn before making changes.</p>
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- Data Viewer Section - Moved to Top -->
+  </section>
+
+  <!-- Section 2: Data Explorer -->
+  <section class="section" id="section-2">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 2</div>
+      <h2 class="section-title">Data Explorer</h2>
+      <p class="section-subtitle">Explore the raw datasets that power our price elasticity models. Browse through subscriber data, segments, and more.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(1)"><i class="bi bi-arrow-left me-2"></i> Back</button>
+      <button class="btn btn-primary-custom" onclick="goToStep(3)">Next: Acquisition Elasticity <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+
+    <!-- Data Viewer will be shown here by step-navigation.js -->
+    <div id="step-2-data-viewer-container">
+      <!-- Data viewer content will be injected here -->
+    </div>
+
+  </div>
+
+  </section>
+
+  <!-- Section 3: Acquisition Elasticity -->
+  <section class="section" id="section-3">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 3</div>
+      <h2 class="section-title">Acquisition Elasticity</h2>
+      <p class="section-subtitle">Model how price changes affect new subscriber acquisition. Simulate scenarios and analyze impacts on sign-up rates.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(2)"><i class="bi bi-arrow-left me-2"></i> Back</button>
+      <button class="btn btn-primary-custom" onclick="goToStep(4)">Next: Churn Elasticity <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+
+    <!-- Acquisition elasticity content will be shown here by step-navigation.js -->
+    <div id="step-3-acquisition-container">
+      <!-- Acquisition model content will be injected here -->
+    </div>
+
+  </div>
+
+  </section>
+
+  <!-- Section 4: Churn Elasticity -->
+  <section class="section" id="section-4">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 4</div>
+      <h2 class="section-title">Churn Elasticity</h2>
+      <p class="section-subtitle">Understand how price increases drive subscriber churn. Model time-lagged effects and retention patterns.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(3)"><i class="bi bi-arrow-left me-2"></i> Back</button>
+      <button class="btn btn-primary-custom" onclick="goToStep(5)">Next: Tier Migration <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+
+    <!-- Churn elasticity content will be shown here by step-navigation.js -->
+    <div id="step-4-churn-container">
+      <!-- Churn model content will be injected here -->
+    </div>
+
+  </div>
+
+  </section>
+
+  <!-- Section 5: Tier Migration -->
+  <section class="section" id="section-5">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 5</div>
+      <h2 class="section-title">Tier Migration</h2>
+      <p class="section-subtitle">Model subscriber movement between pricing tiers. Analyze upgrade and downgrade patterns based on price gaps.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(4)"><i class="bi bi-arrow-left me-2"></i> Back</button>
+      <button class="btn btn-primary-custom" onclick="goToStep(6)">Next: Customer Cohorts <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+
+    <!-- Tier migration content will be shown here by step-navigation.js -->
+    <div id="step-5-migration-container">
+      <!-- Migration model content will be injected here -->
+    </div>
+
+  </div>
+
+  </section>
+
+  <!-- Section 6: Customer Cohorts & Elasticity -->
+  <section class="section" id="section-6">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 6</div>
+      <h2 class="section-title">Customer Cohorts & Elasticity</h2>
+      <p class="section-subtitle">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral segments and elasticity patterns.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(5)"><i class="bi bi-arrow-left me-2"></i> Back</button>
+      <button class="btn btn-primary-custom" onclick="goToStep(7)">Next: Segment Comparison <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+
+    <!-- Segmentation content will be shown here by step-navigation.js -->
+    <div id="step-6-segmentation-container">
+      <!-- Segmentation content will be injected here -->
+    </div>
+
+  </div>
+
+  </section>
+
+  <!-- Section 7: Segment Elasticity Comparison -->
+  <section class="section" id="section-7">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 7</div>
+      <h2 class="section-title">Segment Elasticity Comparison</h2>
+      <p class="section-subtitle">Compare price elasticity across different customer segments. Identify which segments are most and least price-sensitive.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(6)"><i class="bi bi-arrow-left me-2"></i> Back</button>
+      <button class="btn btn-primary-custom" onclick="goToStep(8)">Next: Event Calendar <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+
+    <!-- Segment analysis content will be shown here by step-navigation.js -->
+    <div id="step-7-analysis-container">
+      <!-- Segment elasticity comparison content will be injected here -->
+    </div>
+
+  </div>
+
+  </section>
+
+  <!-- Section 8: Event Calendar -->
+  <section class="section" id="section-8">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 8</div>
+      <h2 class="section-title">Event Calendar</h2>
+      <p class="section-subtitle">Track important events and their impact on business metrics. Understand how external factors influence subscriber behavior.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(7)"><i class="bi bi-arrow-left me-2"></i> Back</button>
+      <button class="btn btn-primary-custom" onclick="goToStep(9)">Next: AI Chat & Analytics <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+
+  </div>
+
+  </section>
+
+  <!-- Section 9: Chat & Advanced Tools -->
+  <section class="section" id="section-9">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-number">Step 9</div>
+      <h2 class="section-title">AI Chat & Advanced Analytics</h2>
+      <p class="section-subtitle">Chat with AI to get insights, ask questions about your data, and access advanced analytical tools.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <div class="section-header-nav">
+      <button class="btn btn-secondary-custom" onclick="goToStep(8)"><i class="bi bi-arrow-left me-2"></i> Back</button>
+      <button class="btn btn-secondary-custom" onclick="goToStep(0)"><i class="bi bi-house me-2"></i> Back to Start</button>
+    </div>
+
+    <!-- Chat section will be shown here by step-navigation.js -->
+    <div id="step-9-chat-container">
+      <!-- Content will be injected here -->
+    </div>
+
+  </div>
+
+  </section>
+
+  <!-- Original sections (hidden, will be shown in appropriate steps via JS) -->
   <div id="data-viewer-section" style="display: none;">
   <div class="container my-4">
     <div class="card">
@@ -521,100 +517,6 @@
                 <i class="bi bi-table display-4 mb-3"></i>
                 <p>Select a dataset from the left sidebar to view the data</p>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
-
-  <div class="container">
-    <!-- Load Sample Data Button -->
-    <div class="text-center my-4" id="load-data-section">
-      <div class="card bg-light">
-        <div class="card-body">
-          <h5 class="card-title">
-            <i class="bi bi-database me-2"></i>
-            Get Started
-          </h5>
-          <p class="card-text">Load sample data to explore pricing scenarios and elasticity analysis</p>
-          <button id="load-data-btn" class="btn btn-primary btn-lg">
-            <i class="bi bi-cloud-download me-2"></i>
-            Load Sample Data
-          </button>
-
-          <!-- Progress Bar (hidden by default) -->
-          <div id="loading-progress" style="display: none;" class="mt-4">
-            <div class="mb-2">
-              <small class="text-muted" id="loading-stage">Initializing...</small>
-            </div>
-            <div class="progress" style="height: 25px;">
-              <div id="loading-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
-                   role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                <span id="loading-percentage">0%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- KPI Summary Cards -->
-  <div id="kpi-section" style="display: none;">
-  <div class="container my-4">
-    <h2 class="h4 mb-3">
-      Current State (Latest Week)
-      <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="popover"
-              data-bs-placement="right"
-              data-bs-trigger="focus"
-              data-bs-custom-class="ml-popover"
-              data-bs-html="true"
-              data-bs-title="<i class='bi bi-cpu me-2'></i>Data Processing: KPI Calculation"
-              data-bs-content="<strong>Data Source:</strong> weekly_aggregated.csv (471 records, 3 years)<br><br><strong>Calculations:</strong><br>• <strong>Total Subscribers:</strong> Sum of active_subscribers across all tiers (latest week)<br>• <strong>Monthly Revenue:</strong> Sum of weekly revenue × 4<br>• <strong>ARPU:</strong> Total revenue / Total subscribers<br>• <strong>Churn Rate:</strong> Average churn_rate across tiers<br><br><strong>Aggregation:</strong> Latest week (Dec 29, 2024)<br><br><strong>Tiers Included:</strong> Ad-Supported, Ad-Free, Annual<br><br><strong>Update Frequency:</strong> Real-time calculation from CSV data<br><br><strong>Data Quality:</strong> 100% complete, validated">
-        <i class="bi bi-info-circle text-secondary"></i>
-      </button>
-    </h2>
-    <div class="row g-3" id="kpi-cards">
-      <div class="col-md-3">
-        <div class="card kpi-card h-100">
-          <div class="card-body">
-            <div class="text-muted mb-2 small text-uppercase">Total Subscribers</div>
-            <div class="fs-2 fw-bold" id="kpi-subscribers">--</div>
-            <div class="small text-success" id="kpi-subscribers-change">
-              <i class="bi bi-arrow-up"></i> --
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card kpi-card h-100">
-          <div class="card-body">
-            <div class="text-muted mb-2 small text-uppercase">Monthly Revenue</div>
-            <div class="fs-2 fw-bold" id="kpi-revenue">--</div>
-            <div class="small text-success" id="kpi-revenue-change">
-              <i class="bi bi-arrow-up"></i> --
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card kpi-card h-100">
-          <div class="card-body">
-            <div class="text-muted mb-2 small text-uppercase">ARPU</div>
-            <div class="fs-2 fw-bold" id="kpi-arpu">--</div>
-            <div class="small" id="kpi-arpu-change">--</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card kpi-card h-100">
-          <div class="card-body">
-            <div class="text-muted mb-2 small text-uppercase">Churn Rate</div>
-            <div class="fs-2 fw-bold" id="kpi-churn">--</div>
-            <div class="small text-danger" id="kpi-churn-change">
-              <i class="bi bi-arrow-down"></i> --
             </div>
           </div>
         </div>
@@ -1345,7 +1247,7 @@
               <i class="bi bi-calendar-event me-2"></i>
               Event Calendar & Validation Windows
             </h2>
-            <span class="badge bg-light text-dark" id="event-count-badge">Loading...</span>
+            <span class="badge text-dark" id="event-count-badge">Loading...</span>
           </div>
         </div>
         <div class="card-body">
@@ -1382,7 +1284,7 @@
             <h6 class="fw-bold mb-3">
               <i class="bi bi-clock-history me-2"></i>Event Timeline (2022-2024)
             </h6>
-            <div id="event-timeline" class="p-3 bg-light rounded" style="min-height: 300px;">
+            <div id="event-timeline" class="p-3 rounded" style="min-height: 300px;">
               <!-- Timeline will be rendered here -->
             </div>
           </div>
@@ -1669,6 +1571,8 @@
     </div>
   </div>
 
+  </main>
+
   <!-- Export Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -1676,6 +1580,9 @@
   <!-- Segmentation Modules -->
   <script src="./js/segmentation-engine.js"></script>
   <script type="module" src="./js/segment-charts.js"></script>
+
+  <!-- Step Navigation Script -->
+  <script src="./js/step-navigation.js"></script>
 
   <!-- Main Application Script -->
   <script type="module" src="./js/app.js"></script>

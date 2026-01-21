@@ -678,27 +678,27 @@ async function loadData() {
       }
     }
 
-    // Wait a bit before hiding progress
+    // Wait a bit before transitioning
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Hide load button section, show all data sections
-    document.getElementById('load-data-section').style.display = 'none';
-    document.getElementById('kpi-section').style.display = 'block';
+    // Hide loading progress, show KPI dashboard
+    const loadDataSection = document.getElementById('load-data-section');
+    const kpiSection = document.getElementById('kpi-section');
+    if (loadDataSection) loadDataSection.style.display = 'none';
+    if (kpiSection) kpiSection.style.display = 'block';
 
-    // NEW: Show Elasticity Models section (tabbed interface)
-    document.getElementById('elasticity-models-section').style.display = 'block';
-
-    // Old scenario-section is hidden - replaced by elasticity-models-section (tabbed interface)
-    // document.getElementById('scenario-section').style.display = 'block';
-
-    // Deep dive sections are hidden initially - shown only when user clicks "Explore X Segments"
-    // document.getElementById('analytics-section').style.display = 'block';
-    // document.getElementById('segmentation-section').style.display = 'block';
-    // document.getElementById('segment-analysis-section').style.display = 'block';
-
-    document.getElementById('chat-section').style.display = 'block';
-    document.getElementById('data-viewer-section').style.display = 'block';
-    document.getElementById('event-calendar-section').style.display = 'block';
+    // NOTE: We're already on Step 1 (navigated before loadData was called)
+    // All section visibility is now controlled by step navigation
+    // After data loads, we auto-navigate to Step 1 which shows:
+    // - load-data-section (hidden after load completes)
+    // - kpi-section (with dashboard KPI cards)
+    //
+    // Other sections controlled by their respective steps:
+    // Step 2-4: Individual elasticity models (insight boxes only)
+    // Step 5: Scenario Analysis (elasticity-models-section with full scenarios)
+    // Step 6: Customer Segmentation
+    // Step 7: Event Calendar
+    // Step 8: Data Explorer & Chat
 
     // Initialize segmentation section if data is available (but keep hidden)
     if (window.segmentEngine && window.segmentEngine.isDataLoaded()) {
@@ -1534,21 +1534,24 @@ function initializeExportButtons() {
 // Initialize app
 async function init() {
   // Add event listeners
-  document.getElementById('load-data-btn').addEventListener('click', loadData);
+  document.getElementById('load-data-btn')?.addEventListener('click', loadData);
   // Old simulate-btn and save-scenario-btn removed - using tabbed interface now
   document.getElementById('save-scenario-btn-models')?.addEventListener('click', saveScenario);
-  document.getElementById('compare-btn').addEventListener('click', compareScenarios);
-  document.getElementById('clear-scenarios-btn').addEventListener('click', clearScenarios);
+  document.getElementById('compare-btn')?.addEventListener('click', compareScenarios);
+  document.getElementById('clear-scenarios-btn')?.addEventListener('click', clearScenarios);
 
   // Chat event listeners
-  document.getElementById('configure-llm').addEventListener('click', configureLLM);
-  document.getElementById('chat-send-btn').addEventListener('click', handleChatSend);
-  document.getElementById('chat-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleChatSend();
-    }
-  });
+  document.getElementById('configure-llm')?.addEventListener('click', configureLLM);
+  document.getElementById('chat-send-btn')?.addEventListener('click', handleChatSend);
+  const chatInput = document.getElementById('chat-input');
+  if (chatInput) {
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleChatSend();
+      }
+    });
+  }
 
   // Suggested query buttons
   document.querySelectorAll('.suggested-query').forEach(btn => {
@@ -1563,8 +1566,12 @@ async function init() {
   initializePopovers();
 
   // Scenario editor event listeners
-  document.getElementById('edit-new-price').addEventListener('input', updatePriceChangeIndicator);
-  document.getElementById('save-edited-scenario-btn').addEventListener('click', saveEditedScenario);
+  document.getElementById('edit-new-price')?.addEventListener('input', updatePriceChangeIndicator);
+  document.getElementById('save-edited-scenario-btn')?.addEventListener('click', saveEditedScenario);
+
+  // Make loadData available globally so it can be called when navigating to step 1
+  window.loadAppData = loadData;
+  window.dataLoaded = false;
 }
 
 // Start app
@@ -1723,7 +1730,12 @@ function populateElasticityModelTabs() {
   const simulateBtn = document.getElementById('simulate-btn-models');
   if (simulateBtn) {
     simulateBtn.addEventListener('click', async function() {
-      if (!selectedScenario) return;
+      if (!selectedScenario) {
+        console.warn('⚠️ No scenario selected!');
+        return;
+      }
+
+      console.log('🎬 Starting simulation for:', selectedScenario.id, selectedScenario.name);
 
       const resultContainer = document.getElementById('result-container-models');
 
@@ -1731,7 +1743,14 @@ function populateElasticityModelTabs() {
         simulateBtn.disabled = true;
         simulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating...';
 
-        console.log('Simulating scenario:', selectedScenario.id);
+        console.log('📝 Scenario config:', {
+          tier: selectedScenario.config.tier,
+          current_price: selectedScenario.config.current_price,
+          new_price: selectedScenario.config.new_price,
+          price_change: selectedScenario.config.new_price - selectedScenario.config.current_price,
+          price_change_pct: ((selectedScenario.config.new_price - selectedScenario.config.current_price) / selectedScenario.config.current_price * 100).toFixed(2) + '%',
+          model_type: selectedScenario.model_type
+        });
 
         // Run simulation with Pyodide if available, otherwise fallback to JS
         let result;
@@ -1766,6 +1785,9 @@ function populateElasticityModelTabs() {
     });
   }
 }
+
+// Expose populateElasticityModelTabs globally for step navigation
+window.populateElasticityModelTabs = populateElasticityModelTabs;
 
 /**
  * Create scenario card HTML for tabs
@@ -1894,6 +1916,16 @@ function calculateChurnPayback(result) {
  */
 function displayResultsInTabs(result) {
   currentResult = result; // Store for saving
+
+  // Debug logging
+  console.log('📊 Displaying results:', {
+    scenario: result.scenario_id,
+    baseline_revenue: result.baseline.revenue,
+    forecasted_revenue: result.forecasted.revenue,
+    delta_revenue: result.delta.revenue,
+    baseline_subs: result.baseline.subscribers,
+    forecasted_subs: result.forecasted.activeSubscribers || result.forecasted.subscribers
+  });
 
   // Store in all simulation results for chatbot access
   if (!allSimulationResults.find(r => r.scenario_id === result.scenario_id)) {
@@ -2530,7 +2562,7 @@ function displayTop3Scenarios(top3) {
 
   let html = '';
   top3.forEach((scenario, index) => {
-    const rankBadge = index === 0 ? 'bg-warning' : index === 1 ? 'bg-secondary' : 'bg-light text-dark';
+    const rankBadge = index === 0 ? 'bg-warning' : index === 1 ? 'bg-secondary' : 'text-dark';
     const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
     const riskBadge = scenario.risk_level === 'Low' ? 'bg-success' :
                       scenario.risk_level === 'Med' ? 'bg-warning' :

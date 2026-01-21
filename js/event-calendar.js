@@ -85,99 +85,129 @@ function renderEventTimeline() {
     return;
   }
 
-  // Group events by year and month
-  const eventsByYear = {};
+  // Get date range (2022-2024)
+  const startDate = new Date('2022-01-01');
+  const endDate = new Date('2024-12-31');
+  const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+  // Build timeline slider HTML
+  let html = '<div class="timeline-slider-container">';
+
+  // Legend
+  html += `
+    <div class="d-flex justify-content-center gap-4 mb-3">
+      <div class="d-flex align-items-center">
+        <div style="width: 16px; height: 16px; border-radius: 50%; background: var(--dplus-green); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);"></div>
+        <span class="ms-2 small">Price Changes</span>
+      </div>
+      <div class="d-flex align-items-center">
+        <div style="width: 16px; height: 16px; border-radius: 50%; background: var(--dplus-blue); box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.2);"></div>
+        <span class="ms-2 small">Promos</span>
+      </div>
+      <div class="d-flex align-items-center">
+        <div style="width: 16px; height: 16px; border-radius: 50%; background: var(--dplus-orange); box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);"></div>
+        <span class="ms-2 small">Tentpole Content</span>
+      </div>
+    </div>
+    <p class="text-center text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Click on any event marker to see details</p>
+  `;
+
+  // Year markers
+  html += '<div class="timeline-years">';
+  html += '<div class="timeline-year-marker" style="left: 0%;">2022</div>';
+  html += '<div class="timeline-year-marker" style="left: 33.33%;">2023</div>';
+  html += '<div class="timeline-year-marker" style="left: 66.66%;">2024</div>';
+  html += '<div class="timeline-year-marker" style="left: 100%;"></div>';
+  html += '</div>';
+
+  // Timeline track
+  html += '<div class="timeline-track">';
+
+  // Add event markers
   filteredEvents.forEach(event => {
-    const date = new Date(event.date);
-    const year = date.getFullYear();
-    if (!eventsByYear[year]) {
-      eventsByYear[year] = [];
+    const eventDate = new Date(event.date);
+    const daysSinceStart = Math.floor((eventDate - startDate) / (1000 * 60 * 60 * 24));
+    const positionPercent = (daysSinceStart / totalDays) * 100;
+
+    // Determine event class based on type
+    let eventClass = 'timeline-event';
+    if (event.event_type === 'Price Change') {
+      eventClass += ' event-price';
+    } else if (event.event_type.includes('Promo')) {
+      eventClass += ' event-promo';
+    } else if (event.event_type === 'Tentpole') {
+      eventClass += ' event-content';
     }
-    eventsByYear[year].push(event);
-  });
-
-  // Build timeline HTML with collapsible years
-  let html = '<div class="timeline-container">';
-
-  Object.keys(eventsByYear).sort().reverse().forEach((year, index) => {
-    const yearId = `year-${year}`;
-    const eventCount = eventsByYear[year].length;
 
     html += `
-      <div class="timeline-year mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded"
-             style="cursor: pointer;"
-             data-bs-toggle="collapse"
-             data-bs-target="#${yearId}"
-             aria-expanded="false"
-             aria-controls="${yearId}">
-          <h6 class="mb-0 text-primary">
-            <i class="bi bi-chevron-right me-2" id="${yearId}-icon"></i>
-            <strong>${year}</strong>
-            <span class="badge bg-primary ms-2">${eventCount} events</span>
-          </h6>
-        </div>
-        <div class="collapse" id="${yearId}">
-          <div class="timeline-events ms-3 mt-2">
-    `;
-
-    const events = eventsByYear[year].sort((a, b) => new Date(a.date) - new Date(b.date));
-    events.forEach(event => {
-      const date = new Date(event.date);
-      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const badge = getEventBadge(event.event_type);
-      const priceInfo = getEventPriceInfo(event);
-
-      html += `
-        <div class="timeline-event mb-3 p-3 border rounded ${getEventHighlightClass(event)}"
-             data-event-id="${event.event_id}">
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="flex-grow-1">
-              <div class="mb-1">
-                <span class="badge ${badge.class} me-2">${badge.text}</span>
-                <strong>${dateStr}</strong>
-                ${event.tier !== 'all' ? `<span class="badge bg-secondary ms-2">${formatTier(event.tier)}</span>` : ''}
-              </div>
-              <div class="small text-muted mb-1">${event.notes || 'No description'}</div>
-              ${priceInfo ? `<div class="small">${priceInfo}</div>` : ''}
-              ${event.affected_cohort && event.affected_cohort !== 'all' ?
-                `<div class="small text-info mt-1">
-                  <i class="bi bi-people me-1"></i>Cohort: ${formatCohortName(event.affected_cohort)}
-                </div>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-    });
-
-    html += `
-          </div>
-        </div>
+      <div class="${eventClass}"
+           style="left: ${positionPercent}%;"
+           data-event-id="${event.event_id}"
+           title="${event.event_type} - ${eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}">
       </div>
     `;
   });
 
-  html += '</div>';
+  html += '</div>'; // Close timeline-track
+
+  // Selected event details panel
+  html += '<div class="timeline-details mt-4" id="timeline-details" style="display: none;"></div>';
+
+  html += '</div>'; // Close timeline-slider-container
+
   container.innerHTML = html;
 
-  // Add collapse event listeners to rotate chevron icons
-  Object.keys(eventsByYear).forEach(year => {
-    const yearId = `year-${year}`;
-    const collapseElement = document.getElementById(yearId);
-    const iconElement = document.getElementById(`${yearId}-icon`);
-
-    if (collapseElement && iconElement) {
-      collapseElement.addEventListener('show.bs.collapse', () => {
-        iconElement.classList.remove('bi-chevron-right');
-        iconElement.classList.add('bi-chevron-down');
-      });
-
-      collapseElement.addEventListener('hide.bs.collapse', () => {
-        iconElement.classList.remove('bi-chevron-down');
-        iconElement.classList.add('bi-chevron-right');
-      });
-    }
+  // Add click event listeners to show event details
+  const eventMarkers = container.querySelectorAll('.timeline-event');
+  eventMarkers.forEach(marker => {
+    marker.addEventListener('click', () => {
+      const eventId = marker.dataset.eventId;
+      const event = filteredEvents.find(e => e.event_id === eventId);
+      if (event) {
+        showEventDetails(event);
+      }
+    });
   });
+}
+
+/**
+ * Show detailed information for a selected event
+ * @param {object} event - Event object
+ */
+function showEventDetails(event) {
+  const detailsPanel = document.getElementById('timeline-details');
+  if (!detailsPanel) return;
+
+  const eventDate = new Date(event.date);
+  const dateStr = eventDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const badge = getEventBadge(event.event_type);
+  const priceInfo = getEventPriceInfo(event);
+
+  let html = `
+    <div class="glass-card p-4">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h6 class="mb-2">
+            <span class="badge ${badge.class} me-2">${badge.text}</span>
+            ${event.tier !== 'all' ? `<span class="badge bg-secondary">${formatTier(event.tier)}</span>` : ''}
+          </h6>
+          <div class="text-muted small">
+            <i class="bi bi-calendar-event me-2"></i>${dateStr}
+          </div>
+        </div>
+        <button type="button" class="btn-close" onclick="document.getElementById('timeline-details').style.display='none'"></button>
+      </div>
+      <p class="mb-2">${event.notes || 'No description available'}</p>
+      ${priceInfo ? `<div class="alert alert-info mb-0"><i class="bi bi-info-circle me-2"></i>${priceInfo}</div>` : ''}
+      ${event.affected_cohort && event.affected_cohort !== 'all' ?
+        `<div class="mt-2 small text-info">
+          <i class="bi bi-people me-2"></i>Affected Cohort: ${formatCohortName(event.affected_cohort)}
+        </div>` : ''}
+    </div>
+  `;
+
+  detailsPanel.innerHTML = html;
+  detailsPanel.style.display = 'block';
 }
 
 /**
@@ -251,7 +281,7 @@ function renderPromoCards() {
           <div class="card-header bg-${statusClass} text-white">
             <div class="d-flex justify-content-between align-items-center">
               <h6 class="mb-0">${promo.campaign_name}</h6>
-              <span class="badge bg-light text-dark">${status}</span>
+              <span class="badge text-dark">${status}</span>
             </div>
           </div>
           <div class="card-body">
@@ -283,7 +313,7 @@ function renderPromoCards() {
             </div>
             <div class="mt-3 small text-muted">
               <strong>Tags:</strong> ${promo.campaign_tags.map(tag =>
-                `<span class="badge bg-light text-dark me-1">${tag}</span>`
+                `<span class="badge text-dark me-1">${tag}</span>`
               ).join('')}
             </div>
           </div>
@@ -415,16 +445,6 @@ function getWindowBadge(status) {
     'confounded': 'bg-warning text-dark'
   };
   return badges[status] || 'bg-secondary';
-}
-
-/**
- * Get event highlight class for timeline
- */
-function getEventHighlightClass(event) {
-  if (event.event_type === 'Price Change') return 'border-success border-2';
-  if (event.event_type === 'Promo Roll-off') return 'border-warning border-2';
-  if (event.validation_window === 'confounded') return 'bg-light';
-  return '';
 }
 
 /**
