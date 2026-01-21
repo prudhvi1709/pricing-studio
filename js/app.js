@@ -77,7 +77,8 @@ async function loadKPIs() {
     document.getElementById('kpi-subscribers').textContent = formatNumber(totalSubs);
     document.getElementById('kpi-revenue').textContent = formatCurrency(totalRevenue);
     document.getElementById('kpi-arpu').textContent = formatCurrency(avgARPU);
-    document.getElementById('kpi-churn').textContent = formatPercent(avgChurn * 100);
+    // avgChurn is already a decimal (0.05 = 5%), formatPercent will multiply by 100
+    document.getElementById('kpi-churn').textContent = formatPercent(avgChurn);
 
     // Note: Change indicators would require comparing to previous week
     document.getElementById('kpi-subscribers-change').textContent = '+2.3%';
@@ -616,9 +617,19 @@ async function loadData() {
   btn.style.display = 'none';
   progressContainer.style.display = 'block';
 
+  // Ensure loading UI elements exist and are visible
+  if (!progressContainer || !progressBar || !progressText || !stageText) {
+    console.error('Loading UI elements not found');
+    return;
+  }
+
+  // Force visibility
+  progressContainer.style.display = 'block';
+  progressContainer.style.visibility = 'visible';
+
   // Define loading stages
   const stages = [
-    { progress: 0, text: 'Initializing data loader...' },
+    { progress: 5, text: 'Initializing data loader...' },
     { progress: 15, text: 'Loading CSV files...' },
     { progress: 30, text: 'Parsing weekly aggregated data...' },
     { progress: 45, text: 'Calculating KPIs...' },
@@ -634,12 +645,17 @@ async function loadData() {
   const stageInterval = totalDuration / stages.length;
 
   try {
+    console.log('Starting data load with visible progress bar');
+
     // Show progress through stages
     for (let i = 0; i < stages.length; i++) {
       const stage = stages[i];
 
+      console.log(`Loading stage ${i+1}/${stages.length}: ${stage.text} (${stage.progress}%)`);
+
       // Update UI
       progressBar.style.width = stage.progress + '%';
+      progressBar.style.minWidth = '5%'; // Always show at least 5%
       progressBar.setAttribute('aria-valuenow', stage.progress);
       progressText.textContent = stage.progress + '%';
       stageText.textContent = stage.text;
@@ -1998,9 +2014,9 @@ function displayResultsInTabs(result) {
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">Churn Rate</div>
-          <div class="h4 mb-1">${formatPercent((result.forecasted.churnRate || result.forecasted.churn_rate || 0) * 100, 2)}</div>
+          <div class="h4 mb-1">${formatPercent((result.forecasted.churnRate || result.forecasted.churn_rate || 0), 2)}</div>
           <div class="small ${result.delta.churn_rate <= 0 ? 'text-success' : 'text-danger'}">
-            ${result.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(result.delta.churn_rate * 100, 2)}
+            ${result.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(result.delta.churn_rate, 2)}
           </div>
         </div>
       </div>
@@ -2571,7 +2587,7 @@ function displayTop3Scenarios(top3) {
     html += `
       <div class="col-md-4">
         <div class="card h-100 ${index === 0 ? 'border-warning border-2' : ''}">
-          <div class="card-header ${index === 0 ? 'bg-warning-subtle' : 'bg-light'}">
+          <div class="card-header ${index === 0 ? 'bg-warning-subtle' : ''}">
             <div class="d-flex justify-content-between align-items-center">
               <span class="badge ${rankBadge}">${rankIcon} Rank #${scenario.rank}</span>
               <span class="badge ${riskBadge}">${scenario.risk_level} Risk</span>
@@ -2601,7 +2617,7 @@ function displayTop3Scenarios(top3) {
                 <div class="col-6">
                   <strong>Churn:</strong>
                   <span class="${scenario.delta.churn_rate <= 0 ? 'text-success' : 'text-danger'}">
-                    ${scenario.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(scenario.delta.churn_rate * 100, 2)}pp
+                    ${scenario.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(scenario.delta.churn_rate, 2)}pp
                   </span>
                 </div>
                 <div class="col-6">

@@ -271,8 +271,9 @@ function renderPromoCards() {
   promos.forEach(promo => {
     const status = promo.actual_adds ? 'Complete' : 'In Progress';
     const statusClass = promo.actual_adds ? 'success' : 'warning';
+    // Calculate as decimal, formatPercent will multiply by 100
     const attainment = promo.actual_adds ?
-      formatPercent((promo.actual_adds / promo.target_adds) * 100) : 'TBD';
+      formatPercent(promo.actual_adds / promo.target_adds) : 'TBD';
     const roi = promo.actual_roi ? `${promo.actual_roi}x` : 'TBD';
 
     html += `
@@ -452,7 +453,8 @@ function getWindowBadge(status) {
  */
 function getEventPriceInfo(event) {
   if (event.price_before && event.price_after && event.price_before !== event.price_after) {
-    const change = ((event.price_after - event.price_before) / event.price_before) * 100;
+    // Calculate as decimal (0.4293 = 42.93%), formatPercent will multiply by 100
+    const change = (event.price_after - event.price_before) / event.price_before;
     const arrow = change > 0 ? '↑' : '↓';
     const color = change > 0 ? 'text-success' : 'text-danger';
     return `

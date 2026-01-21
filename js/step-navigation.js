@@ -82,23 +82,40 @@ function showStepContent(step) {
       // Trigger data loading if not already loaded
       if (window.loadAppData && !window.dataLoaded) {
         window.dataLoaded = true; // Set immediately to prevent multiple calls
-        window.loadAppData().catch(error => {
-          console.error('Failed to load data:', error);
-          window.dataLoaded = false; // Reset on error
-          // Show error message to user
+
+        // IMPORTANT: Wait for section animation to complete and ensure loading UI is visible
+        setTimeout(() => {
+          // Make sure loading section is visible
           const loadSection = document.getElementById('load-data-section');
+          const loadingProgress = document.getElementById('loading-progress');
           if (loadSection) {
-            loadSection.innerHTML = `
-              <div class="glass-card">
-                <div class="alert alert-danger mb-0">
-                  <i class="bi bi-exclamation-triangle me-2"></i>
-                  <strong>Failed to load data.</strong> ${error.message}
-                  <button class="btn btn-sm btn-outline-danger ms-3" onclick="location.reload()">Retry</button>
-                </div>
-              </div>
-            `;
+            loadSection.style.display = 'block';
+            loadSection.style.visibility = 'visible';
+            loadSection.style.opacity = '1';
           }
-        });
+          if (loadingProgress) {
+            loadingProgress.style.display = 'block';
+            loadingProgress.style.visibility = 'visible';
+          }
+
+          // Start loading data
+          window.loadAppData().catch(error => {
+            console.error('Failed to load data:', error);
+            window.dataLoaded = false; // Reset on error
+            // Show error message to user
+            if (loadSection) {
+              loadSection.innerHTML = `
+                <div class="glass-card">
+                  <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Failed to load data.</strong> ${error.message}
+                    <button class="btn btn-sm btn-outline-danger ms-3" onclick="location.reload()">Retry</button>
+                  </div>
+                </div>
+              `;
+            }
+          });
+        }, 100); // Small delay to ensure DOM is ready after section animation starts
       }
       break;
     case 2:

@@ -144,7 +144,7 @@ function addExecutiveSummary(doc, top3, objective, timestamp) {
     `Key Metrics:`,
     `• Revenue Impact: ${winner.delta.revenue >= 0 ? '+' : ''}${formatPercent(winner.delta.revenue_pct, 1)}`,
     `• Subscriber Impact: ${winner.delta.subscribers >= 0 ? '+' : ''}${formatPercent(winner.delta.subscribers_pct, 1)}`,
-    `• Churn Impact: ${winner.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(winner.delta.churn_rate * 100, 2)}pp`,
+    `• Churn Impact: ${winner.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(winner.delta.churn_rate, 2)}pp`,
     `• Risk Level: ${winner.risk_level}`,
     `• Decision Score: ${winner.decision_score.toFixed(1)}`,
     ``,
@@ -188,7 +188,7 @@ function addTop3Recommendations(doc, top3) {
     const metrics = [
       `Revenue: ${scenario.delta.revenue >= 0 ? '+' : ''}${formatPercent(scenario.delta.revenue_pct, 1)} | ` +
       `Subscribers: ${scenario.delta.subscribers >= 0 ? '+' : ''}${formatPercent(scenario.delta.subscribers_pct, 1)} | ` +
-      `Churn: ${scenario.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(scenario.delta.churn_rate * 100, 2)}pp`,
+      `Churn: ${scenario.delta.churn_rate >= 0 ? '+' : ''}${formatPercent(scenario.delta.churn_rate, 2)}pp`,
       `Risk: ${scenario.risk_level} | Score: ${scenario.decision_score.toFixed(1)}`
     ];
 
@@ -239,9 +239,9 @@ function addKPIComparison(doc, top3) {
       top3[2] ? `${formatPercent(top3[2].delta.subscribers_pct, 1)}` : 'N/A'
     ],
     ['Churn Impact',
-      `${formatPercent(top3[0].delta.churn_rate * 100, 2)}pp`,
-      top3[1] ? `${formatPercent(top3[1].delta.churn_rate * 100, 2)}pp` : 'N/A',
-      top3[2] ? `${formatPercent(top3[2].delta.churn_rate * 100, 2)}pp` : 'N/A'
+      `${formatPercent(top3[0].delta.churn_rate, 2)}pp`,
+      top3[1] ? `${formatPercent(top3[1].delta.churn_rate, 2)}pp` : 'N/A',
+      top3[2] ? `${formatPercent(top3[2].delta.churn_rate, 2)}pp` : 'N/A'
     ],
     ['ARPU Impact',
       `${formatPercent(top3[0].delta.arpu_pct, 1)}`,
@@ -423,7 +423,7 @@ function createSummarySheet(top3) {
       s.scenario_name || s.id,
       formatPercent(s.delta.revenue_pct, 1),
       formatPercent(s.delta.subscribers_pct, 1),
-      formatPercent(s.delta.churn_rate * 100, 2) + 'pp',
+      formatPercent(s.delta.churn_rate, 2) + 'pp',
       s.risk_level,
       s.decision_score.toFixed(1)
     ]);

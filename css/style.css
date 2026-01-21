@@ -304,6 +304,28 @@ html {
   border-top: 1px solid rgba(0,0,0,0.1);
 }
 
+/* Loading Section - Ensure always visible */
+#load-data-section {
+  display: block !important;
+  visibility: visible !important;
+  position: relative;
+  z-index: 10;
+}
+
+#loading-progress {
+  display: block !important;
+  visibility: visible !important;
+}
+
+#loading-progress .progress {
+  box-shadow: 0 2px 8px rgba(0, 102, 255, 0.2);
+}
+
+#loading-progress-bar {
+  min-width: 5% !important;
+  transition: width 0.3s ease;
+}
+
 /* Section Header Navigation (at top) */
 .section-header-nav {
   display: flex;
