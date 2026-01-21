@@ -3,54 +3,102 @@
  * Interactive slider-based interface for immediate feedback
  */
 
+import { loadElasticityParams, loadWeeklyAggregated } from './data-loader.js';
+
 // Chart instance
 let acquisitionChartSimple = null;
 
-// Elasticity parameters (from elasticity-params.json structure)
-const acquisitionParams = {
-  ad_supported: {
-    base_elasticity: -1.9,
-    price: 5.99,
-    segments: {
-      new_0_3mo: { elasticity: -2.5, size_pct: 0.25, baseline_adds: 1000 },
-      tenured_3_12mo: { elasticity: -1.9, size_pct: 0.35, baseline_adds: 1400 },
-      tenured_12plus: { elasticity: -1.6, size_pct: 0.40, baseline_adds: 1600 }
-    }
-  },
-  ad_free: {
-    base_elasticity: -1.5,
-    price: 8.99,
-    segments: {
-      new_0_3mo: { elasticity: -1.8, size_pct: 0.20, baseline_adds: 800 },
-      tenured_3_12mo: { elasticity: -1.5, size_pct: 0.35, baseline_adds: 1200 },
-      tenured_12plus: { elasticity: -1.2, size_pct: 0.45, baseline_adds: 1500 }
-    }
-  },
-  annual: {
-    base_elasticity: -1.3,
-    price: 71.88,
-    segments: {
-      new_0_3mo: { elasticity: -1.6, size_pct: 0.15, baseline_adds: 300 },
-      tenured_3_12mo: { elasticity: -1.3, size_pct: 0.30, baseline_adds: 600 },
-      tenured_12plus: { elasticity: -1.0, size_pct: 0.55, baseline_adds: 1100 }
-    }
+// Elasticity parameters (loaded from elasticity-params.json and weekly_aggregated.csv)
+let acquisitionParams = null;
+
+/**
+ * Load acquisition parameters from actual data sources
+ */
+async function loadAcquisitionParams() {
+  try {
+    const [elasticityData, weeklyData] = await Promise.all([
+      loadElasticityParams(),
+      loadWeeklyAggregated()
+    ]);
+
+    // Calculate average weekly new subscribers by tier (from last 12 weeks)
+    const recentWeeks = weeklyData.slice(-12);
+    const avgNewSubs = {};
+
+    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+      const tierWeeks = recentWeeks.filter(w => w.tier === tier);
+      const avgNew = tierWeeks.reduce((sum, w) => sum + parseFloat(w.new_subscribers || 0), 0) / tierWeeks.length;
+      avgNewSubs[tier] = Math.round(avgNew);
+    });
+
+    // Build params object from actual data
+    acquisitionParams = {};
+    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+      const tierData = elasticityData.tiers[tier];
+      const totalNew = avgNewSubs[tier];
+
+      acquisitionParams[tier] = {
+        base_elasticity: tierData.base_elasticity,
+        price: tierData.price_range.current,
+        segments: {
+          new_0_3mo: {
+            elasticity: tierData.segments.new_0_3mo.elasticity,
+            size_pct: tierData.segments.new_0_3mo.size_pct,
+            baseline_adds: Math.round(totalNew * tierData.segments.new_0_3mo.size_pct)
+          },
+          tenured_3_12mo: {
+            elasticity: tierData.segments.tenured_3_12mo.elasticity,
+            size_pct: tierData.segments.tenured_3_12mo.size_pct,
+            baseline_adds: Math.round(totalNew * tierData.segments.tenured_3_12mo.size_pct)
+          },
+          tenured_12plus: {
+            elasticity: tierData.segments.tenured_12plus.elasticity,
+            size_pct: tierData.segments.tenured_12plus.size_pct,
+            baseline_adds: Math.round(totalNew * tierData.segments.tenured_12plus.size_pct)
+          }
+        }
+      };
+    });
+
+    console.log('Acquisition parameters loaded from actual data:', acquisitionParams);
+    return acquisitionParams;
+  } catch (error) {
+    console.error('Error loading acquisition parameters:', error);
+    throw error;
   }
-};
+}
 
 /**
  * Initialize the simplified acquisition section
  */
-function initAcquisitionSimple() {
+async function initAcquisitionSimple() {
   console.log('Initializing simplified acquisition model...');
 
-  // Create chart
-  createAcquisitionChartSimple();
+  try {
+    // Load parameters from actual data
+    await loadAcquisitionParams();
 
-  // Setup interactivity
-  setupAcquisitionInteractivity();
+    // Create chart
+    createAcquisitionChartSimple();
 
-  // Initial update
-  updateAcquisitionModel();
+    // Setup interactivity
+    setupAcquisitionInteractivity();
+
+    // Initial update
+    updateAcquisitionModel();
+  } catch (error) {
+    console.error('Failed to initialize acquisition model:', error);
+    // Show error to user
+    const container = document.getElementById('step-3-acquisition-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Failed to load acquisition model data. Please refresh the page.
+        </div>
+      `;
+    }
+  }
 }
 
 /**
@@ -184,10 +232,11 @@ function updateAcquisitionModel() {
   const priceSlider = document.getElementById('acq-price-slider');
   const priceDisplay = document.getElementById('acq-price-display');
 
-  if (!tierSelect || !priceSlider) return;
+  if (!tierSelect || !priceSlider || !acquisitionParams) return;
 
   const tier = tierSelect.value;
   const params = acquisitionParams[tier];
+  if (!params) return;
   const currentPrice = params.price;
   const newPrice = parseFloat(priceSlider.value);
   const priceChangePct = ((newPrice - currentPrice) / currentPrice) * 100;

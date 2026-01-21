@@ -3,42 +3,116 @@
  * Interactive dual-slider interface for tier pricing
  */
 
+import { loadElasticityParams, loadWeeklyAggregated } from './data-loader.js';
+
 // Chart instance
 let migrationChartSimple = null;
 
-// Baseline values
-const baselineAdLitePrice = 5.99;
-const baselineAdFreePrice = 8.99;
-const baselineGap = baselineAdFreePrice - baselineAdLitePrice; // $3.00
+// Migration parameters (loaded from elasticity-params.json and weekly_aggregated.csv)
+let migrationParams = null;
 
-// Baseline tier distribution
-const baselineLitePct = 62;
-const baselineFreePct = 38;
+/**
+ * Load migration parameters from actual data sources
+ */
+async function loadMigrationParams() {
+  try {
+    const [elasticityData, weeklyData] = await Promise.all([
+      loadElasticityParams(),
+      loadWeeklyAggregated()
+    ]);
 
-// Baseline migration rates
-const baselineUpgrade = 8.2;
-const baselineDowngrade = 3.5;
-const baselineCancelLite = 4.2;
-const baselineCancelFree = 3.8;
+    // Get latest week's subscriber counts by tier
+    const latestWeek = weeklyData[weeklyData.length - 1];
+    const latestByTier = {};
 
-// Subscriber counts (approximations)
-const adLiteSubs = 10000;
-const adFreeSubs = 12000;
+    // Group latest data by tier
+    for (let i = weeklyData.length - 1; i >= weeklyData.length - 3 && i >= 0; i--) {
+      const row = weeklyData[i];
+      if (!latestByTier[row.tier]) {
+        latestByTier[row.tier] = row;
+      }
+    }
+
+    const adSupportedData = latestByTier.ad_supported || {};
+    const adFreeData = latestByTier.ad_free || {};
+
+    // Load actual prices and subscriber counts
+    const baselineAdLitePrice = elasticityData.tiers.ad_supported.price_range.current;
+    const baselineAdFreePrice = elasticityData.tiers.ad_free.price_range.current;
+    const baselineGap = baselineAdFreePrice - baselineAdLitePrice;
+
+    const adLiteSubs = parseFloat(adSupportedData.active_subscribers || 10000);
+    const adFreeSubs = parseFloat(adFreeData.active_subscribers || 12000);
+
+    // Calculate baseline tier distribution
+    const totalSubs = adLiteSubs + adFreeSubs;
+    const baselineLitePct = (adLiteSubs / totalSubs) * 100;
+    const baselineFreePct = (adFreeSubs / totalSubs) * 100;
+
+    // Baseline churn rates from elasticity params
+    const baselineCancelLite = elasticityData.churn_elasticity.ad_supported.baseline_churn * 100;
+    const baselineCancelFree = elasticityData.churn_elasticity.ad_free.baseline_churn * 100;
+
+    // Migration rates (estimated from cross-elasticity)
+    // Positive cross-elasticity means substitutes - price increase in one tier increases demand for another
+    const crossElasticity = elasticityData.cross_elasticity;
+    const baselineUpgrade = Math.abs(crossElasticity.ad_supported_to_ad_free) * 10; // ~3% baseline
+    const baselineDowngrade = Math.abs(crossElasticity.ad_free_to_ad_supported) * 10; // ~2% baseline
+
+    migrationParams = {
+      baselineAdLitePrice,
+      baselineAdFreePrice,
+      baselineGap,
+      baselineLitePct,
+      baselineFreePct,
+      baselineUpgrade,
+      baselineDowngrade,
+      baselineCancelLite,
+      baselineCancelFree,
+      adLiteSubs,
+      adFreeSubs,
+      crossElasticity: crossElasticity.ad_supported_to_ad_free
+    };
+
+    console.log('Migration parameters loaded from actual data:', migrationParams);
+    return migrationParams;
+  } catch (error) {
+    console.error('Error loading migration parameters:', error);
+    throw error;
+  }
+}
 
 /**
  * Initialize the simplified migration section
  */
-function initMigrationSimple() {
+async function initMigrationSimple() {
   console.log('Initializing simplified migration model...');
 
-  // Create chart
-  createMigrationChartSimple();
+  try {
+    // Load parameters from actual data
+    await loadMigrationParams();
 
-  // Setup interactivity
-  setupMigrationInteractivity();
+    // Create chart
+    createMigrationChartSimple();
 
-  // Initial update
-  updateMigrationModel();
+    // Setup interactivity
+    setupMigrationInteractivity();
+
+    // Initial update
+    updateMigrationModel();
+  } catch (error) {
+    console.error('Failed to initialize migration model:', error);
+    // Show error to user
+    const container = document.getElementById('step-5-migration-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Failed to load migration model data. Please refresh the page.
+        </div>
+      `;
+    }
+  }
 }
 
 /**
@@ -152,12 +226,12 @@ function updateMigrationModel() {
   const adliteSlider = document.getElementById('mig-adlite-slider');
   const adfreeSlider = document.getElementById('mig-adfree-slider');
 
-  if (!adliteSlider || !adfreeSlider) return;
+  if (!adliteSlider || !adfreeSlider || !migrationParams) return;
 
   const adlitePrice = parseFloat(adliteSlider.value);
   const adfreePrice = parseFloat(adfreeSlider.value);
   const newGap = adfreePrice - adlitePrice;
-  const gapChange = ((newGap - baselineGap) / baselineGap) * 100;
+  const gapChange = ((newGap - migrationParams.baselineGap) / migrationParams.baselineGap) * 100;
 
   // Update displays
   document.getElementById('mig-adlite-display').textContent = '$' + adlitePrice.toFixed(2);
@@ -167,21 +241,21 @@ function updateMigrationModel() {
 
   // Calculate migration probabilities (simplified model)
   // Narrower gap = more upgrades, wider gap = more downgrades
-  const gapFactor = newGap / baselineGap;
-  const upgradePct = baselineUpgrade / gapFactor;
-  const downgradePct = baselineDowngrade * gapFactor;
+  const gapFactor = newGap / migrationParams.baselineGap;
+  const upgradePct = migrationParams.baselineUpgrade / gapFactor;
+  const downgradePct = migrationParams.baselineDowngrade * gapFactor;
 
   // Update table
   document.getElementById('mig-upgrade-pct').textContent = upgradePct.toFixed(1) + '%';
   document.getElementById('mig-downgrade-pct').textContent = downgradePct.toFixed(1) + '%';
-  document.getElementById('mig-cancel-lite-pct').textContent = baselineCancelLite.toFixed(1) + '%';
-  document.getElementById('mig-cancel-free-pct').textContent = baselineCancelFree.toFixed(1) + '%';
+  document.getElementById('mig-cancel-lite-pct').textContent = migrationParams.baselineCancelLite.toFixed(1) + '%';
+  document.getElementById('mig-cancel-free-pct').textContent = migrationParams.baselineCancelFree.toFixed(1) + '%';
 
   // Calculate subscriber counts
-  const upgradeSubs = Math.round(adLiteSubs * (upgradePct / 100));
-  const downgradeSubs = Math.round(adFreeSubs * (downgradePct / 100));
-  const cancelLiteSubs = Math.round(adLiteSubs * (baselineCancelLite / 100));
-  const cancelFreeSubs = Math.round(adFreeSubs * (baselineCancelFree / 100));
+  const upgradeSubs = Math.round(migrationParams.adLiteSubs * (upgradePct / 100));
+  const downgradeSubs = Math.round(migrationParams.adFreeSubs * (downgradePct / 100));
+  const cancelLiteSubs = Math.round(migrationParams.adLiteSubs * (migrationParams.baselineCancelLite / 100));
+  const cancelFreeSubs = Math.round(migrationParams.adFreeSubs * (migrationParams.baselineCancelFree / 100));
 
   document.getElementById('mig-upgrade-subs').textContent = '~' + upgradeSubs.toLocaleString();
   document.getElementById('mig-downgrade-subs').textContent = '~' + downgradeSubs.toLocaleString();
@@ -200,8 +274,8 @@ function updateMigrationModel() {
   document.getElementById('mig-cancel-free-rev').textContent = '$' + cancelFreeRev.toLocaleString();
 
   // Calculate tier mix shift
-  const shift = (upgradePct - baselineUpgrade) - (downgradePct - baselineDowngrade);
-  const newLitePct = Math.max(40, Math.min(80, baselineLitePct - shift));
+  const shift = (upgradePct - migrationParams.baselineUpgrade) - (downgradePct - migrationParams.baselineDowngrade);
+  const newLitePct = Math.max(40, Math.min(80, migrationParams.baselineLitePct - shift));
   const newFreePct = 100 - newLitePct;
 
   document.getElementById('mig-adlite-pct').textContent = newLitePct.toFixed(0) + '%';
@@ -222,11 +296,11 @@ function updateMigrationModel() {
 
   // Update chart
   if (migrationChartSimple) {
-    const liteTrend = [baselineLitePct];
-    const freeTrend = [baselineFreePct];
+    const liteTrend = [migrationParams.baselineLitePct];
+    const freeTrend = [migrationParams.baselineFreePct];
     for (let i = 1; i <= 4; i++) {
-      liteTrend.push(baselineLitePct + (newLitePct - baselineLitePct) * (i / 4));
-      freeTrend.push(baselineFreePct + (newFreePct - baselineFreePct) * (i / 4));
+      liteTrend.push(migrationParams.baselineLitePct + (newLitePct - migrationParams.baselineLitePct) * (i / 4));
+      freeTrend.push(migrationParams.baselineFreePct + (newFreePct - migrationParams.baselineFreePct) * (i / 4));
     }
     migrationChartSimple.data.datasets[0].data = liteTrend;
     migrationChartSimple.data.datasets[1].data = freeTrend;

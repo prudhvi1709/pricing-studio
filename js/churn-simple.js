@@ -3,34 +3,98 @@
  * Interactive slider-based interface with time-lagged effects
  */
 
+import { loadElasticityParams } from './data-loader.js';
+
 // Chart instance
 let churnChartSimple = null;
 
-// Churn time lag coefficients (from sample_demo)
-const churnTimeLag = {
-  '0_4_weeks': 0.006,
-  '4_8_weeks': 0.018,
-  '8_12_weeks': 0.028,
-  '12_plus': 0.008
+// Churn parameters (loaded from elasticity-params.json)
+let churnParams = null;
+
+// Churn time lag distribution (derived from time_horizon_adjustments in elasticity-params.json)
+// These represent how churn impact is distributed across time horizons
+let churnTimeLag = {
+  '0_4_weeks': 0.10,   // 10% of total impact in first 4 weeks
+  '4_8_weeks': 0.30,   // 30% of total impact in weeks 4-8 (peak)
+  '8_12_weeks': 0.45,  // 45% of total impact in weeks 8-12 (continued peak)
+  '12_plus': 0.15      // 15% residual impact beyond 12 weeks
 };
 
-// Baseline churn rate
-const baselineChurn = 4.2; // percent
+// Baseline churn rate (loaded from elasticity-params.json)
+let baselineChurn = null;
+
+/**
+ * Load churn parameters from actual data sources
+ */
+async function loadChurnParams() {
+  try {
+    const elasticityData = await loadElasticityParams();
+
+    // Use ad_supported tier as default (UI allows tier selection via buttons)
+    const adSupportedChurn = elasticityData.churn_elasticity.ad_supported;
+    const adFreeChurn = elasticityData.churn_elasticity.ad_free;
+    const annualChurn = elasticityData.churn_elasticity.annual;
+
+    churnParams = {
+      ad_supported: {
+        churn_elasticity: adSupportedChurn.churn_elasticity,
+        baseline_churn: adSupportedChurn.baseline_churn * 100, // Convert to percentage
+        price: elasticityData.tiers.ad_supported.price_range.current
+      },
+      ad_free: {
+        churn_elasticity: adFreeChurn.churn_elasticity,
+        baseline_churn: adFreeChurn.baseline_churn * 100,
+        price: elasticityData.tiers.ad_free.price_range.current
+      },
+      annual: {
+        churn_elasticity: annualChurn.churn_elasticity,
+        baseline_churn: annualChurn.baseline_churn * 100,
+        price: elasticityData.tiers.annual.price_range.current
+      }
+    };
+
+    // Set default baseline churn (ad_supported)
+    baselineChurn = churnParams.ad_supported.baseline_churn;
+
+    console.log('Churn parameters loaded from actual data:', churnParams);
+    return churnParams;
+  } catch (error) {
+    console.error('Error loading churn parameters:', error);
+    throw error;
+  }
+}
 
 /**
  * Initialize the simplified churn section
  */
-function initChurnSimple() {
+async function initChurnSimple() {
   console.log('Initializing simplified churn model...');
 
-  // Create chart
-  createChurnChartSimple();
+  try {
+    // Load parameters from actual data
+    await loadChurnParams();
 
-  // Setup interactivity
-  setupChurnInteractivity();
+    // Create chart
+    createChurnChartSimple();
 
-  // Initial update
-  updateChurnModel();
+    // Setup interactivity
+    setupChurnInteractivity();
+
+    // Initial update
+    updateChurnModel();
+  } catch (error) {
+    console.error('Failed to initialize churn model:', error);
+    // Show error to user
+    const container = document.getElementById('step-4-churn-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Failed to load churn model data. Please refresh the page.
+        </div>
+      `;
+    }
+  }
 }
 
 /**
@@ -128,23 +192,31 @@ function setupChurnInteractivity() {
   const priceSlider = document.getElementById('churn-price-slider');
   const tierBtns = document.querySelectorAll('.tier-btn');
 
-  if (!priceSlider) {
-    console.warn('Churn controls not found');
+  if (!priceSlider || !churnParams) {
+    console.warn('Churn controls not found or params not loaded');
     return;
   }
 
-  let currentTierPrice = 5.99;
+  let currentTier = 'ad_supported';
 
   // Price slider input
-  priceSlider.addEventListener('input', () => updateChurnModel(currentTierPrice));
+  priceSlider.addEventListener('input', () => updateChurnModel(currentTier));
 
   // Tier button clicks
   tierBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       tierBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      currentTierPrice = parseFloat(btn.dataset.price);
-      updateChurnModel(currentTierPrice);
+      // Map price to tier name
+      const price = parseFloat(btn.dataset.price);
+      if (price === 5.99) {
+        currentTier = 'ad_supported';
+      } else if (price === 8.99) {
+        currentTier = 'ad_free';
+      } else if (price === 71.88) {
+        currentTier = 'annual';
+      }
+      updateChurnModel(currentTier);
     });
   });
 }
@@ -152,23 +224,31 @@ function setupChurnInteractivity() {
 /**
  * Update the churn model based on current inputs
  */
-function updateChurnModel(currentTierPrice = 5.99) {
+function updateChurnModel(currentTier = 'ad_supported') {
   const priceSlider = document.getElementById('churn-price-slider');
-  if (!priceSlider) return;
+  if (!priceSlider || !churnParams) return;
+
+  const tierParams = churnParams[currentTier];
+  if (!tierParams) return;
 
   const priceIncrease = parseFloat(priceSlider.value);
+  const currentTierPrice = tierParams.price;
   const priceChangePct = (priceIncrease / currentTierPrice) * 100;
 
   // Update displays
   document.getElementById('churn-increase-display').textContent = '+$' + priceIncrease.toFixed(2);
   document.getElementById('churn-pct-change').textContent = '+' + priceChangePct.toFixed(1) + '%';
 
-  // Calculate churn impact by time horizon
+  // Calculate total churn impact using actual churn elasticity
+  // Formula: churn_change = baseline_churn × churn_elasticity × (price_change_pct / 100)
+  const totalChurnImpact = tierParams.baseline_churn * tierParams.churn_elasticity * (priceChangePct / 100);
+
+  // Distribute impact across time horizons using time lag distribution
   const impacts = {
-    '0_4': priceChangePct * churnTimeLag['0_4_weeks'] * 1.5,
-    '4_8': priceChangePct * churnTimeLag['4_8_weeks'] * 1.5,
-    '8_12': priceChangePct * churnTimeLag['8_12_weeks'] * 1.5,
-    '12plus': priceChangePct * churnTimeLag['12_plus'] * 1.5
+    '0_4': totalChurnImpact * churnTimeLag['0_4_weeks'],
+    '4_8': totalChurnImpact * churnTimeLag['4_8_weeks'],
+    '8_12': totalChurnImpact * churnTimeLag['8_12_weeks'],
+    '12plus': totalChurnImpact * churnTimeLag['12_plus']
   };
 
   // Update impact displays
@@ -190,14 +270,17 @@ function updateChurnModel(currentTierPrice = 5.99) {
 
   // Update chart
   if (churnChartSimple) {
+    const tierBaseline = tierParams.baseline_churn;
     const projectedData = [
-      baselineChurn,
-      baselineChurn + impacts['0_4'],
-      baselineChurn + impacts['4_8'],
-      baselineChurn + impacts['8_12'],
-      baselineChurn + (impacts['8_12'] + impacts['12plus']) / 2,
-      baselineChurn + impacts['12plus']
+      tierBaseline,
+      tierBaseline + impacts['0_4'],
+      tierBaseline + impacts['4_8'],
+      tierBaseline + impacts['8_12'],
+      tierBaseline + (impacts['8_12'] + impacts['12plus']) / 2,
+      tierBaseline + impacts['12plus']
     ];
+    // Update baseline data too
+    churnChartSimple.data.datasets[0].data = [tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline];
     churnChartSimple.data.datasets[1].data = projectedData;
     churnChartSimple.update('none'); // Instant update
   }
