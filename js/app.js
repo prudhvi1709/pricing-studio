@@ -2053,6 +2053,15 @@ function displayResultsInTabs(result) {
   renderAcquisitionCohortTable(result);
   renderChurnHeatmap(result);
   renderMigrationMatrix(result);
+
+  // Show/hide appropriate detail table based on model type
+  const modelType = result.model_type || selectedScenario?.model_type;
+  document.getElementById('acquisition-results-detail').style.display =
+    (modelType === 'acquisition') ? 'block' : 'none';
+  document.getElementById('churn-results-detail').style.display =
+    (modelType === 'churn') ? 'block' : 'none';
+  document.getElementById('migration-results-detail').style.display =
+    (modelType === 'migration') ? 'block' : 'none';
 }
 
 /**

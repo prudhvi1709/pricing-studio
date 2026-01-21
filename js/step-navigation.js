@@ -133,14 +133,27 @@ function showStepContent(step) {
     case 3:
       // Acquisition Elasticity - Show elasticity models, force Acquisition tab, hide tabs
       showElasticityModel('acquisition', 'step-3-acquisition-container');
+      // Initialize simplified acquisition model
+      if (window.initAcquisitionSimple && typeof window.initAcquisitionSimple === 'function') {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => window.initAcquisitionSimple(), 100);
+      }
       break;
     case 4:
       // Churn Elasticity - Show elasticity models, force Churn tab, hide tabs
       showElasticityModel('churn', 'step-4-churn-container');
+      // Initialize simplified churn model
+      if (window.initChurnSimple && typeof window.initChurnSimple === 'function') {
+        setTimeout(() => window.initChurnSimple(), 100);
+      }
       break;
     case 5:
       // Tier Migration - Show elasticity models, force Migration tab, hide tabs
       showElasticityModel('migration', 'step-5-migration-container');
+      // Initialize simplified migration model
+      if (window.initMigrationSimple && typeof window.initMigrationSimple === 'function') {
+        setTimeout(() => window.initMigrationSimple(), 100);
+      }
       break;
     case 6:
       // Customer Cohorts & Elasticity (segmentation only)
