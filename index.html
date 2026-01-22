@@ -681,9 +681,18 @@
               <div class="col-lg-7">
                 <!-- Chart -->
                 <div class="glass-card">
-                  <h5 class="mb-3"><i class="bi bi-bar-chart-line me-2"></i>Projected New Subscribers by Segment</h5>
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Projected New Subscribers by Segment</h5>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="acq-show-ci" checked>
+                      <label class="form-check-label small" for="acq-show-ci">Show 95% CI</label>
+                    </div>
+                  </div>
                   <div style="position: relative; height: 300px;">
                     <canvas id="acquisition-chart-simple"></canvas>
+                  </div>
+                  <div class="small text-muted mt-2">
+                    <i class="bi bi-info-circle me-1"></i>Confidence intervals show the range of uncertainty in forecasts (±15% standard error)
                   </div>
                 </div>
 
@@ -888,6 +897,20 @@
                     <canvas id="churn-chart-simple"></canvas>
                   </div>
                 </div>
+
+                <!-- Survival Curve (Retention Forecast) -->
+                <div class="glass-card mt-4">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Retention Forecast (Survival Curve)</h5>
+                    <span class="badge bg-info">New</span>
+                  </div>
+                  <div style="position: relative; height: 300px;">
+                    <canvas id="survival-curve-chart"></canvas>
+                  </div>
+                  <div class="small text-muted mt-2">
+                    <i class="bi bi-info-circle me-1"></i>Shows percentage of customers retained over time. Shaded area represents retention loss due to price increase.
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1055,6 +1078,18 @@
                   <h5 class="mb-3">Tier Mix Over Time</h5>
                   <div style="position: relative; height: 300px;">
                     <canvas id="migration-chart-simple"></canvas>
+                  </div>
+                </div>
+
+                <!-- Sankey Flow Diagram -->
+                <div class="glass-card mt-4">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Migration Flow Diagram</h5>
+                    <span class="badge bg-info">New</span>
+                  </div>
+                  <div id="sankey-diagram" style="width: 100%; height: 400px;"></div>
+                  <div class="small text-muted mt-2">
+                    <i class="bi bi-info-circle me-1"></i>Flow width represents volume of subscribers. Blue = stay, Green = upgrade, Red = downgrade, Gray = churn.
                   </div>
                 </div>
               </div>
@@ -2504,6 +2539,7 @@
 
   <!-- D3.js v7 for advanced visualizations -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
 
   <!-- LLM and Chat Dependencies -->
   <script type="importmap">

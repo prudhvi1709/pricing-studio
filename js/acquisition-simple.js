@@ -11,6 +11,12 @@ let acquisitionChartSimple = null;
 // Elasticity parameters (loaded from elasticity-params.json and weekly_aggregated.csv)
 let acquisitionParams = null;
 
+// Configuration
+const CONFIDENCE_INTERVAL = 0.95; // 95% CI
+const STD_ERROR = 0.15; // 15% standard error (industry benchmark)
+const Z_SCORE = 1.96; // For 95% CI
+let showConfidenceIntervals = true;
+
 /**
  * Load acquisition parameters from actual data sources
  */
@@ -102,7 +108,7 @@ async function initAcquisitionSimple() {
 }
 
 /**
- * Create the acquisition chart
+ * Create the acquisition chart with error bars plugin
  */
 function createAcquisitionChartSimple() {
   const ctx = document.getElementById('acquisition-chart-simple');
@@ -115,6 +121,52 @@ function createAcquisitionChartSimple() {
   if (acquisitionChartSimple) {
     acquisitionChartSimple.destroy();
   }
+
+  // Custom plugin for error bars
+  const errorBarsPlugin = {
+    id: 'errorBars',
+    afterDatasetsDraw(chart) {
+      const { ctx, data, scales } = chart;
+      const meta = chart.getDatasetMeta(1); // Projected dataset (index 1)
+
+      if (!showConfidenceIntervals || !meta.data || !data.datasets[1].errorBars) return;
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([]);
+
+      meta.data.forEach((bar, index) => {
+        const errorBar = data.datasets[1].errorBars[index];
+        if (!errorBar) return;
+
+        const x = bar.x;
+        const yUpper = scales.y.getPixelForValue(errorBar.upper);
+        const yLower = scales.y.getPixelForValue(errorBar.lower);
+        const capWidth = 8;
+
+        // Draw vertical line
+        ctx.beginPath();
+        ctx.moveTo(x, yUpper);
+        ctx.lineTo(x, yLower);
+        ctx.stroke();
+
+        // Draw upper cap
+        ctx.beginPath();
+        ctx.moveTo(x - capWidth, yUpper);
+        ctx.lineTo(x + capWidth, yUpper);
+        ctx.stroke();
+
+        // Draw lower cap
+        ctx.beginPath();
+        ctx.moveTo(x - capWidth, yLower);
+        ctx.lineTo(x + capWidth, yLower);
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+  };
 
   acquisitionChartSimple = new Chart(ctx, {
     type: 'bar',
@@ -133,7 +185,8 @@ function createAcquisitionChartSimple() {
           data: [1000, 1400, 1600],
           backgroundColor: 'rgba(16, 185, 129, 0.5)',
           borderColor: 'rgba(16, 185, 129, 1)',
-          borderWidth: 2
+          borderWidth: 2,
+          errorBars: []
         }
       ]
     },
@@ -149,7 +202,12 @@ function createAcquisitionChartSimple() {
         tooltip: {
           callbacks: {
             label: function(context) {
-              return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' new subs';
+              let label = context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' new subs';
+              if (context.datasetIndex === 1 && context.dataset.errorBars && context.dataset.errorBars[context.dataIndex]) {
+                const eb = context.dataset.errorBars[context.dataIndex];
+                label += '\n95% CI: ' + Math.round(eb.lower).toLocaleString() + ' - ' + Math.round(eb.upper).toLocaleString();
+              }
+              return label;
             }
           }
         }
@@ -178,7 +236,8 @@ function createAcquisitionChartSimple() {
           }
         }
       }
-    }
+    },
+    plugins: [errorBarsPlugin]
   });
 }
 
@@ -188,6 +247,7 @@ function createAcquisitionChartSimple() {
 function setupAcquisitionInteractivity() {
   const tierSelect = document.getElementById('acq-tier-select');
   const priceSlider = document.getElementById('acq-price-slider');
+  const ciToggle = document.getElementById('acq-show-ci');
 
   if (!tierSelect || !priceSlider) {
     console.warn('Acquisition controls not found');
@@ -222,6 +282,14 @@ function setupAcquisitionInteractivity() {
 
   // Price slider input
   priceSlider.addEventListener('input', updateAcquisitionModel);
+
+  // Confidence interval toggle
+  if (ciToggle) {
+    ciToggle.addEventListener('change', () => {
+      showConfidenceIntervals = ciToggle.checked;
+      updateAcquisitionModel();
+    });
+  }
 }
 
 /**
@@ -276,8 +344,16 @@ function updateAcquisitionModel() {
       Math.round(segments.tenured_3_12mo.baseline_adds * (1 + segMidImpact / 100)),
       Math.round(segments.tenured_12plus.baseline_adds * (1 + segLoyalImpact / 100))
     ];
+
+    // Calculate confidence intervals (95% CI with ±15% standard error)
+    const errorBars = projectedData.map(value => ({
+      lower: value * (1 - Z_SCORE * STD_ERROR),
+      upper: value * (1 + Z_SCORE * STD_ERROR)
+    }));
+
     acquisitionChartSimple.data.datasets[0].data = baselineData;
     acquisitionChartSimple.data.datasets[1].data = projectedData;
+    acquisitionChartSimple.data.datasets[1].errorBars = errorBars;
     acquisitionChartSimple.update('none'); // Use 'none' for instant update without animation
   }
 }

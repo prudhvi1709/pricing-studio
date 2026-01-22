@@ -5,8 +5,9 @@
 
 import { loadElasticityParams } from './data-loader.js';
 
-// Chart instance
+// Chart instances
 let churnChartSimple = null;
+let survivalCurveChart = null;
 
 // Churn parameters (loaded from elasticity-params.json)
 let churnParams = null;
@@ -74,8 +75,9 @@ async function initChurnSimple() {
     // Load parameters from actual data
     await loadChurnParams();
 
-    // Create chart
+    // Create charts
     createChurnChartSimple();
+    createSurvivalCurveChart();
 
     // Setup interactivity
     setupChurnInteractivity();
@@ -186,6 +188,120 @@ function createChurnChartSimple() {
 }
 
 /**
+ * Create the survival curve (retention forecast) chart
+ */
+function createSurvivalCurveChart() {
+  const ctx = document.getElementById('survival-curve-chart');
+  if (!ctx) {
+    console.warn('Survival curve canvas not found');
+    return;
+  }
+
+  // Destroy existing chart
+  if (survivalCurveChart) {
+    survivalCurveChart.destroy();
+  }
+
+  survivalCurveChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Week 0', 'Week 4', 'Week 8', 'Week 12', 'Week 16', 'Week 20', 'Week 24'],
+      datasets: [
+        {
+          label: 'Baseline Retention',
+          data: [100, 98.0, 96.2, 94.5, 93.0, 91.7, 90.5],
+          borderColor: 'rgba(99, 102, 241, 1)',
+          backgroundColor: 'rgba(99, 102, 241, 0.0)',
+          borderWidth: 3,
+          fill: false,
+          tension: 0.3,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        },
+        {
+          label: 'Scenario Retention',
+          data: [100, 97.0, 94.5, 91.8, 89.5, 87.8, 86.5],
+          borderColor: 'rgba(239, 68, 68, 1)',
+          backgroundColor: 'rgba(239, 68, 68, 0.0)',
+          borderWidth: 3,
+          fill: false,
+          tension: 0.3,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        },
+        {
+          label: 'Retention Loss',
+          data: [100, 97.0, 94.5, 91.8, 89.5, 87.8, 86.5],
+          borderColor: 'transparent',
+          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+          fill: '-1',
+          tension: 0.3,
+          pointRadius: 0,
+          borderWidth: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529',
+            filter: (item) => item.text !== 'Retention Loss'
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              if (context.dataset.label === 'Retention Loss') return null;
+              return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+            },
+            afterBody: function(tooltipItems) {
+              const index = tooltipItems[0].dataIndex;
+              const baseline = tooltipItems[0].chart.data.datasets[0].data[index];
+              const scenario = tooltipItems[0].chart.data.datasets[1].data[index];
+              const loss = baseline - scenario;
+              return loss > 0 ? `\nRetention Loss: ${loss.toFixed(1)}%` : '';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          min: 80,
+          max: 100,
+          grid: {
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark'
+              ? 'rgba(255,255,255,0.1)'
+              : 'rgba(0,0,0,0.1)'
+          },
+          ticks: {
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529',
+            callback: (value) => value + '%'
+          },
+          title: {
+            display: true,
+            text: 'Retention Rate (%)',
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
  * Setup slider interactivity
  */
 function setupChurnInteractivity() {
@@ -268,7 +384,7 @@ function updateChurnModel(currentTier = 'ad_supported') {
   document.getElementById('bar-8-12').style.width = Math.min(impacts['8_12'] / maxImpact * 100, 100) + '%';
   document.getElementById('bar-12plus').style.width = Math.min(impacts['12plus'] / maxImpact * 100, 100) + '%';
 
-  // Update chart
+  // Update churn chart
   if (churnChartSimple) {
     const tierBaseline = tierParams.baseline_churn;
     const projectedData = [
@@ -283,6 +399,56 @@ function updateChurnModel(currentTier = 'ad_supported') {
     churnChartSimple.data.datasets[0].data = [tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline];
     churnChartSimple.data.datasets[1].data = projectedData;
     churnChartSimple.update('none'); // Instant update
+  }
+
+  // Update survival curve chart
+  if (survivalCurveChart) {
+    const tierBaseline = tierParams.baseline_churn;
+
+    // Calculate cumulative churn and convert to retention
+    // Baseline: consistent churn rate over time
+    const baselineRetention = [
+      100,
+      100 - (tierBaseline * 0.25),
+      100 - (tierBaseline * 0.5),
+      100 - (tierBaseline * 0.75),
+      100 - (tierBaseline * 1.0),
+      100 - (tierBaseline * 1.25),
+      100 - (tierBaseline * 1.5)
+    ];
+
+    // Scenario: time-lagged churn accumulation
+    let cumulativeChurn = 0;
+    const scenarioRetention = [100];
+
+    // Week 4
+    cumulativeChurn += impacts['0_4'];
+    scenarioRetention.push(100 - (tierBaseline * 0.25 + cumulativeChurn * 0.25));
+
+    // Week 8
+    cumulativeChurn += impacts['4_8'];
+    scenarioRetention.push(100 - (tierBaseline * 0.5 + cumulativeChurn * 0.5));
+
+    // Week 12
+    cumulativeChurn += impacts['8_12'];
+    scenarioRetention.push(100 - (tierBaseline * 0.75 + cumulativeChurn * 0.75));
+
+    // Week 16
+    cumulativeChurn += impacts['12plus'] * 0.5;
+    scenarioRetention.push(100 - (tierBaseline * 1.0 + cumulativeChurn * 1.0));
+
+    // Week 20
+    cumulativeChurn += impacts['12plus'] * 0.3;
+    scenarioRetention.push(100 - (tierBaseline * 1.25 + cumulativeChurn * 1.0));
+
+    // Week 24
+    cumulativeChurn += impacts['12plus'] * 0.2;
+    scenarioRetention.push(100 - (tierBaseline * 1.5 + cumulativeChurn * 1.0));
+
+    survivalCurveChart.data.datasets[0].data = baselineRetention;
+    survivalCurveChart.data.datasets[1].data = scenarioRetention;
+    survivalCurveChart.data.datasets[2].data = scenarioRetention; // For shaded area
+    survivalCurveChart.update('none');
   }
 }
 

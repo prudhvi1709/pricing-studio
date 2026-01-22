@@ -92,8 +92,9 @@ async function initMigrationSimple() {
     // Load parameters from actual data
     await loadMigrationParams();
 
-    // Create chart
+    // Create chart and Sankey diagram
     createMigrationChartSimple();
+    createSankeyDiagram();
 
     // Setup interactivity
     setupMigrationInteractivity();
@@ -203,6 +204,171 @@ function createMigrationChartSimple() {
 }
 
 /**
+ * Create the Sankey flow diagram
+ */
+function createSankeyDiagram() {
+  if (!migrationParams) return;
+
+  const container = document.getElementById('sankey-diagram');
+  if (!container) {
+    console.warn('Sankey diagram container not found');
+    return;
+  }
+
+  // Clear any existing content
+  container.innerHTML = '';
+
+  // Initial render with baseline data
+  updateSankeyDiagram();
+}
+
+/**
+ * Update the Sankey diagram with current migration flows
+ */
+function updateSankeyDiagram(upgradeRate = null, downgradeRate = null, cancelLiteRate = null, cancelFreeRate = null) {
+  if (!migrationParams) return;
+
+  const container = document.getElementById('sankey-diagram');
+  if (!container) return;
+
+  // Use provided rates or defaults
+  const upgrade = upgradeRate !== null ? upgradeRate : migrationParams.baselineUpgrade;
+  const downgrade = downgradeRate !== null ? downgradeRate : migrationParams.baselineDowngrade;
+  const cancelLite = cancelLiteRate !== null ? cancelLiteRate : migrationParams.baselineCancelLite;
+  const cancelFree = cancelFreeRate !== null ? cancelFreeRate : migrationParams.baselineCancelFree;
+
+  // Calculate stay rates
+  const stayLite = 100 - upgrade - cancelLite;
+  const stayFree = 100 - downgrade - cancelFree;
+
+  // Total subscribers
+  const totalLite = migrationParams.adLiteSubs;
+  const totalFree = migrationParams.adFreeSubs;
+
+  // Calculate flows (convert percentages to actual numbers)
+  const liteToLite = Math.round((stayLite / 100) * totalLite);
+  const liteToFree = Math.round((upgrade / 100) * totalLite);
+  const liteToChurn = Math.round((cancelLite / 100) * totalLite);
+
+  const freeToFree = Math.round((stayFree / 100) * totalFree);
+  const freeToLite = Math.round((downgrade / 100) * totalFree);
+  const freeToChurn = Math.round((cancelFree / 100) * totalFree);
+
+  // Define nodes
+  const nodes = [
+    { name: 'Ad-Lite\n(Current)', id: 0 },
+    { name: 'Ad-Free\n(Current)', id: 1 },
+    { name: 'Ad-Lite\n(Projected)', id: 2 },
+    { name: 'Ad-Free\n(Projected)', id: 3 },
+    { name: 'Churned', id: 4 }
+  ];
+
+  // Define links
+  const links = [
+    { source: 0, target: 2, value: liteToLite, type: 'stay' },
+    { source: 0, target: 3, value: liteToFree, type: 'upgrade' },
+    { source: 0, target: 4, value: liteToChurn, type: 'churn' },
+    { source: 1, target: 3, value: freeToFree, type: 'stay' },
+    { source: 1, target: 2, value: freeToLite, type: 'downgrade' },
+    { source: 1, target: 4, value: freeToChurn, type: 'churn' }
+  ];
+
+  // Get container dimensions
+  const width = container.clientWidth;
+  const height = 400;
+  const margin = { top: 20, right: 100, bottom: 20, left: 100 };
+
+  // Clear and create SVG
+  container.innerHTML = '';
+  const svg = d3.select(container)
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+  // Create sankey generator
+  const sankey = d3.sankey()
+    .nodeId(d => d.id)
+    .nodeWidth(20)
+    .nodePadding(30)
+    .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]]);
+
+  // Generate sankey layout
+  const { nodes: sankeyNodes, links: sankeyLinks } = sankey({
+    nodes: nodes.map(d => Object.assign({}, d)),
+    links: links.map(d => Object.assign({}, d))
+  });
+
+  // Color scale
+  const colors = {
+    stay: '#6366f1',        // Blue
+    upgrade: '#10b981',     // Green
+    downgrade: '#ef4444',   // Red
+    churn: '#6b7280'        // Gray
+  };
+
+  // Draw links (flows)
+  svg.append('g')
+    .selectAll('path')
+    .data(sankeyLinks)
+    .join('path')
+    .attr('d', d3.sankeyLinkHorizontal())
+    .attr('stroke', d => colors[d.type])
+    .attr('stroke-width', d => Math.max(1, d.width))
+    .attr('fill', 'none')
+    .attr('opacity', 0.4)
+    .on('mouseover', function(event, d) {
+      d3.select(this).attr('opacity', 0.7);
+    })
+    .on('mouseout', function() {
+      d3.select(this).attr('opacity', 0.4);
+    })
+    .append('title')
+    .text(d => {
+      const pct = (d.value / (d.source.id < 2 ? (d.source.id === 0 ? totalLite : totalFree) : 1) * 100).toFixed(1);
+      return `${d.source.name.replace('\n', ' ')} → ${d.target.name.replace('\n', ' ')}\n${d.value.toLocaleString()} subs (${pct}%)`;
+    });
+
+  // Draw nodes
+  svg.append('g')
+    .selectAll('rect')
+    .data(sankeyNodes)
+    .join('rect')
+    .attr('x', d => d.x0)
+    .attr('y', d => d.y0)
+    .attr('height', d => Math.max(1, d.y1 - d.y0))
+    .attr('width', d => d.x1 - d.x0)
+    .attr('fill', d => {
+      if (d.id === 4) return colors.churn;
+      if (d.id < 2) return '#94a3b8'; // Light gray for current
+      return '#1e293b'; // Dark for projected
+    })
+    .attr('opacity', 0.8);
+
+  // Add node labels
+  svg.append('g')
+    .selectAll('text')
+    .data(sankeyNodes)
+    .join('text')
+    .attr('x', d => d.x0 < width / 2 ? d.x0 - 6 : d.x1 + 6)
+    .attr('y', d => (d.y0 + d.y1) / 2)
+    .attr('dy', '0.35em')
+    .attr('text-anchor', d => d.x0 < width / 2 ? 'end' : 'start')
+    .attr('font-size', '12px')
+    .attr('font-weight', '600')
+    .attr('fill', document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#1e293b')
+    .each(function(d) {
+      const lines = d.name.split('\n');
+      const text = d3.select(this);
+      lines.forEach((line, i) => {
+        text.append('tspan')
+          .attr('x', d.x0 < width / 2 ? d.x0 - 6 : d.x1 + 6)
+          .attr('dy', i === 0 ? 0 : '1.2em')
+          .text(line);
+      });
+    });
+}
+
+/**
  * Setup slider interactivity
  */
 function setupMigrationInteractivity() {
@@ -306,6 +472,14 @@ function updateMigrationModel() {
     migrationChartSimple.data.datasets[1].data = freeTrend;
     migrationChartSimple.update('none'); // Instant update
   }
+
+  // Update Sankey diagram
+  updateSankeyDiagram(
+    upgradePct,
+    downgradePct,
+    migrationParams.baselineCancelLite,
+    migrationParams.baselineCancelFree
+  );
 }
 
 // Export for use in step-navigation.js
