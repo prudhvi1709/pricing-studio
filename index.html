@@ -24,25 +24,28 @@
         <div class="brand" onclick="handleBrandClick()" style="cursor: pointer;">discovery<span>+</span> Price Elasticity Studio</div>
         <div class="d-flex align-items-center gap-3">
           <div class="step-indicator">
-            <div class="step-dot active" data-step="0">1</div>
+            <!-- Data Foundation -->
+            <div class="step-dot active module-data-foundation" data-step="0">1</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="1">2</div>
+            <div class="step-dot module-data-foundation" data-step="1">2</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="2">3</div>
+            <!-- Elasticity Modelling -->
+            <div class="step-dot module-elasticity" data-step="2">3</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="3">4</div>
+            <div class="step-dot module-elasticity" data-step="3">4</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="4">5</div>
+            <div class="step-dot module-elasticity" data-step="4">5</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="5">6</div>
+            <div class="step-dot module-elasticity" data-step="5">6</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="6">7</div>
+            <div class="step-dot module-elasticity" data-step="6">7</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="7">8</div>
+            <!-- Simulation & Tools -->
+            <div class="step-dot module-simulation" data-step="7">8</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="8">9</div>
+            <div class="step-dot module-simulation" data-step="8">9</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="9">10</div>
+            <div class="step-dot module-simulation" data-step="9">10</div>
           </div>
           <div class="d-flex align-items-center gap-2">
             <button id="configure-llm" class="btn btn-sm" style="opacity: 0.8;">
@@ -62,6 +65,21 @@
               </ul>
             </div>
           </div>
+        </div>
+      </div>
+      <!-- Legend -->
+      <div class="step-legend">
+        <div class="legend-item">
+          <div class="legend-color data-foundation"></div>
+          <span>Data Foundation</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color elasticity"></div>
+          <span>Elasticity Modelling</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color simulation"></div>
+          <span>Simulation</span>
         </div>
       </div>
     </div>

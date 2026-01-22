@@ -110,6 +110,73 @@ html {
   transform: scale(1.1);
 }
 
+/* Module color coding */
+.step-dot.module-data-foundation {
+  border-color: #17a2b8 !important;
+}
+
+.step-dot.module-data-foundation.active,
+.step-dot.module-data-foundation.completed {
+  background: #17a2b8 !important;
+  border-color: #17a2b8 !important;
+}
+
+.step-dot.module-elasticity {
+  border-color: #fd7e14 !important;
+}
+
+.step-dot.module-elasticity.active,
+.step-dot.module-elasticity.completed {
+  background: #fd7e14 !important;
+  border-color: #fd7e14 !important;
+}
+
+.step-dot.module-simulation {
+  border-color: #6f42c1 !important;
+}
+
+.step-dot.module-simulation.active,
+.step-dot.module-simulation.completed {
+  background: #6f42c1 !important;
+  border-color: #6f42c1 !important;
+}
+
+/* Step legend */
+.step-legend {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+
+.legend-color.data-foundation {
+  color: #17a2b8;
+}
+
+.legend-color.elasticity {
+  color: #fd7e14;
+}
+
+.legend-color.simulation {
+  color: #6f42c1;
+}
+
 .step-line {
   width: 24px;
   height: 2px;
