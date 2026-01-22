@@ -121,12 +121,12 @@ function showStepContent(step) {
     case 2:
       // Data Explorer - Show data viewer
       const dataViewerSection = document.getElementById('data-viewer-section');
-      const dataViewerContainer = document.getElementById('step-2-data-viewer-container');
-      if (dataViewerSection && dataViewerContainer) {
+      const dataViewerContentArea = document.getElementById('step-2-data-viewer-container-content');
+      if (dataViewerSection && dataViewerContentArea) {
         dataViewerSection.style.display = 'block';
-        // Move data viewer into step 2 container if not already there
-        if (dataViewerSection.parentElement !== dataViewerContainer) {
-          dataViewerContainer.appendChild(dataViewerSection);
+        // Move data viewer into step 2 content area if not already there
+        if (dataViewerSection.parentElement !== dataViewerContentArea) {
+          dataViewerContentArea.appendChild(dataViewerSection);
         }
       }
       break;
@@ -158,38 +158,44 @@ function showStepContent(step) {
     case 6:
       // Customer Cohorts & Elasticity (segmentation only)
       const segmentationSection6 = document.getElementById('segmentation-section');
-      const segmentContainer6 = document.getElementById('step-6-segmentation-container');
-      if (segmentationSection6 && segmentContainer6) {
+      const segmentContentArea6 = document.getElementById('step-6-segmentation-container-content');
+      if (segmentationSection6 && segmentContentArea6) {
         segmentationSection6.style.display = 'block';
-        if (segmentationSection6.parentElement !== segmentContainer6) {
-          segmentContainer6.appendChild(segmentationSection6);
+        if (segmentationSection6.parentElement !== segmentContentArea6) {
+          segmentContentArea6.appendChild(segmentationSection6);
         }
       }
       break;
     case 7:
       // Segment Elasticity Comparison (analysis only)
       const segmentAnalysisSection7 = document.getElementById('segment-analysis-section');
-      const analysisContainer7 = document.getElementById('step-7-analysis-container');
-      if (segmentAnalysisSection7 && analysisContainer7) {
+      const analysisContentArea7 = document.getElementById('step-7-analysis-container-content');
+      if (segmentAnalysisSection7 && analysisContentArea7) {
         segmentAnalysisSection7.style.display = 'block';
-        if (segmentAnalysisSection7.parentElement !== analysisContainer7) {
-          analysisContainer7.appendChild(segmentAnalysisSection7);
+        if (segmentAnalysisSection7.parentElement !== analysisContentArea7) {
+          analysisContentArea7.appendChild(segmentAnalysisSection7);
         }
       }
       break;
     case 8:
       // Event Calendar
       const eventCalendarSection = document.getElementById('event-calendar-section');
-      if (eventCalendarSection) eventCalendarSection.style.display = 'block';
+      const calendarContentArea = document.getElementById('step-8-calendar-container-content');
+      if (eventCalendarSection && calendarContentArea) {
+        eventCalendarSection.style.display = 'block';
+        if (eventCalendarSection.parentElement !== calendarContentArea) {
+          calendarContentArea.appendChild(eventCalendarSection);
+        }
+      }
       break;
     case 9:
       // Chat & Advanced Tools
       const chatSection = document.getElementById('chat-section');
-      const chatContainer = document.getElementById('step-9-chat-container');
-      if (chatSection) {
+      const chatContentArea = document.getElementById('step-9-chat-container-content');
+      if (chatSection && chatContentArea) {
         chatSection.style.display = 'block';
-        if (chatContainer && chatSection.parentElement !== chatContainer) {
-          chatContainer.appendChild(chatSection);
+        if (chatSection.parentElement !== chatContentArea) {
+          chatContentArea.appendChild(chatSection);
         }
       }
       break;
@@ -203,17 +209,17 @@ function showStepContent(step) {
  */
 function showElasticityModel(modelType, containerId) {
   const elasticityModelsSection = document.getElementById('elasticity-models-section');
-  const container = document.getElementById(containerId);
+  const contentArea = document.getElementById(`${containerId}-content`);
 
-  if (!elasticityModelsSection || !container) return;
+  if (!elasticityModelsSection || !contentArea) return;
 
   // Show ONLY the elasticity models section (scenario engine)
   // NOT the comparison or analytics sections - those are separate
   elasticityModelsSection.style.display = 'block';
 
-  // Move it into the container if not already there
-  if (elasticityModelsSection.parentElement !== container) {
-    container.appendChild(elasticityModelsSection);
+  // Move it into the content area if not already there
+  if (elasticityModelsSection.parentElement !== contentArea) {
+    contentArea.appendChild(elasticityModelsSection);
   }
 
   // Hide the tab navigation (we'll show content directly)
@@ -250,6 +256,81 @@ function showElasticityModel(modelType, containerId) {
 }
 
 /**
+ * Create navigation buttons for a step
+ * @param {number} prevStep - Previous step number
+ * @param {number} nextStep - Next step number
+ * @param {string} nextLabel - Label for next button
+ * @returns {HTMLElement} Navigation div element
+ */
+function createStepNavigation(prevStep, nextStep, nextLabel = 'Next') {
+  const nav = document.createElement('div');
+  nav.className = 'section-header-nav';
+
+  // Back button
+  if (prevStep !== null) {
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn btn-secondary-custom';
+    backBtn.onclick = () => goToStep(prevStep);
+    backBtn.innerHTML = '<i class="bi bi-arrow-left me-2"></i> Back';
+    nav.appendChild(backBtn);
+  }
+
+  // Next button
+  if (nextStep !== null) {
+    const nextBtn = document.createElement('button');
+    nextBtn.className = nextStep === 0 ? 'btn btn-secondary-custom' : 'btn btn-primary-custom';
+    nextBtn.onclick = () => goToStep(nextStep);
+
+    if (nextStep === 0) {
+      nextBtn.innerHTML = '<i class="bi bi-house me-2"></i> Back to Start';
+    } else {
+      nextBtn.innerHTML = `${nextLabel} <i class="bi bi-arrow-right ms-2"></i>`;
+    }
+    nav.appendChild(nextBtn);
+  }
+
+  return nav;
+}
+
+/**
+ * Inject navigation buttons into step containers
+ */
+function injectStepNavigations() {
+  const stepConfigs = [
+    { step: 2, container: 'step-2-data-viewer-container', prev: 1, next: 3, nextLabel: 'Next: Acquisition Elasticity' },
+    { step: 3, container: 'step-3-acquisition-container', prev: 2, next: 4, nextLabel: 'Next: Churn Elasticity' },
+    { step: 4, container: 'step-4-churn-container', prev: 3, next: 5, nextLabel: 'Next: Tier Migration' },
+    { step: 5, container: 'step-5-migration-container', prev: 4, next: 6, nextLabel: 'Next: Customer Cohorts' },
+    { step: 6, container: 'step-6-segmentation-container', prev: 5, next: 7, nextLabel: 'Next: Segment Comparison' },
+    { step: 7, container: 'step-7-analysis-container', prev: 6, next: 8, nextLabel: 'Next: Event Calendar' },
+    { step: 8, container: 'step-8-calendar-container', prev: 7, next: 9, nextLabel: 'Next: AI Chat & Analytics' },
+    { step: 9, container: 'step-9-chat-container', prev: 8, next: 0, nextLabel: null }
+  ];
+
+  stepConfigs.forEach(config => {
+    const container = document.getElementById(config.container);
+    if (!container) return;
+
+    // Create wrapper structure: top-nav, content-area, bottom-nav
+    const topNav = createStepNavigation(config.prev, config.next, config.nextLabel);
+    topNav.classList.add('step-nav-top');
+
+    const contentArea = document.createElement('div');
+    contentArea.classList.add('step-content-area');
+    contentArea.id = `${config.container}-content`;
+
+    const bottomNav = createStepNavigation(config.prev, config.next, config.nextLabel);
+    bottomNav.classList.add('step-nav-bottom');
+
+    // Clear container and append in order
+    container.innerHTML = '';
+    container.appendChild(topNav);
+    container.appendChild(contentArea);
+    container.appendChild(bottomNav);
+  });
+}
+
+/**
  * Initialize step navigation
  */
 function initStepNavigation() {
@@ -260,6 +341,9 @@ function initStepNavigation() {
       goToStep(step);
     });
   });
+
+  // Inject navigation buttons for all steps
+  injectStepNavigations();
 
   // Start at step 0 (hero)
   goToStep(0);
