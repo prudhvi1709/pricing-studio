@@ -1209,7 +1209,7 @@ function renderSegmentComparisonTable() {
   const container = document.getElementById('segment-comparison-table');
   container.innerHTML = `
     <table class="table table-hover">
-      <thead class="table-dark">
+      <thead class="table-light">
         <tr>
           <th>Segment</th>
           <th class="text-end">Subscribers</th>

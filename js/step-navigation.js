@@ -331,6 +331,27 @@ function injectStepNavigations() {
 }
 
 /**
+ * Initialize the steps overview modal behavior
+ */
+function initStepsOverviewModal() {
+  const modalEl = document.getElementById('stepsOverviewModal');
+  if (!modalEl || !window.bootstrap) return;
+
+  modalEl.querySelectorAll('.steps-table-row').forEach(item => {
+    item.addEventListener('click', () => {
+      const step = parseInt(item.dataset.step, 10);
+      if (Number.isNaN(step)) return;
+
+      const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      modalEl.addEventListener('hidden.bs.modal', () => {
+        goToStep(step);
+      }, { once: true });
+      modalInstance.hide();
+    });
+  });
+}
+
+/**
  * Initialize step navigation
  */
 function initStepNavigation() {
@@ -344,6 +365,9 @@ function initStepNavigation() {
 
   // Inject navigation buttons for all steps
   injectStepNavigations();
+
+  // Hook up steps overview modal
+  initStepsOverviewModal();
 
   // Start at step 0 (hero)
   goToStep(0);
