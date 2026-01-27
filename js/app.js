@@ -1820,9 +1820,9 @@ function createScenarioCard(scenario) {
     <div class="col-md-4">
       <div class="card scenario-card-tab h-100" data-scenario-id="${scenario.id}">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="card-title mb-0 flex-grow-1">${scenario.name}</h6>
-            <div>
+            <div class="scenario-card-actions">
               ${priorityBadge}
               <button class="btn btn-sm btn-outline-secondary edit-scenario-btn-tab ms-1" data-scenario-id="${scenario.id}" title="Edit parameters">
                 <i class="bi bi-pencil"></i>

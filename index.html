@@ -712,7 +712,7 @@
               <div class="collapse mt-3" id="acquisition-advanced">
                 <div class="glass-card">
                   <!-- Model Description -->
-                  <div class="alert alert-info mb-3">
+                  <div class="alert alert-primary mb-3">
                     <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Model 1: Acquisition Elasticity</h6>
                     <p class="mb-2"><strong>What it captures:</strong> How new subscriber sign-ups respond to different prices and promotional offers</p>
                     <p class="mb-0"><strong>Key Insight:</strong> Loyal fans join regardless of price. Budget-conscious users drop off sharply when prices increase.</p>
@@ -864,7 +864,7 @@
                 <div class="glass-card mt-4">
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Retention Forecast (Survival Curve)</h5>
-                    <span class="badge bg-info">New</span>
+
                   </div>
                   <div style="position: relative; height: 300px;">
                     <canvas id="survival-curve-chart"></canvas>
@@ -878,14 +878,14 @@
 
             <!-- Advanced Features (Collapsible) -->
             <div class="mt-4">
-              <button class="btn btn-outline-warning" type="button" data-bs-toggle="collapse" data-bs-target="#churn-advanced">
+              <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#churn-advanced">
                 <i class="bi bi-gear me-2"></i>Advanced Analysis
               </button>
 
               <div class="collapse mt-3" id="churn-advanced">
                 <div class="glass-card">
                   <!-- Model Description -->
-                  <div class="alert alert-warning mb-3">
+                  <div class="alert alert-primary mb-3">
                     <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Model 2: Churn Elasticity (Time-Lagged)</h6>
                     <p class="mb-2"><strong>What it captures:</strong> When customers cancel after price increases or when promotional discounts expire</p>
                     <p class="mb-0"><strong>Key Insight:</strong> Cancellations don't happen immediately. Customers typically leave <strong>8-12 weeks after</strong> price changes or promo endings.</p>
@@ -898,13 +898,13 @@
                   </div>
 
                   <!-- Deep Dive Navigation -->
-                  <div class="alert alert-warning border-warning">
+                  <div class="alert alert-primary border-primary">
                     <div class="d-flex align-items-center justify-content-between">
                       <div>
                         <i class="bi bi-arrow-right-circle me-2"></i>
                         <strong>Deep Dive:</strong> Explore churn-prone segments and time-lagged heatmaps
                       </div>
-                      <button class="btn btn-warning btn-sm" onclick="navigateToSegments('churn')">
+                      <button class="btn btn-primary btn-sm" onclick="navigateToSegments('churn')">
                         <i class="bi bi-hourglass-split me-1"></i>
                         Explore Segments
                       </button>
@@ -1041,7 +1041,7 @@
                 <div class="glass-card mt-4">
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Migration Flow Diagram</h5>
-                    <span class="badge bg-info">New</span>
+
                   </div>
                   <div id="sankey-diagram" style="width: 100%; height: 400px;"></div>
                   <div class="small text-muted mt-2">
@@ -1053,14 +1053,14 @@
 
             <!-- Advanced Features (Collapsible) -->
             <div class="mt-4">
-              <button class="btn btn-outline-success" type="button" data-bs-toggle="collapse" data-bs-target="#migration-advanced">
+              <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#migration-advanced">
                 <i class="bi bi-gear me-2"></i>Advanced Analysis
               </button>
 
               <div class="collapse mt-3" id="migration-advanced">
                 <div class="glass-card">
                   <!-- Model Description -->
-                  <div class="alert alert-success mb-3">
+                  <div class="alert alert-primary mb-3">
                     <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Model 3: Tier Migration & Mix-Shift</h6>
                     <p class="mb-2"><strong>What it captures:</strong> How customers switch between subscription tiers based on price differences and promotional incentives</p>
                     <p class="mb-0"><strong>Decision Takeaway:</strong> Find the smallest price gap that drives upgrades to premium tiers without causing excessive downgrades or cancellations.</p>
@@ -1073,13 +1073,13 @@
                   </div>
 
                   <!-- Deep Dive Navigation -->
-                  <div class="alert alert-success border-success">
+                  <div class="alert alert-primary border-primary">
                     <div class="d-flex align-items-center justify-content-between">
                       <div>
                         <i class="bi bi-arrow-right-circle me-2"></i>
                         <strong>Deep Dive:</strong> Explore tier migration patterns and transition matrices
                       </div>
-                      <button class="btn btn-success btn-sm" onclick="navigateToSegments('migration')">
+                      <button class="btn btn-primary btn-sm" onclick="navigateToSegments('migration')">
                         <i class="bi bi-arrows-angle-expand me-1"></i>
                         Explore Patterns
                       </button>
@@ -1119,7 +1119,7 @@
               </h5>
             </div>
             <div class="card-body">
-              <div class="row align-items-end">
+              <div class="row align-items-start decision-engine-controls">
                 <div class="col-md-4">
                   <label class="form-label fw-bold">
                     <i class="bi bi-bullseye me-1"></i>Objective Lens
@@ -1138,11 +1138,12 @@
                   <label class="form-label fw-bold">
                     <i class="bi bi-shield-check me-1"></i>Churn Cap (%)
                   </label>
-                  <input type="number" id="churn-cap-input" class="form-control"
+                  <input type="number" id="churn-cap-input" class="form-control decision-engine-input"
                          value="5.0" step="0.5" min="0" max="20">
                 </div>
-                <div class="col-md-3">
-                  <button id="rank-scenarios-btn" class="btn btn-primary w-100">
+                <div class="col-md-3 d-flex">
+                  <span class="form-label fw-bold decision-engine-spacer">Action</span>
+                  <button id="rank-scenarios-btn" class="btn btn-primary w-100 decision-engine-action">
                     <i class="bi bi-sort-numeric-down me-2"></i>
                     Rank Scenarios
                   </button>
@@ -1787,10 +1788,10 @@
             Try asking:
           </small>
           <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Interpret the current scenario results</button>
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Which scenario maximizes revenue?</button>
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Suggest a scenario for subscriber growth</button>
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>What's the risk of $2 price increase?</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Interpret the current scenario results and trade-offs</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Suggest a scenario to maximize revenue with churn under 5%</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Explain the demand curve chart for the current tier</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Show high-churn segments in the ad-supported tier</button>
           </div>
         </div>
       </div>
@@ -2532,80 +2533,110 @@
                     <span>Name + Subtitle</span>
                     <span>RFP Citation</span>
                   </div>
-                  <button class="steps-table-row" type="button" data-step="0">
-                    <span class="steps-table-step">Step 1</span>
+                  <button class="steps-table-row" type="button" data-step="0" style="--step-index: 1;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-data-foundation">1</span>
+                      <span class="steps-table-step-label">Step 1</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Price Elasticity Modeling</strong>
                       <span class="text-muted">Understand how price changes impact subscriber behavior, revenue, and growth. Make data-driven pricing decisions with confidence.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="1">
-                    <span class="steps-table-step">Step 2</span>
+                  <button class="steps-table-row" type="button" data-step="1" style="--step-index: 2;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-data-foundation">2</span>
+                      <span class="steps-table-step-label">Step 2</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Current State Overview</strong>
                       <span class="text-muted">Before exploring price elasticity, let's understand our current pricing tiers and key performance metrics.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="2">
-                    <span class="steps-table-step">Step 3</span>
+                  <button class="steps-table-row" type="button" data-step="2" style="--step-index: 3;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-elasticity">3</span>
+                      <span class="steps-table-step-label">Step 3</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Data Explorer</strong>
                       <span class="text-muted">Explore the raw datasets that power our price elasticity models. Browse through subscriber data, segments, and more.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="3">
-                    <span class="steps-table-step">Step 4</span>
+                  <button class="steps-table-row" type="button" data-step="3" style="--step-index: 4;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-elasticity">4</span>
+                      <span class="steps-table-step-label">Step 4</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Acquisition Elasticity</strong>
                       <span class="text-muted">Model how price changes affect new subscriber acquisition. Simulate scenarios and analyze impacts on sign-up rates.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="4">
-                    <span class="steps-table-step">Step 5</span>
+                  <button class="steps-table-row" type="button" data-step="4" style="--step-index: 5;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-elasticity">5</span>
+                      <span class="steps-table-step-label">Step 5</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Churn Elasticity</strong>
                       <span class="text-muted">Understand how price increases drive subscriber churn. Model time-lagged effects and retention patterns.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="5">
-                    <span class="steps-table-step">Step 6</span>
+                  <button class="steps-table-row" type="button" data-step="5" style="--step-index: 6;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-elasticity">6</span>
+                      <span class="steps-table-step-label">Step 6</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Tier Migration</strong>
                       <span class="text-muted">Model subscriber movement between pricing tiers. Analyze upgrade and downgrade patterns based on price gaps.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="6">
-                    <span class="steps-table-step">Step 7</span>
+                  <button class="steps-table-row" type="button" data-step="6" style="--step-index: 7;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-elasticity">7</span>
+                      <span class="steps-table-step-label">Step 7</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Customer Cohorts & Elasticity</strong>
                       <span class="text-muted">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral segments and elasticity patterns.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="7">
-                    <span class="steps-table-step">Step 8</span>
+                  <button class="steps-table-row" type="button" data-step="7" style="--step-index: 8;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-simulation">8</span>
+                      <span class="steps-table-step-label">Step 8</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Segment Elasticity Comparison</strong>
                       <span class="text-muted">Compare price elasticity across different customer segments. Identify which segments are most and least price-sensitive.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="8">
-                    <span class="steps-table-step">Step 9</span>
+                  <button class="steps-table-row" type="button" data-step="8" style="--step-index: 9;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-simulation">9</span>
+                      <span class="steps-table-step-label">Step 9</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>Event Calendar</strong>
                       <span class="text-muted">Track important events and their impact on business metrics. Understand how external factors influence subscriber behavior.</span>
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="9">
-                    <span class="steps-table-step">Step 10</span>
+                  <button class="steps-table-row" type="button" data-step="9" style="--step-index: 10;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-simulation">10</span>
+                      <span class="steps-table-step-label">Step 10</span>
+                    </span>
                     <span class="steps-table-body">
                       <strong>AI Chat & Advanced Analytics</strong>
                       <span class="text-muted">Chat with AI to get insights, ask questions about your data, and access advanced analytical tools.</span>

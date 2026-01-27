@@ -202,6 +202,27 @@ html {
   border: none;
 }
 
+.steps-modal .modal-dialog {
+  transform-origin: top right;
+  transform: translateY(-18px) scale(0.98);
+  opacity: 0;
+  transition: transform 0.7s ease, opacity 0.5s ease;
+}
+
+.steps-modal.show .modal-dialog {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.steps-modal .modal-header {
+  padding: 1.25rem 1.5rem 0.75rem;
+}
+
+.steps-modal .modal-body {
+  padding: 0.75rem 1.5rem 1.25rem;
+  overflow: hidden;
+}
+
 [data-bs-theme="dark"] .steps-modal .modal-content {
   background: linear-gradient(160deg, rgba(20, 24, 45, 0.98), rgba(10, 12, 26, 0.98));
   color: #e5e5e5;
@@ -215,14 +236,14 @@ html {
 .steps-table {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.45rem;
 }
 
 .steps-table-header,
 .steps-table-row {
   display: grid;
-  grid-template-columns: minmax(110px, 140px) minmax(260px, 1.6fr) minmax(220px, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(90px, 110px) minmax(220px, 1.4fr) minmax(200px, 1fr);
+  gap: 1rem;
   align-items: start;
 }
 
@@ -232,7 +253,7 @@ html {
   letter-spacing: 0.12em;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.7);
-  padding: 0 1.25rem;
+  padding: 0 1rem;
 }
 
 [data-bs-theme="light"] .steps-table-header {
@@ -241,14 +262,23 @@ html {
 
 .steps-table-row {
   border-radius: 16px;
-  padding: 1.25rem 1.5rem;
+  padding: 0.65rem 1rem;
   border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.55s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   width: 100%;
   cursor: pointer;
   color: inherit;
   text-align: left;
+  opacity: 0;
+  transform: translateY(-16px) translateX(calc((var(--step-index, 1) - 1) * 26px)) scale(0.96);
+  transition-delay: calc(var(--step-index, 1) * 0.05s);
+  will-change: transform, opacity;
+}
+
+.steps-modal.show .steps-table-row {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
 }
 
 [data-bs-theme="light"] .steps-table-row {
@@ -269,30 +299,54 @@ html {
 }
 
 .steps-table-step {
-  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--dplus-blue);
 }
 
+.steps-table-step-label {
+  font-size: 0.7rem;
+}
+
 .steps-table-body {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  line-height: 1.25;
 }
 
 .steps-table-body strong {
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .steps-table-rfp {
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   color: rgba(255, 255, 255, 0.75);
 }
 
 [data-bs-theme="light"] .steps-table-rfp {
   color: rgba(26, 26, 46, 0.7);
+}
+
+.steps-modal-dot {
+  cursor: default;
+  pointer-events: none;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .steps-modal .modal-dialog,
+  .steps-table-row,
+  .steps-modal.show .steps-table-row {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
 
 @media (max-width: 991px) {
@@ -1127,6 +1181,26 @@ html {
   background-color: rgba(0, 102, 255, 0.05);
 }
 
+.scenario-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.scenario-card-actions .badge {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.scenario-card-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0.25rem 0.45rem;
+}
+
 /* Event Timeline Slider Styles */
 .timeline-slider-container {
   position: relative;
@@ -1294,6 +1368,19 @@ html {
 [data-bs-theme="light"] .metric-display-card {
   background: rgba(0, 102, 255, 0.05);
   border: 1px solid rgba(0, 102, 255, 0.15);
+}
+
+.decision-engine-controls > [class*="col-"] {
+  display: flex;
+  flex-direction: column;
+}
+
+.decision-engine-controls .decision-engine-action {
+  margin-top: auto;
+}
+
+.decision-engine-spacer {
+  visibility: hidden;
 }
 
 .metric-row {
