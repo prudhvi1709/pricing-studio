@@ -10,6 +10,8 @@ class SegmentationEngine {
         this.segmentElasticity = null;
         this.customerSegments = null;
         this.segmentKPIs = null;
+        this.cohortCoefficients = null;
+        this.activeCohort = 'baseline';
 
         // Strategic segment axis definitions (based on customer personas)
         this.axisDefinitions = {
@@ -134,15 +136,17 @@ class SegmentationEngine {
      */
     async loadSegmentData() {
         try {
-            const [elasticity, segments, kpis] = await Promise.all([
+            const [elasticity, segments, kpis, cohorts] = await Promise.all([
                 d3.json('data/segment_elasticity.json'),
                 d3.csv('data/customer_segments.csv'),
-                d3.csv('data/segment_kpis.csv')
+                d3.csv('data/segment_kpis.csv'),
+                d3.json('data/cohort_coefficients.json')
             ]);
 
             this.segmentElasticity = elasticity;
             this.customerSegments = segments;
             this.segmentKPIs = this.#indexKPIsByCompositeKey(kpis);
+            this.cohortCoefficients = cohorts;
 
             return true;
         } catch (error) {
@@ -153,7 +157,7 @@ class SegmentationEngine {
 
     /**
      * Get elasticity with 4-level fallback strategy
-     * @param {string} tier - Subscription tier (ad_supported, ad_free, annual)
+     * @param {string} tier - Subscription tier (ad_supported, ad_free)
      * @param {string} compositeKey - Segment composite key "tenure|age|device"
      * @param {string} axis - Axis name ('engagement', 'monetization', 'acquisition')
      * @returns {number} Elasticity value
@@ -185,16 +189,21 @@ class SegmentationEngine {
                 const axisData = segmentData[axisKey];
 
                 if (axisData && axisData.elasticity !== undefined) {
-                    return axisData.elasticity;
+                    const multipliers = this.#getCohortMultipliers();
+                    return axisData.elasticity * (multipliers?.elasticity || 1);
                 }
             }
 
             // Level 2-4: Fallback to existing elasticity calculation
             // This integrates with the existing elasticity-model.js
-            return this.#getBaseFallback(tier);
+            const baseElasticity = this.#getBaseFallback(tier);
+            const multipliers = this.#getCohortMultipliers();
+            return baseElasticity * (multipliers?.elasticity || 1);
         } catch (error) {
             console.error('Error getting elasticity:', error);
-            return this.#getBaseFallback(tier);
+            const baseElasticity = this.#getBaseFallback(tier);
+            const multipliers = this.#getCohortMultipliers();
+            return baseElasticity * (multipliers?.elasticity || 1);
         }
     }
 
@@ -210,7 +219,10 @@ class SegmentationEngine {
         const tierData = this.segmentElasticity[tier];
         if (!tierData) return null;
 
-        return tierData.segment_elasticity?.[compositeKey] || null;
+        const segmentData = tierData.segment_elasticity?.[compositeKey];
+        if (!segmentData) return null;
+
+        return this.#applyCohortToSegmentData(segmentData);
     }
 
     /**
@@ -242,13 +254,14 @@ class SegmentationEngine {
                                        filters.monetization.includes(monetization);
 
             if (matchesAcquisition && matchesEngagement && matchesMonetization) {
+                const adjustedKPIs = this.#applyCohortToKPIs(kpis);
                 results.push({
                     compositeKey,
                     acquisition,
                     engagement,
                     monetization,
                     tier,
-                    ...kpis
+                    ...adjustedKPIs
                 });
             }
         }
@@ -311,15 +324,50 @@ class SegmentationEngine {
                 const parts = indexKey.split('|');
                 const compositeKey = parts.slice(1).join('|');
                 const [acquisition, engagement, monetization] = parts.slice(1);
+                const adjustedKPIs = this.#applyCohortToKPIs(kpis);
                 return {
                     compositeKey,
                     acquisition,
                     engagement,
                     monetization,
                     tier,
-                    ...kpis
+                    ...adjustedKPIs
                 };
             });
+    }
+
+    /**
+     * Get available cohort definitions
+     * @returns {Array<Object>} Cohort list with id, label, description
+     */
+    getCohortDefinitions() {
+        if (!this.cohortCoefficients) return [];
+        return Object.entries(this.cohortCoefficients).map(([id, data]) => ({
+            id,
+            label: data.label,
+            description: data.description || ''
+        }));
+    }
+
+    /**
+     * Set active cohort for calculations
+     * @param {string} cohortId - Cohort identifier
+     */
+    setActiveCohort(cohortId) {
+        if (!cohortId || !this.cohortCoefficients) return;
+        if (!this.cohortCoefficients[cohortId]) {
+            console.warn(`Unknown cohort: ${cohortId}`);
+            return;
+        }
+        this.activeCohort = cohortId;
+    }
+
+    /**
+     * Get active cohort id
+     * @returns {string}
+     */
+    getActiveCohort() {
+        return this.activeCohort || 'baseline';
     }
 
     /**
@@ -474,10 +522,88 @@ class SegmentationEngine {
     #getBaseFallback(tier) {
         const baseFallbacks = {
             'ad_supported': -2.1,
-            'ad_free': -1.7,
-            'annual': -1.5
+            'ad_free': -1.7
         };
         return baseFallbacks[tier] || -1.7;
+    }
+
+    /**
+     * Get cohort multipliers
+     * @private
+     */
+    #getCohortMultipliers() {
+        if (!this.cohortCoefficients) return null;
+        const cohort = this.cohortCoefficients[this.getActiveCohort()];
+        return cohort?.multipliers || null;
+    }
+
+    /**
+     * Apply cohort multipliers to axis data
+     * @private
+     */
+    #applyCohortToAxis(axisData) {
+        const multipliers = this.#getCohortMultipliers();
+        if (!multipliers || !axisData) return axisData;
+
+        const adjusted = { ...axisData };
+        if (typeof adjusted.elasticity === 'number') {
+            adjusted.elasticity = adjusted.elasticity * multipliers.elasticity;
+        }
+        if (typeof adjusted.churn_rate === 'number') {
+            adjusted.churn_rate = Math.min(1, Math.max(0, adjusted.churn_rate * multipliers.churn));
+        }
+        if (typeof adjusted.arpu === 'number') {
+            adjusted.arpu = adjusted.arpu * multipliers.arpu;
+        }
+        if (typeof adjusted.cac_sensitivity === 'number') {
+            adjusted.cac_sensitivity = adjusted.cac_sensitivity * multipliers.cac_sensitivity;
+        }
+        if (typeof adjusted.watch_hours === 'number') {
+            adjusted.watch_hours = adjusted.watch_hours * multipliers.watch_hours;
+        }
+        return adjusted;
+    }
+
+    /**
+     * Apply cohort multipliers to segment axis data
+     * @private
+     */
+    #applyCohortToSegmentData(segmentData) {
+        const adjusted = { ...segmentData };
+        if (segmentData.acquisition_axis) {
+            adjusted.acquisition_axis = this.#applyCohortToAxis(segmentData.acquisition_axis);
+        }
+        if (segmentData.engagement_axis) {
+            adjusted.engagement_axis = this.#applyCohortToAxis(segmentData.engagement_axis);
+        }
+        if (segmentData.monetization_axis) {
+            adjusted.monetization_axis = this.#applyCohortToAxis(segmentData.monetization_axis);
+        }
+        return adjusted;
+    }
+
+    /**
+     * Apply cohort multipliers to KPI values
+     * @private
+     */
+    #applyCohortToKPIs(kpis) {
+        const multipliers = this.#getCohortMultipliers();
+        if (!multipliers || !kpis) return kpis;
+
+        const adjusted = { ...kpis };
+        if (adjusted.avg_churn_rate !== undefined) {
+            adjusted.avg_churn_rate = Math.min(1, Math.max(0, parseFloat(adjusted.avg_churn_rate) * multipliers.churn));
+        }
+        if (adjusted.avg_arpu !== undefined) {
+            adjusted.avg_arpu = parseFloat(adjusted.avg_arpu) * multipliers.arpu;
+        }
+        if (adjusted.avg_watch_hours !== undefined) {
+            adjusted.avg_watch_hours = parseFloat(adjusted.avg_watch_hours) * multipliers.watch_hours;
+        }
+        if (adjusted.avg_cac !== undefined) {
+            adjusted.avg_cac = parseFloat(adjusted.avg_cac) * multipliers.cac;
+        }
+        return adjusted;
     }
 }
 

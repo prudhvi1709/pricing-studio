@@ -154,7 +154,7 @@ console.log("Ad-supported elasticity:", elasticity); // -2.1
 
 ### 1. Customer Segmentation & Elasticity (P1 - Complete)
 
-- **375 behavioral segments** across 3 tiers (ad-supported, ad-free, annual)
+- **375 behavioral segments** across 2 tiers (ad-supported, ad-free)
 - **3-Axis Framework**: Acquisition, Engagement, Monetization behaviors
 - **Interactive visualizations**: 3D radial charts and heatmaps
 - **Dynamic tooltips**: AI-generated segment summaries on hover
@@ -290,7 +290,6 @@ Price elasticity by tier (based on industry benchmarks):
 
 - **Ad-supported:** -2.1 (highly elastic)
 - **Ad-free:** -1.7 (moderately elastic)
-- **Annual:** -1.5 (less elastic)
 
 **Methodology:** Values derived from Netflix, Hulu, and Disney+ pricing studies (2022-2024). The synthetic data in this POC exhibits continuous growth patterns that mask price sensitivity, so we use validated industry benchmarks instead. See `ELASTICITY_METHODOLOGY.md` for detailed analysis.
 
@@ -306,7 +305,7 @@ Includes:
 
 ### Scenarios (scenarios.json)
 
-11 pre-built scenarios:
+10 pre-built scenarios:
 
 1. Increase Ad-supported by $1.00
 2. Increase Ad-free by $1.00
@@ -316,9 +315,8 @@ Includes:
 6. Remove Free Trial
 7. Decrease Ad-supported to $4.99
 8. Bundle with Premium Service at $14.99
-9. Annual Plan Discount: $59.99
-10. Platform-Specific: iOS +$0.99
-11. Do Nothing (Baseline)
+9. Platform-Specific: iOS +$0.99
+10. Do Nothing (Baseline)
 
 Each scenario includes:
 
@@ -334,7 +332,7 @@ Each scenario includes:
 
 ### Priority 1 (P1): Customer Segmentation ✅ COMPLETE
 
-- [x] Create segmentation data (375 segments, 3 tiers)
+- [x] Create segmentation data (375 segments, 2 tiers)
 - [x] Generate segment KPIs and elasticity parameters
 - [x] Implement segmentation engine (js/segmentation-engine.js)
 - [x] Build 3-axis radial visualization

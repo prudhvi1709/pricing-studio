@@ -437,7 +437,7 @@ export function renderDemandCurve(containerId, data, options = {}) {
  * Shows elasticity values across segments and tiers
  *
  * @param {string} containerId - DOM element ID
- * @param {Object} data - { segments: ['0-3mo', '3-12mo', '12+mo'], tiers: ['ad_supported', 'ad_free', 'annual'], values: [[...]] }
+ * @param {Object} data - { segments: ['0-3mo', '3-12mo', '12+mo'], tiers: ['ad_supported', 'ad_free'], values: [[...]] }
  */
 export function renderElasticityHeatmap(containerId, data, options = {}) {
   const container = d3.select(`#${containerId}`);
@@ -603,7 +603,7 @@ export function renderElasticityHeatmap(containerId, data, options = {}) {
  * Shows before/after tier distribution
  *
  * @param {string} containerId - DOM element ID
- * @param {Object} data - { baseline: {ad_supported, ad_free, annual}, forecasted: {...} }
+ * @param {Object} data - { baseline: {ad_supported, ad_free}, forecasted: {...} }
  */
 export function renderTierMixShift(containerId, data, options = {}) {
   const container = d3.select(`#${containerId}`);
@@ -620,9 +620,9 @@ export function renderTierMixShift(containerId, data, options = {}) {
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
   // Prepare data
-  const tiers = ['ad_supported', 'ad_free', 'annual'];
-  const tierLabels = ['Ad-Supported', 'Ad-Free', 'Annual'];
-  const colors = ['#dc3545', '#ffc107', '#28a745'];
+  const tiers = ['ad_supported', 'ad_free'];
+  const tierLabels = ['Ad-Supported', 'Ad-Free'];
+  const colors = ['#dc3545', '#ffc107'];
 
   const chartData = [
     { category: 'Baseline', values: tiers.map(t => data.baseline[t] || 0) },

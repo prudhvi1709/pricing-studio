@@ -1,0 +1,122 @@
+{
+  "baseline": {
+    "label": "All Cohorts (Baseline)",
+    "description": "No adjustments applied. Use this for the raw segment view.",
+    "multipliers": {
+      "elasticity": 1.0,
+      "churn": 1.0,
+      "arpu": 1.0,
+      "cac": 1.0,
+      "watch_hours": 1.0,
+      "cac_sensitivity": 1.0
+    }
+  },
+  "promo_driven_joiners": {
+    "label": "Promo Driven Joiners",
+    "description": "Discount-led acquisition cohorts with elevated price sensitivity.",
+    "multipliers": {
+      "elasticity": 1.25,
+      "churn": 1.15,
+      "arpu": 0.9,
+      "cac": 1.2,
+      "watch_hours": 0.9,
+      "cac_sensitivity": 1.2
+    }
+  },
+  "content_led_high_intent_joiners": {
+    "label": "Content Led High Intent Joiners",
+    "description": "Title-driven joiners with stronger intent and lower churn risk.",
+    "multipliers": {
+      "elasticity": 0.85,
+      "churn": 0.85,
+      "arpu": 1.1,
+      "cac": 0.95,
+      "watch_hours": 1.1,
+      "cac_sensitivity": 0.9
+    }
+  },
+  "long_tenure_loyalists": {
+    "label": "Long Tenure Loyalists",
+    "description": "Established subscribers with the lowest churn sensitivity.",
+    "multipliers": {
+      "elasticity": 0.75,
+      "churn": 0.7,
+      "arpu": 1.15,
+      "cac": 0.9,
+      "watch_hours": 1.1,
+      "cac_sensitivity": 0.85
+    }
+  },
+  "habitual_streamers": {
+    "label": "Habitual Streamers",
+    "description": "High-frequency viewers with stable engagement.",
+    "multipliers": {
+      "elasticity": 0.8,
+      "churn": 0.8,
+      "arpu": 1.05,
+      "cac": 0.95,
+      "watch_hours": 1.2,
+      "cac_sensitivity": 0.9
+    }
+  },
+  "price_sensitive_churn_risks": {
+    "label": "Price Sensitive Churn Risks",
+    "description": "High churn propensity and strong price reaction cohorts.",
+    "multipliers": {
+      "elasticity": 1.35,
+      "churn": 1.3,
+      "arpu": 0.85,
+      "cac": 1.1,
+      "watch_hours": 0.85,
+      "cac_sensitivity": 1.3
+    }
+  },
+  "promo_roll_off_churners": {
+    "label": "Promo Roll Off Churners",
+    "description": "Post-promo cohorts with elevated churn at roll-off.",
+    "multipliers": {
+      "elasticity": 1.2,
+      "churn": 1.25,
+      "arpu": 0.9,
+      "cac": 1.15,
+      "watch_hours": 0.9,
+      "cac_sensitivity": 1.15
+    }
+  },
+  "ad_supported_value_seekers": {
+    "label": "Ad Supported Value Seekers",
+    "description": "Ad-tier cohorts prioritizing value and low prices.",
+    "multipliers": {
+      "elasticity": 1.2,
+      "churn": 1.1,
+      "arpu": 0.85,
+      "cac": 1.05,
+      "watch_hours": 0.9,
+      "cac_sensitivity": 1.2
+    }
+  },
+  "ad_free_loyalists": {
+    "label": "Ad Free Loyalists",
+    "description": "Premium cohorts with strong retention and higher ARPU.",
+    "multipliers": {
+      "elasticity": 0.8,
+      "churn": 0.75,
+      "arpu": 1.15,
+      "cac": 0.95,
+      "watch_hours": 1.05,
+      "cac_sensitivity": 0.9
+    }
+  },
+  "tier_switchers": {
+    "label": "Tier Switchers",
+    "description": "Subscribers with higher migration propensity between tiers.",
+    "multipliers": {
+      "elasticity": 1.1,
+      "churn": 1.15,
+      "arpu": 0.95,
+      "cac": 1.05,
+      "watch_hours": 0.95,
+      "cac_sensitivity": 1.1
+    }
+  }
+}

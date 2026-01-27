@@ -477,7 +477,6 @@ function formatTier(tier) {
   const tiers = {
     'ad_supported': 'Ad-Supported',
     'ad_free': 'Ad-Free',
-    'annual': 'Annual',
     'bundle': 'Bundle',
     'all': 'All Tiers'
   };

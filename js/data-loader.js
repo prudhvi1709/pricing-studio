@@ -342,7 +342,7 @@ function parseCSV(csvText) {
 
 /**
  * Get elasticity for a specific tier and segment
- * @param {string} tier - Tier name (ad_supported, ad_free, annual)
+ * @param {string} tier - Tier name (ad_supported, ad_free)
  * @param {string} segment - Segment name (optional, e.g., 'new_0_3mo')
  * @returns {Promise<number>} Elasticity coefficient
  */

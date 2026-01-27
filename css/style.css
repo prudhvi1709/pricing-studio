@@ -650,10 +650,6 @@ html {
   border-left: 4px solid var(--dplus-blue);
 }
 
-.tier-card.annual {
-  border-left: 4px solid var(--dplus-purple);
-}
-
 .tier-name {
   font-size: 1.25rem;
   font-weight: 600;

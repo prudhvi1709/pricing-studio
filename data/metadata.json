@@ -45,7 +45,10 @@
           "format": "string",
           "example": "ad_free",
           "nullable": false,
-          "allowed_values": ["ad_supported", "ad_free", "annual"],
+          "allowed_values": [
+            "ad_supported",
+            "ad_free"
+          ],
           "constraints": "not null, must be one of allowed values"
         },
         "acquisition_channel": {
@@ -54,7 +57,13 @@
           "format": "string",
           "example": "paid_search",
           "nullable": false,
-          "allowed_values": ["organic", "paid_search", "paid_social", "partner", "referral"],
+          "allowed_values": [
+            "organic",
+            "paid_search",
+            "paid_social",
+            "partner",
+            "referral"
+          ],
           "constraints": "not null, must be one of allowed values"
         },
         "device_type": {
@@ -63,7 +72,13 @@
           "format": "string",
           "example": "mobile",
           "nullable": false,
-          "allowed_values": ["mobile", "web", "smart_tv", "roku", "firetv"],
+          "allowed_values": [
+            "mobile",
+            "web",
+            "smart_tv",
+            "roku",
+            "firetv"
+          ],
           "constraints": "not null, must be one of allowed values",
           "note": "Mobile includes both iOS and Android; consider splitting in future"
         },
@@ -73,7 +88,13 @@
           "format": "string",
           "example": "25-34",
           "nullable": false,
-          "allowed_values": ["18-24", "25-34", "35-44", "45-54", "55+"],
+          "allowed_values": [
+            "18-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55+"
+          ],
           "constraints": "not null, must be one of allowed values"
         },
         "tenure_days": {
@@ -141,7 +162,10 @@
           "format": "boolean",
           "example": false,
           "nullable": false,
-          "allowed_values": [true, false],
+          "allowed_values": [
+            true,
+            false
+          ],
           "constraints": "not null"
         },
         "churn_date": {
@@ -154,9 +178,9 @@
         },
         "current_price": {
           "type": "float",
-          "description": "Current subscription price (monthly or monthly equivalent for annual)",
+          "description": "Current subscription price (monthly)",
           "format": "float",
-          "example": 8.99,
+          "example": 9.99,
           "nullable": false,
           "constraints": "not null, > 0",
           "unit": "USD",
@@ -168,7 +192,10 @@
           "format": "boolean",
           "example": true,
           "nullable": false,
-          "allowed_values": [true, false],
+          "allowed_values": [
+            true,
+            false
+          ],
           "constraints": "not null, inverse of churned"
         }
       }
@@ -177,13 +204,16 @@
       "filename": "weekly_aggregated.csv",
       "description": "Pre-aggregated weekly KPIs by tier with integrated external factors for time series modeling",
       "record_count": 471,
-      "calculation": "157 weeks × 3 tiers",
+      "calculation": "157 weeks \u00d7 3 tiers",
       "date_range": {
         "start": "2022-01-02",
         "end": "2024-12-29"
       },
       "granularity": "weekly_by_tier",
-      "primary_key": ["date", "tier"],
+      "primary_key": [
+        "date",
+        "tier"
+      ],
       "update_frequency": "weekly",
       "size_kb": 136,
       "columns": {
@@ -201,7 +231,10 @@
           "format": "string",
           "example": "ad_supported",
           "nullable": false,
-          "allowed_values": ["ad_supported", "ad_free", "annual"]
+          "allowed_values": [
+            "ad_supported",
+            "ad_free"
+          ]
         },
         "new_subscribers": {
           "type": "integer",
@@ -258,7 +291,7 @@
           "nullable": false,
           "constraints": "not null, >= 0",
           "unit": "USD",
-          "calculation": "active_subscribers × price"
+          "calculation": "active_subscribers \u00d7 price"
         },
         "arpu": {
           "type": "float",
@@ -294,7 +327,10 @@
           "format": "boolean",
           "example": false,
           "nullable": false,
-          "allowed_values": [true, false]
+          "allowed_values": [
+            true,
+            false
+          ]
         },
         "promo_discount_pct": {
           "type": "float",
@@ -309,7 +345,7 @@
           "type": "float",
           "description": "Average engagement score across subscribers",
           "format": "float",
-          "example": 0.40,
+          "example": 0.4,
           "nullable": false,
           "constraints": "not null, 0 <= value <= 1",
           "unit": "score"
@@ -372,7 +408,7 @@
           "type": "float",
           "description": "US unemployment rate",
           "format": "float",
-          "example": 3.80,
+          "example": 3.8,
           "nullable": false,
           "constraints": "not null, >= 0",
           "unit": "percent"
@@ -390,7 +426,7 @@
           "type": "float",
           "description": "Consumer sentiment index",
           "format": "float",
-          "example": 106.30,
+          "example": 106.3,
           "nullable": false,
           "constraints": "not null, > 0",
           "unit": "index"
@@ -419,7 +455,10 @@
           "format": "boolean",
           "example": false,
           "nullable": false,
-          "allowed_values": [true, false]
+          "allowed_values": [
+            true,
+            false
+          ]
         },
         "price_lag1": {
           "type": "float",
@@ -481,7 +520,10 @@
           "format": "boolean",
           "example": false,
           "nullable": false,
-          "allowed_values": [true, false]
+          "allowed_values": [
+            true,
+            false
+          ]
         }
       }
     },
@@ -489,13 +531,16 @@
       "filename": "pricing_history.csv",
       "description": "Historical pricing changes, promotional periods, and effective prices by tier",
       "record_count": 471,
-      "calculation": "157 weeks × 3 tiers",
+      "calculation": "157 weeks \u00d7 3 tiers",
       "date_range": {
         "start": "2022-01-02",
         "end": "2024-12-29"
       },
       "granularity": "weekly_by_tier",
-      "primary_key": ["date", "tier"],
+      "primary_key": [
+        "date",
+        "tier"
+      ],
       "update_frequency": "weekly",
       "size_kb": 24,
       "columns": {
@@ -512,7 +557,10 @@
           "format": "string",
           "example": "ad_supported",
           "nullable": false,
-          "allowed_values": ["ad_supported", "ad_free", "annual"]
+          "allowed_values": [
+            "ad_supported",
+            "ad_free"
+          ]
         },
         "base_price": {
           "type": "float",
@@ -547,7 +595,7 @@
           "nullable": false,
           "constraints": "not null, > 0",
           "unit": "USD",
-          "calculation": "base_price × (1 - promo_discount_pct / 100)"
+          "calculation": "base_price \u00d7 (1 - promo_discount_pct / 100)"
         },
         "price_changed": {
           "type": "boolean",
@@ -564,7 +612,7 @@
           "nullable": false,
           "constraints": "not null",
           "unit": "percent",
-          "calculation": "(current_price - previous_price) / previous_price × 100"
+          "calculation": "(current_price - previous_price) / previous_price \u00d7 100"
         }
       }
     },
@@ -592,7 +640,7 @@
           "type": "float",
           "description": "US unemployment rate",
           "format": "float",
-          "example": 3.80,
+          "example": 3.8,
           "nullable": false,
           "constraints": "not null, >= 0",
           "unit": "percent",
@@ -612,7 +660,7 @@
           "type": "float",
           "description": "Consumer sentiment index",
           "format": "float",
-          "example": 106.30,
+          "example": 106.3,
           "nullable": false,
           "constraints": "not null, > 0",
           "unit": "index",
@@ -733,7 +781,7 @@
           "type": "float",
           "description": "Other marketing channels",
           "format": "float",
-          "example": 28867.80,
+          "example": 28867.8,
           "nullable": false,
           "constraints": "not null, >= 0",
           "unit": "USD"
@@ -806,9 +854,9 @@
       "size_kb": 15,
       "generated_date": "2026-01-13",
       "estimation_method": "Hybrid approach combining historical price change analysis and industry benchmarks",
-      "confidence_level": 0.90,
+      "confidence_level": 0.9,
       "structure": {
-        "tiers": "Elasticity by tier (ad_supported, ad_free, annual)",
+        "tiers": "Elasticity by tier (ad_supported, ad_free)",
         "segments": "Segment-level elasticity by tenure (0-3mo, 3-12mo, 12+mo)",
         "cohort_elasticity": "Elasticity by age, device, channel, promo status",
         "cross_elasticity": "Cross-price elasticity between tiers",
@@ -860,7 +908,7 @@
     "CLTV": {
       "term": "Customer Lifetime Value",
       "definition": "Predicted total revenue from a subscriber over their lifetime",
-      "calculation": "ARPU × average_lifetime_months",
+      "calculation": "ARPU \u00d7 average_lifetime_months",
       "unit": "USD",
       "importance": "Long-term value metric for acquisition decisions"
     },
@@ -895,8 +943,8 @@
       "calculation": "% change in demand for tier A / % change in price of tier B",
       "unit": "coefficient",
       "interpretation": {
-        "positive": "Substitute goods (increase price of B → demand for A increases)",
-        "negative": "Complementary goods (increase price of B → demand for A decreases)"
+        "positive": "Substitute goods (increase price of B \u2192 demand for A increases)",
+        "negative": "Complementary goods (increase price of B \u2192 demand for A decreases)"
       },
       "importance": "Tier mix optimization"
     },

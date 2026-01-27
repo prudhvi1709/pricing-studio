@@ -34,8 +34,6 @@ async function loadChurnParams() {
     // Use ad_supported tier as default (UI allows tier selection via buttons)
     const adSupportedChurn = elasticityData.churn_elasticity.ad_supported;
     const adFreeChurn = elasticityData.churn_elasticity.ad_free;
-    const annualChurn = elasticityData.churn_elasticity.annual;
-
     churnParams = {
       ad_supported: {
         churn_elasticity: adSupportedChurn.churn_elasticity,
@@ -46,11 +44,6 @@ async function loadChurnParams() {
         churn_elasticity: adFreeChurn.churn_elasticity,
         baseline_churn: adFreeChurn.baseline_churn * 100,
         price: elasticityData.tiers.ad_free.price_range.current
-      },
-      annual: {
-        churn_elasticity: annualChurn.churn_elasticity,
-        baseline_churn: annualChurn.baseline_churn * 100,
-        price: elasticityData.tiers.annual.price_range.current
       }
     };
 
@@ -327,10 +320,8 @@ function setupChurnInteractivity() {
       const price = parseFloat(btn.dataset.price);
       if (price === 5.99) {
         currentTier = 'ad_supported';
-      } else if (price === 8.99) {
+      } else if (price === 9.99) {
         currentTier = 'ad_free';
-      } else if (price === 71.88) {
-        currentTier = 'annual';
       }
       updateChurnModel(currentTier);
     });

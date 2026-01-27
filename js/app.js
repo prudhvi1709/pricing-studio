@@ -62,7 +62,7 @@ async function loadKPIs() {
     const latestWeek = {};
 
     // Get latest week for each tier
-    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+    ['ad_supported', 'ad_free'].forEach(tier => {
       const tierData = weeklyData.filter(d => d.tier === tier);
       latestWeek[tier] = tierData[tierData.length - 1];
     });
@@ -71,7 +71,7 @@ async function loadKPIs() {
     const totalSubs = Object.values(latestWeek).reduce((sum, d) => sum + d.active_subscribers, 0);
     const totalRevenue = Object.values(latestWeek).reduce((sum, d) => sum + d.revenue, 0) * 4; // Weekly to monthly
     const avgARPU = totalRevenue / totalSubs;
-    const avgChurn = Object.values(latestWeek).reduce((sum, d) => sum + d.churn_rate, 0) / 3;
+    const avgChurn = Object.values(latestWeek).reduce((sum, d) => sum + d.churn_rate, 0) / 2;
 
     // Update KPI cards
     document.getElementById('kpi-subscribers').textContent = formatNumber(totalSubs);
@@ -111,7 +111,7 @@ async function updateElasticityAnalysis(result) {
 
     // Get baseline data
     const latestWeek = {};
-    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+    ['ad_supported', 'ad_free'].forEach(tier => {
       const tierData = weeklyData.filter(d => d.tier === tier);
       latestWeek[tier] = tierData[tierData.length - 1];
     });
@@ -134,21 +134,13 @@ async function updateElasticityAnalysis(result) {
         {
           name: 'Ad-Free',
           elasticity: params.tiers.ad_free.base_elasticity,
-          currentPrice: 8.99,
+          currentPrice: 9.99,
           currentSubs: latestWeek.ad_free.active_subscribers,
           newPrice: affectedTier === 'ad_free' ? scenarioPrice : null,
           newSubs: affectedTier === 'ad_free' ? result.forecasted.subscribers : null,
           color: '#ffc107'
         },
-        {
-          name: 'Annual',
-          elasticity: params.tiers.annual.base_elasticity,
-          currentPrice: 5.99,
-          currentSubs: latestWeek.annual.active_subscribers,
-          newPrice: affectedTier === 'annual' ? scenarioPrice : null,
-          newSubs: affectedTier === 'annual' ? result.forecasted.subscribers : null,
-          color: '#28a745'
-        }
+        
       ]
     };
 
@@ -166,7 +158,7 @@ async function loadElasticityAnalytics() {
 
     // Prepare demand curve data
     const latestWeek = {};
-    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+    ['ad_supported', 'ad_free'].forEach(tier => {
       const tierData = weeklyData.filter(d => d.tier === tier);
       latestWeek[tier] = tierData[tierData.length - 1];
     });
@@ -183,17 +175,11 @@ async function loadElasticityAnalytics() {
         {
           name: 'Ad-Free',
           elasticity: params.tiers.ad_free.base_elasticity,
-          currentPrice: 8.99,
+          currentPrice: 9.99,
           currentSubs: latestWeek.ad_free.active_subscribers,
           color: '#ffc107'
         },
-        {
-          name: 'Annual',
-          elasticity: params.tiers.annual.base_elasticity,
-          currentPrice: 5.99,
-          currentSubs: latestWeek.annual.active_subscribers,
-          color: '#28a745'
-        }
+        
       ]
     };
 
@@ -201,7 +187,7 @@ async function loadElasticityAnalytics() {
 
     // Prepare heatmap data
     const segments = ['new_0_3mo', 'tenured_3_12mo', 'tenured_12plus'];
-    const tiers = ['ad_supported', 'ad_free', 'annual'];
+    const tiers = ['ad_supported', 'ad_free'];
     const values = segments.map(segment =>
       tiers.map(tier => {
         if (params.tiers[tier].segments && params.tiers[tier].segments[segment]) {
@@ -213,7 +199,7 @@ async function loadElasticityAnalytics() {
 
     const heatmapData = {
       segments: ['New (0-3mo)', 'Tenured (3-12mo)', 'Tenured (12+mo)'],
-      tiers: ['Ad-Supported', 'Ad-Free', 'Annual'],
+      tiers: ['Ad-Supported', 'Ad-Free'],
       values: values
     };
 
@@ -233,14 +219,14 @@ async function initializeChatContext() {
     // Get current KPI values
     const weeklyData = await getWeeklyData('all');
     const latestWeek = {};
-    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+    ['ad_supported', 'ad_free'].forEach(tier => {
       const tierData = weeklyData.filter(d => d.tier === tier);
       latestWeek[tier] = tierData[tierData.length - 1];
     });
 
     const totalSubs = Object.values(latestWeek).reduce((sum, d) => sum + d.active_subscribers, 0);
     const totalRevenue = Object.values(latestWeek).reduce((sum, d) => sum + d.revenue, 0) * 4;
-    const avgChurn = Object.values(latestWeek).reduce((sum, d) => sum + d.churn_rate, 0) / 3;
+    const avgChurn = Object.values(latestWeek).reduce((sum, d) => sum + d.churn_rate, 0) / 2;
 
     // Load elasticity parameters for visualization context
     const elasticityParams = await loadElasticityParams();
@@ -267,12 +253,11 @@ async function initializeChatContext() {
         elasticityByTier: {
           ad_supported: elasticityParams.tiers.ad_supported.base_elasticity,
           ad_free: elasticityParams.tiers.ad_free.base_elasticity,
-          annual: elasticityParams.tiers.annual.base_elasticity
+          
         },
         tierPricing: {
           ad_supported: 5.99,
-          ad_free: 8.99,
-          annual: 71.88
+          ad_free: 9.99
         }
       },
 
@@ -282,8 +267,7 @@ async function initializeChatContext() {
           description: "Shows price elasticity - how demand changes with price for each tier",
           tiers: [
             { name: 'Ad-Supported', elasticity: elasticityParams.tiers.ad_supported.base_elasticity, price: 5.99 },
-            { name: 'Ad-Free', elasticity: elasticityParams.tiers.ad_free.base_elasticity, price: 8.99 },
-            { name: 'Annual', elasticity: elasticityParams.tiers.annual.base_elasticity, price: 71.88 }
+            { name: 'Ad-Free', elasticity: elasticityParams.tiers.ad_free.base_elasticity, price: 9.99 }
           ]
         },
         tierMix: currentResult ? {
@@ -374,10 +358,10 @@ async function initializeChatContext() {
       suggestScenario: async (goal) => {
         const goalMap = {
           maximize_revenue: {
-            strategy: 'Price increase on low-elasticity tier',
-            tier: 'annual',
-            priceChange: +2.00,
-            rationale: 'Annual tier has lowest elasticity (-1.6), so price increases cause least subscriber loss'
+            strategy: 'Price increase on lower-elasticity tier',
+            tier: 'ad_free',
+            priceChange: +1.00,
+            rationale: 'Ad-Free has lower elasticity than Ad-Supported, so moderate increases reduce subscriber loss'
           },
           grow_subscribers: {
             strategy: 'Aggressive promotion on high-elasticity tier',
@@ -406,8 +390,7 @@ async function initializeChatContext() {
 
         const tierPrices = {
           ad_supported: 5.99,
-          ad_free: 8.99,
-          annual: 71.88
+          ad_free: 9.99
         };
 
         const currentPrice = tierPrices[suggestion.tier];
@@ -438,8 +421,7 @@ async function initializeChatContext() {
             interpretation: [
               'Steeper curve = higher elasticity = more price-sensitive customers',
               `Ad-Supported (elasticity ${elasticityParams.tiers.ad_supported.base_elasticity}): Most price-sensitive`,
-              `Ad-Free (elasticity ${elasticityParams.tiers.ad_free.base_elasticity}): Moderately price-sensitive`,
-              `Annual (elasticity ${elasticityParams.tiers.annual.base_elasticity}): Least price-sensitive`
+              `Ad-Free (elasticity ${elasticityParams.tiers.ad_free.base_elasticity}): Moderately price-sensitive`
             ],
             insights: 'Use this to identify optimal price points for each tier. Flatter curves allow for price increases with minimal subscriber loss.'
           },
@@ -534,14 +516,13 @@ async function initializeChatContext() {
       createScenario: async (parameters) => {
         const { tier, price_change, promotion_discount, promotion_duration } = parameters;
 
-        if (!tier || !['ad_supported', 'ad_free', 'annual'].includes(tier)) {
-          throw new Error('Invalid tier. Must be: ad_supported, ad_free, or annual');
+        if (!tier || !['ad_supported', 'ad_free'].includes(tier)) {
+          throw new Error('Invalid tier. Must be: ad_supported or ad_free');
         }
 
         const tierPrices = {
           ad_supported: 5.99,
-          ad_free: 8.99,
-          annual: 71.88
+          ad_free: 9.99
         };
 
         const currentPrice = tierPrices[tier];
@@ -1007,6 +988,8 @@ function initializePopovers() {
  * Initialize the segmentation section
  */
 function initializeSegmentationSection() {
+  populateCohortSelector('segment-cohort-select');
+
   // Populate filter pills for each axis
   populateFilterPills(
     'acquisition-filters',
@@ -1028,11 +1011,18 @@ function initializeSegmentationSection() {
   const tierSelector = document.getElementById('segment-tier-select');
   const axisSelector = document.getElementById('segment-axis-select');
   const vizTypeSelector = document.getElementById('segment-viz-select');
+  const cohortSelector = document.getElementById('segment-cohort-select');
   const clearFiltersBtn = document.getElementById('clear-filters-btn');
 
   tierSelector.addEventListener('change', updateSegmentVisualization);
   axisSelector.addEventListener('change', updateSegmentVisualization);
   vizTypeSelector.addEventListener('change', updateSegmentVisualization);
+  cohortSelector?.addEventListener('change', () => {
+    window.segmentEngine.setActiveCohort(cohortSelector.value);
+    syncCohortSelectors(cohortSelector.value);
+    updateSegmentVisualization();
+    renderSegmentComparisonTable();
+  });
   clearFiltersBtn.addEventListener('click', clearAllFilters);
 
   // 3-axis view buttons
@@ -1055,6 +1045,42 @@ function initializeSegmentationSection() {
 
   // Initial render
   updateSegmentVisualization();
+}
+
+/**
+ * Populate cohort selector options
+ * @param {string} selectId - Select element ID
+ */
+function populateCohortSelector(selectId) {
+  const selector = document.getElementById(selectId);
+  if (!selector || !window.segmentEngine) return;
+
+  const cohorts = window.segmentEngine.getCohortDefinitions();
+  if (!cohorts.length) return;
+
+  selector.innerHTML = '';
+  cohorts.forEach(cohort => {
+    const option = document.createElement('option');
+    option.value = cohort.id;
+    option.textContent = cohort.label;
+    if (cohort.id === window.segmentEngine.getActiveCohort()) {
+      option.selected = true;
+    }
+    selector.appendChild(option);
+  });
+}
+
+/**
+ * Keep cohort selectors in sync
+ * @param {string} cohortId - Selected cohort id
+ */
+function syncCohortSelectors(cohortId) {
+  ['segment-cohort-select', 'compare-cohort-select'].forEach(selectId => {
+    const selector = document.getElementById(selectId);
+    if (selector && selector.value !== cohortId) {
+      selector.value = cohortId;
+    }
+  });
 }
 
 /**
@@ -1298,12 +1324,22 @@ function initializeSegmentComparison() {
   const compareAxisSelect = document.getElementById('compare-axis-select');
   const compareTierSelect = document.getElementById('compare-tier-select');
   const compareSortSelect = document.getElementById('compare-sort-select');
+  const compareCohortSelect = document.getElementById('compare-cohort-select');
 
   if (!compareAxisSelect || !compareTierSelect || !compareSortSelect) return;
 
   compareAxisSelect.addEventListener('change', renderSegmentComparisonTable);
   compareTierSelect.addEventListener('change', renderSegmentComparisonTable);
   compareSortSelect.addEventListener('change', renderSegmentComparisonTable);
+  if (compareCohortSelect) {
+    populateCohortSelector('compare-cohort-select');
+    compareCohortSelect.addEventListener('change', () => {
+      window.segmentEngine.setActiveCohort(compareCohortSelect.value);
+      syncCohortSelectors(compareCohortSelect.value);
+      updateSegmentVisualization();
+      renderSegmentComparisonTable();
+    });
+  }
 
   // Initial render
   renderSegmentComparisonTable();
@@ -1466,6 +1502,7 @@ function updateFilterSummary() {
 function exportSegmentsToCSV() {
   const tier = document.getElementById('segment-tier-select').value;
   const segments = window.segmentEngine.getSegmentsForTier(tier);
+  const cohort = window.segmentEngine.getActiveCohort();
 
   const headers = [
     'Composite Key',
@@ -1497,7 +1534,7 @@ function exportSegmentsToCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `segments-${tier}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `segments-${tier}-${cohort}-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -1559,6 +1596,14 @@ async function init() {
   // Chat event listeners
   document.getElementById('configure-llm')?.addEventListener('click', configureLLM);
   document.getElementById('chat-send-btn')?.addEventListener('click', handleChatSend);
+  document.getElementById('chat-reset-btn')?.addEventListener('click', () => {
+    clearHistory();
+    const input = document.getElementById('chat-input');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+  });
   const chatInput = document.getElementById('chat-input');
   if (chatInput) {
     chatInput.addEventListener('keypress', (e) => {

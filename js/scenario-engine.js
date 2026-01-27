@@ -199,7 +199,7 @@ export async function simulateScenario(scenario, options = {}) {
 async function simulateBaselineScenario(scenario, options = {}) {
   try {
     // Get current data for all three main tiers
-    const tiers = ['ad_supported', 'ad_free', 'annual'];
+    const tiers = ['ad_supported', 'ad_free'];
     const weeklyData = await getWeeklyData('all');
 
     // Calculate aggregated metrics across all tiers
@@ -1062,7 +1062,7 @@ export async function simulateScenarioWithPyodide(scenario, options = {}) {
       segment_elasticity: options.segmentElasticity || -1.8,
       baseline_churn: baseline.churnRate || 0.05,
       ad_supported_price: 5.99,  // TODO: Get from pricing data
-      ad_free_price: 8.99
+      ad_free_price: 9.99
     };
 
     // Run Python model predictions in parallel

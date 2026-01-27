@@ -62,8 +62,7 @@ const DEFAULT_SYSTEM_PROMPT = `You are the Scenario Analysis Assistant for the D
 
 **Price Elasticity by Tier:**
 - Ad-Supported ($5.99/mo): {elasticityAdSupported} (Most price-sensitive)
-- Ad-Free ($8.99/mo): {elasticityAdFree} (Moderately elastic)
-- Annual ($71.88/yr): {elasticityAnnual} (Least elastic)
+- Ad-Free ($9.99/mo): {elasticityAdFree} (Moderately elastic)
 
 **Available Scenarios:**
 {availableScenarios}
@@ -106,6 +105,9 @@ const DEFAULT_SYSTEM_PROMPT = `You are the Scenario Analysis Assistant for the D
 - Cite elasticity values when explaining price sensitivity
 - When users save scenarios, you can compare them using the compare_outcomes tool
 - Saved scenarios represent different pricing strategies the user is evaluating
+
+Be very concise and informative in your responses. No much questions to the user.
+Return the response in Markdown format for rich text display. (Bold important points, use lists for clarity, and include code blocks for any data or JSON.)
 
 **Example Interactions:**
 User: "Interpret the current scenario"
@@ -311,7 +313,6 @@ function buildSystemPrompt() {
         segmentSummary = `${totalSegments} behavioral segments across 3 tiers:
 - Ad-Supported: ${tierCounts['ad_supported'] || 0} segments
 - Ad-Free: ${tierCounts['ad_free'] || 0} segments
-- Annual: ${tierCounts['annual'] || 0} segments
 Total Subscribers: ${totalSubscribers.toLocaleString()}
 Avg Churn Rate: ${avgChurn}%
 Avg ARPU: $${avgARPU}`;
@@ -351,7 +352,6 @@ You can also target by behavioral axes:
     .replace('{currentChurn}', businessContext.currentChurn ? `${(businessContext.currentChurn * 100).toFixed(2)}%` : 'N/A')
     .replace('{elasticityAdSupported}', (businessContext.elasticityByTier?.ad_supported || -2.1).toString())
     .replace('{elasticityAdFree}', (businessContext.elasticityByTier?.ad_free || -1.9).toString())
-    .replace('{elasticityAnnual}', (businessContext.elasticityByTier?.annual || -1.6).toString())
     .replace('{availableScenarios}', allScenarios.slice(0, 8).map(s => `- ${s.id}: ${s.name}`).join('\n') || 'None loaded yet')
     .replace('{currentSimulation}', currentSim && currentSim.delta ? `Active: "${currentSim.scenario_name}" - Revenue ${currentSim.delta.revenue_pct >= 0 ? '+' : ''}${currentSim.delta.revenue_pct.toFixed(1)}%, Subscribers ${currentSim.delta.subscribers_pct >= 0 ? '+' : ''}${currentSim.delta.subscribers_pct.toFixed(1)}%` : currentSim ? `Active: "${currentSim.scenario_name}"` : 'No scenario simulated yet')
     .replace('{savedScenarios}', savedScenariosText)
@@ -448,7 +448,7 @@ function getToolDefinitions() {
           properties: {
             tier: {
               type: "string",
-              enum: ["ad_supported", "ad_free", "annual"],
+              enum: ["ad_supported", "ad_free"],
               description: "The subscription tier to apply changes to"
             },
             price_change: {
@@ -478,7 +478,7 @@ function getToolDefinitions() {
           properties: {
             tier: {
               type: "string",
-              enum: ["ad_supported", "ad_free", "annual", "all"],
+              enum: ["ad_supported", "ad_free", "all"],
               description: "Filter by subscription tier. Use 'all' to include all tiers."
             },
             size: {

@@ -9,7 +9,7 @@ import { loadElasticityParams } from './data-loader.js';
 
 /**
  * Calculate elasticity for a specific tier and segment
- * @param {string} tier - Tier name (ad_supported, ad_free, annual)
+ * @param {string} tier - Tier name (ad_supported, ad_free)
  * @param {string} segment - Segment name (optional)
  * @param {Object} options - Additional options {cohort, timeHorizon}
  * @returns {Promise<Object>} Elasticity object with value and confidence interval
@@ -271,8 +271,7 @@ export async function forecastAcquisition(tier, priceChangePct, baselineAcquisit
 function getCurrentPriceForTier(tier) {
   const prices = {
     ad_supported: 5.99,
-    ad_free: 8.99,
-    annual: 5.99
+    ad_free: 9.99
   };
   return prices[tier] || null;
 }

@@ -161,7 +161,7 @@
       <!-- Pricing Tiers -->
       <h5 class="mb-3" style="color: rgba(255,255,255,0.8);">Current Pricing Tiers</h5>
       <div class="row g-4 mb-5">
-        <div class="col-md-4">
+        <div class="col-md-6">
           <div class="glass-card tier-card ad-lite">
             <div class="tier-name">Ad-Supported</div>
             <div class="tier-price">$5.99<span>/month</span></div>
@@ -170,21 +170,12 @@
             </div>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
           <div class="glass-card tier-card ad-free">
             <div class="tier-name">Ad-Free</div>
-            <div class="tier-price">$8.99<span>/month</span></div>
+            <div class="tier-price">$9.99<span>/month</span></div>
             <div class="mt-2" style="color: rgba(255,255,255,0.5); font-size: 0.875rem;">
               No ads • 4K streaming • Downloads
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="glass-card tier-card annual">
-            <div class="tier-name">Annual Plan</div>
-            <div class="tier-price">$71.88<span>/year</span></div>
-            <div class="mt-2" style="color: rgba(255,255,255,0.5); font-size: 0.875rem;">
-              $5.99/mo equivalent • Save 17%
             </div>
           </div>
         </div>
@@ -605,8 +596,7 @@
                     <label class="form-label fw-semibold">Select Tier</label>
                     <select class="form-select" id="acq-tier-select">
                       <option value="ad_supported">Ad-Lite ($5.99)</option>
-                      <option value="ad_free">Ad-Free ($8.99)</option>
-                      <option value="annual">Annual ($71.88)</option>
+                      <option value="ad_free">Ad-Free ($9.99)</option>
                     </select>
                   </div>
 
@@ -772,7 +762,7 @@
                     <label class="form-label fw-semibold">Current Tier Price</label>
                     <div class="d-flex gap-2">
                       <button class="btn btn-sm btn-outline-primary tier-btn active" data-price="5.99">$5.99</button>
-                      <button class="btn btn-sm btn-outline-primary tier-btn" data-price="8.99">$8.99</button>
+                      <button class="btn btn-sm btn-outline-primary tier-btn" data-price="9.99">$9.99</button>
                     </div>
                   </div>
 
@@ -942,8 +932,8 @@
 
                   <!-- Ad-Free Price Slider -->
                   <div class="mb-4">
-                    <label class="form-label fw-semibold">Ad-Free Price: <strong class="text-primary" id="mig-adfree-display">$8.99</strong></label>
-                    <input type="range" class="price-slider" id="mig-adfree-slider" min="6.99" max="12.99" step="0.50" value="8.99">
+                    <label class="form-label fw-semibold">Ad-Free Price: <strong class="text-primary" id="mig-adfree-display">$9.99</strong></label>
+                    <input type="range" class="price-slider" id="mig-adfree-slider" min="6.99" max="12.99" step="0.50" value="9.99">
                     <div class="d-flex justify-content-between mt-1 small text-muted">
                       <span>$6.99</span>
                       <span>$12.99</span>
@@ -1454,15 +1444,14 @@
       <div class="card-body">
         <!-- Control Panel -->
         <div class="row g-3 mb-4">
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label fw-bold">Subscription Tier</label>
             <select id="segment-tier-select" class="form-select">
               <option value="ad_supported">Ad-Supported</option>
               <option value="ad_free" selected>Ad-Free</option>
-              <option value="annual">Annual</option>
             </select>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label fw-bold">Behavioral Axis</label>
             <select id="segment-axis-select" class="form-select">
               <option value="acquisition">Axis 3: Acquisition Price Sensitivity</option>
@@ -1470,12 +1459,18 @@
               <option value="monetization">Axis 1: Monetization & Plan Type</option>
             </select>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label fw-bold">Visualization Type</label>
             <select id="segment-viz-select" class="form-select">
               <option value="heatmap">Elasticity Heatmap</option>
               <option value="3axis" selected>3-Axis Framework</option>
               <option value="scatter">Scatter Plot (Elasticity vs Subscribers)</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Cohort View</label>
+            <select id="segment-cohort-select" class="form-select">
+              <option value="baseline" selected>All Cohorts (Baseline)</option>
             </select>
           </div>
         </div>
@@ -1596,7 +1591,7 @@
       <div class="card-body">
         <!-- Controls -->
         <div class="row mb-4">
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label fw-bold">Compare By</label>
             <select id="compare-axis-select" class="form-select">
               <option value="acquisition">Acquisition Price Sensitivity</option>
@@ -1604,21 +1599,26 @@
               <option value="monetization">Monetization & Plan Type</option>
             </select>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label fw-bold">Tier</label>
             <select id="compare-tier-select" class="form-select">
               <option value="ad_supported">Ad-Supported</option>
               <option value="ad_free" selected>Ad-Free</option>
-              <option value="annual">Annual</option>
             </select>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label fw-bold">Sort By</label>
             <select id="compare-sort-select" class="form-select">
               <option value="elasticity">Elasticity (Most Elastic First)</option>
               <option value="subscribers">Subscribers (Largest First)</option>
               <option value="churn">Churn Rate (Highest First)</option>
               <option value="arpu">ARPU (Highest First)</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Cohort View</label>
+            <select id="compare-cohort-select" class="form-select">
+              <option value="baseline" selected>All Cohorts (Baseline)</option>
             </select>
           </div>
         </div>
@@ -1757,15 +1757,19 @@
   <div id="chat-section" style="display: none;">
   <div class="container my-4">
     <div class="card">
-      <div class="card-header">
+      <div class="card-header d-flex align-items-center justify-content-between">
         <h2 class="h5 mb-0">
           <i class="bi bi-chat-dots me-2"></i>
           Ask Questions About Scenarios
         </h2>
+        <button id="chat-reset-btn" class="btn btn-sm btn-outline-secondary" type="button">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>
+          Reset
+        </button>
       </div>
       <div class="card-body">
         <!-- Chat Messages -->
-        <div id="chat-messages" class="mb-3 border rounded p-3" style="height: 500px; overflow-y: auto; background-color: var(--bs-light-bg-subtle);">
+        <div id="chat-messages" class="mb-3 border rounded p-3" style="height: 500px; overflow-y: auto;">
           <div class="text-center text-muted mt-5">
             <i class="bi bi-robot display-4 mb-3"></i>
             <p><strong>Scenario Analysis Assistant</strong></p>
@@ -2006,11 +2010,6 @@
                 <td><strong>-1.7</strong></td>
                 <td>Moderately sensitive (quality conscious)</td>
               </tr>
-              <tr>
-                <td>Annual</td>
-                <td><strong>-1.5</strong></td>
-                <td>Least sensitive (committed subscribers)</td>
-              </tr>
             </tbody>
           </table>
 
@@ -2231,17 +2230,6 @@
             </div>
           </div>
 
-          <div class="card mb-3">
-            <div class="card-header "><strong>Annual Conversions</strong></div>
-            <div class="card-body">
-              <ul class="mb-0">
-                <li>Monthly → Annual conversion: <strong>8-12% annually</strong></li>
-                <li>Driven by 2-month savings threshold</li>
-                <li>Lower conversion if upfront cost > $100</li>
-              </ul>
-            </div>
-          </div>
-
           <h6 class="mb-3 mt-4"><i class="bi bi-calculator-fill me-2"></i> Simulation Logic</h6>
           <ol>
             <li>Calculate new price gaps between all tier pairs</li>
@@ -2443,7 +2431,7 @@
           <h6 class="mb-3 mt-4" style="color: #6366f1;"><i class="bi bi-funnel me-2"></i> Filtering & Aggregation</h6>
           <p>Analysis supports multiple filter combinations:</p>
           <ul>
-            <li><strong>By Tier:</strong> Compare within ad-supported, ad-free, or annual tiers</li>
+            <li><strong>By Tier:</strong> Compare within ad-supported or ad-free tiers</li>
             <li><strong>By Tenure:</strong> New (0-6mo), mid-tenure (6-18mo), loyal (18+mo)</li>
             <li><strong>By Engagement:</strong> Heavy users (>20hr/month), light users (<5hr/month)</li>
             <li><strong>By Risk:</strong> High churn risk (>10% monthly), stable (<3% monthly)</li>

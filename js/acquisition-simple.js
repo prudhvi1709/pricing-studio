@@ -31,7 +31,7 @@ async function loadAcquisitionParams() {
     const recentWeeks = weeklyData.slice(-12);
     const avgNewSubs = {};
 
-    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+    ['ad_supported', 'ad_free'].forEach(tier => {
       const tierWeeks = recentWeeks.filter(w => w.tier === tier);
       const avgNew = tierWeeks.reduce((sum, w) => sum + parseFloat(w.new_subscribers || 0), 0) / tierWeeks.length;
       avgNewSubs[tier] = Math.round(avgNew);
@@ -39,7 +39,7 @@ async function loadAcquisitionParams() {
 
     // Build params object from actual data
     acquisitionParams = {};
-    ['ad_supported', 'ad_free', 'annual'].forEach(tier => {
+    ['ad_supported', 'ad_free'].forEach(tier => {
       const tierData = elasticityData.tiers[tier];
       const totalNew = avgNewSubs[tier];
 
@@ -260,12 +260,7 @@ function setupAcquisitionInteractivity() {
     const params = acquisitionParams[tier];
 
     // Update slider range based on tier
-    if (tier === 'annual') {
-      priceSlider.min = 49.99;
-      priceSlider.max = 99.99;
-      priceSlider.value = params.price;
-      priceSlider.step = 5;
-    } else if (tier === 'ad_free') {
+    if (tier === 'ad_free') {
       priceSlider.min = 6.99;
       priceSlider.max = 12.99;
       priceSlider.value = params.price;
