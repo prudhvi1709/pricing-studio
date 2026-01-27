@@ -171,7 +171,7 @@ function createAcquisitionChartSimple() {
   acquisitionChartSimple = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['New (0-3mo)', 'Mid-tenure (3-12mo)', 'Loyal (12+mo)'],
+      labels: ['0–3 months', '3–12 months', '12+ months'],
       datasets: [
         {
           label: 'Baseline',
@@ -232,6 +232,11 @@ function createAcquisitionChartSimple() {
         x: {
           grid: { display: false },
           ticks: {
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
+          },
+          title: {
+            display: true,
+            text: 'Customer Tenure Segment (Months Since Signup)',
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
           }
         }

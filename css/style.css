@@ -65,13 +65,13 @@ html {
 
 .step-indicator {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--step-gap);
   align-items: center;
 }
 
 .step-dot {
-  width: 32px;
-  height: 32px;
+  width: var(--step-dot-size, 32px);
+  height: var(--step-dot-size, 32px);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -141,13 +141,62 @@ html {
   border-color: #6f42c1 !important;
 }
 
+.step-dot.module-segmentation {
+  border-color: #6f42c1 !important;
+}
+
+.step-dot.module-segmentation.active,
+.step-dot.module-segmentation.completed {
+  background: #6f42c1 !important;
+  border-color: #6f42c1 !important;
+}
+
+.step-dot.module-analytics {
+  border-color: #20c997 !important;
+}
+
+.step-dot.module-analytics.active,
+.step-dot.module-analytics.completed {
+  background: #20c997 !important;
+  border-color: #20c997 !important;
+}
+
 /* Step legend */
-.step-legend {
+.steps-stack {
+  --step-dot-size: 32px;
+  --step-line-width: 24px;
+  --step-gap: 0.5rem;
   display: flex;
-  gap: 1.5rem;
-  justify-content: center;
-  margin-top: 0.75rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  width: max-content;
+  margin-right: 2rem;
+}
+
+.step-legend {
+  display: grid;
+  grid-template-columns:
+    var(--step-dot-size)
+    var(--step-line-width)
+    var(--step-dot-size)
+    var(--step-line-width)
+    var(--step-dot-size)
+    var(--step-line-width)
+    var(--step-dot-size)
+    var(--step-line-width)
+    var(--step-dot-size)
+    var(--step-line-width)
+    var(--step-dot-size)
+    var(--step-line-width)
+    var(--step-dot-size)
+    var(--step-line-width)
+    var(--step-dot-size)
+    var(--step-line-width)
+    var(--step-dot-size);
+  column-gap: var(--step-gap);
+  align-items: center;
+  margin-top: 0;
 }
 
 .legend-item {
@@ -156,6 +205,7 @@ html {
   gap: 0.5rem;
   font-size: 0.75rem;
   opacity: 0.8;
+  justify-content: center;
 }
 
 .legend-color {
@@ -163,6 +213,9 @@ html {
   height: 12px;
   border-radius: 50%;
   border: 2px solid currentColor;
+  box-sizing: border-box;
+  flex: 0 0 12px;
+  aspect-ratio: 1 / 1;
 }
 
 .legend-color.data-foundation {
@@ -177,8 +230,52 @@ html {
   color: #6f42c1;
 }
 
+.legend-color.segmentation {
+  color: #6f42c1;
+}
+
+.legend-color.analytics {
+  color: #20c997;
+}
+
+.legend-data-foundation {
+  grid-column: 1 / span 5;
+}
+
+.legend-segmentation {
+  grid-column: 7 / span 3;
+}
+
+.legend-elasticity {
+  grid-column: 11 / span 5;
+}
+
+.legend-analytics {
+  grid-column: 17 / span 1;
+}
+
+@media (max-width: 992px) {
+  .steps-stack {
+    align-items: center;
+    width: 100%;
+  }
+
+  .step-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .legend-data-foundation,
+  .legend-segmentation,
+  .legend-elasticity,
+  .legend-analytics {
+    grid-column: auto;
+  }
+}
+
 .step-line {
-  width: 24px;
+  width: var(--step-line-width, 24px);
   height: 2px;
 }
 
@@ -670,7 +767,6 @@ html {
 .tier-price span {
   font-size: 1rem;
   font-weight: 400;
-  color: rgba(255,255,255,0.5);
 }
 
 /* Hide tabs when showing individual elasticity model steps */

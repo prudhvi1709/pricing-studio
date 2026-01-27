@@ -23,29 +23,48 @@
       <div class="d-flex justify-content-between align-items-center">
         <div class="brand" onclick="handleBrandClick()" style="cursor: pointer;">discovery<span>+</span> Price Elasticity Studio</div>
         <div class="d-flex align-items-center gap-3">
-          <div class="step-indicator">
-            <!-- Data Foundation -->
-            <div class="step-dot active module-data-foundation" data-step="0">1</div>
-            <div class="step-line"></div>
-            <div class="step-dot module-data-foundation" data-step="1">2</div>
-            <div class="step-line"></div>
-            <!-- Elasticity Modelling -->
-            <div class="step-dot module-elasticity" data-step="2">3</div>
-            <div class="step-line"></div>
-            <div class="step-dot module-elasticity" data-step="3">4</div>
-            <div class="step-line"></div>
-            <div class="step-dot module-elasticity" data-step="4">5</div>
-            <div class="step-line"></div>
-            <div class="step-dot module-elasticity" data-step="5">6</div>
-            <div class="step-line"></div>
-            <div class="step-dot module-elasticity" data-step="6">7</div>
-            <div class="step-line"></div>
-            <!-- Simulation & Tools -->
-            <div class="step-dot module-simulation" data-step="7">8</div>
-            <div class="step-line"></div>
-            <div class="step-dot module-simulation" data-step="8">9</div>
-            <div class="step-line"></div>
-            <div class="step-dot module-simulation" data-step="9">10</div>
+          <div class="steps-stack">
+            <div class="step-indicator">
+              <!-- Data Foundation -->
+              <div class="step-dot module-data-foundation" data-step="1">1</div>
+              <div class="step-line"></div>
+              <div class="step-dot module-data-foundation" data-step="2">2</div>
+              <div class="step-line"></div>
+              <div class="step-dot module-data-foundation" data-step="3">3</div>
+              <div class="step-line"></div>
+              <!-- Segmentation -->
+              <div class="step-dot module-segmentation" data-step="4">4</div>
+              <div class="step-line"></div>
+              <div class="step-dot module-segmentation" data-step="5">5</div>
+              <div class="step-line"></div>
+              <!-- Elasticity Modeling & Simulation -->
+              <div class="step-dot module-elasticity" data-step="6">6</div>
+              <div class="step-line"></div>
+              <div class="step-dot module-elasticity" data-step="7">7</div>
+              <div class="step-line"></div>
+              <div class="step-dot module-elasticity" data-step="8">8</div>
+              <div class="step-line"></div>
+              <!-- AI & Advanced Analytics -->
+              <div class="step-dot module-analytics" data-step="9">9</div>
+            </div>
+            <div class="step-legend">
+              <div class="legend-item legend-data-foundation">
+                <div class="legend-color data-foundation"></div>
+                <span>Data Foundation</span>
+              </div>
+              <div class="legend-item legend-segmentation">
+                <div class="legend-color segmentation"></div>
+                <span>Segmentation</span>
+              </div>
+              <div class="legend-item legend-elasticity">
+                <div class="legend-color elasticity"></div>
+                <span>Elasticity Modeling &amp; Simulation</span>
+              </div>
+              <div class="legend-item legend-analytics">
+                <div class="legend-color analytics"></div>
+                <span>AI &amp; Advanced Analytics</span>
+              </div>
+            </div>
           </div>
           <div class="d-flex align-items-center gap-2">
             <button class="btn btn-sm btn-outline-primary steps-overview-trigger" data-bs-toggle="modal" data-bs-target="#stepsOverviewModal">
@@ -68,21 +87,6 @@
               </ul>
             </div>
           </div>
-        </div>
-      </div>
-      <!-- Legend -->
-      <div class="step-legend">
-        <div class="legend-item">
-          <div class="legend-color data-foundation"></div>
-          <span>Data Foundation</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color elasticity"></div>
-          <span>Elasticity Modelling</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color simulation"></div>
-          <span>Simulation</span>
         </div>
       </div>
     </div>
@@ -159,13 +163,13 @@
     <!-- KPI Summary Cards -->
     <div id="kpi-section" style="display: none;">
       <!-- Pricing Tiers -->
-      <h5 class="mb-3" style="color: rgba(255,255,255,0.8);">Current Pricing Tiers</h5>
+      <h5 class="mb-3">Current Pricing Tiers</h5>
       <div class="row g-4 mb-5">
         <div class="col-md-6">
           <div class="glass-card tier-card ad-lite">
             <div class="tier-name">Ad-Supported</div>
             <div class="tier-price">$5.99<span>/month</span></div>
-            <div class="mt-2" style="color: rgba(255,255,255,0.5); font-size: 0.875rem;">
+            <div class="mt-2">
               Limited ads • HD streaming
             </div>
           </div>
@@ -174,7 +178,7 @@
           <div class="glass-card tier-card ad-free">
             <div class="tier-name">Ad-Free</div>
             <div class="tier-price">$9.99<span>/month</span></div>
-            <div class="mt-2" style="color: rgba(255,255,255,0.5); font-size: 0.875rem;">
+            <div class="mt-2">
               No ads • 4K streaming • Downloads
             </div>
           </div>
@@ -182,7 +186,7 @@
       </div>
 
       <!-- KPI Metrics -->
-      <h5 class="mb-3" style="color: rgba(255,255,255,0.8);">Key Performance Metrics (Latest Week)</h5>
+      <h5 class="mb-3">Key Performance Metrics (Latest Week)</h5>
       <div class="row g-3" id="kpi-cards">
         <div class="col-md-3">
           <div class="card kpi-card h-100">
@@ -264,7 +268,7 @@
   <section class="section" id="section-3">
   <div class="container">
     <div class="section-header">
-      <div class="section-number">Step 3</div>
+      <div class="section-number">Step 6</div>
       <h2 class="section-title">
         Acquisition Elasticity
         <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step3" title="View Methodology">
@@ -288,7 +292,7 @@
   <section class="section" id="section-4">
   <div class="container">
     <div class="section-header">
-      <div class="section-number">Step 4</div>
+      <div class="section-number">Step 7</div>
       <h2 class="section-title">
         Churn Elasticity
         <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step4" title="View Methodology">
@@ -312,7 +316,7 @@
   <section class="section" id="section-5">
   <div class="container">
     <div class="section-header">
-      <div class="section-number">Step 5</div>
+      <div class="section-number">Step 8</div>
       <h2 class="section-title">
         Tier Migration
         <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step5" title="View Methodology">
@@ -336,7 +340,7 @@
   <section class="section" id="section-6">
   <div class="container">
     <div class="section-header">
-      <div class="section-number">Step 6</div>
+      <div class="section-number">Step 4</div>
       <h2 class="section-title">
         Customer Cohorts & Elasticity
         <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step6" title="View Methodology">
@@ -360,7 +364,7 @@
   <section class="section" id="section-7">
   <div class="container">
     <div class="section-header">
-      <div class="section-number">Step 7</div>
+      <div class="section-number">Step 5</div>
       <h2 class="section-title">
         Segment Elasticity Comparison
         <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step7" title="View Methodology">
@@ -384,7 +388,7 @@
   <section class="section" id="section-8">
   <div class="container">
     <div class="section-header">
-      <div class="section-number">Step 8</div>
+      <div class="section-number">Step 3</div>
       <h2 class="section-title">Event Calendar</h2>
       <p class="section-subtitle">Track important events and their impact on business metrics. Understand how external factors influence subscriber behavior.</p>
     </div>
@@ -669,19 +673,19 @@
                       </thead>
                       <tbody>
                         <tr>
-                          <td>New (0-3 months)</td>
+                          <td>0-3 months</td>
                           <td>-2.5</td>
                           <td><span class="badge bg-danger">High</span></td>
                           <td><strong id="acq-seg-new">0%</strong></td>
                         </tr>
                         <tr>
-                          <td>Mid-tenure (3-12 months)</td>
+                          <td>3-12 months</td>
                           <td>-1.9</td>
                           <td><span class="badge bg-warning">Medium</span></td>
                           <td><strong id="acq-seg-mid">0%</strong></td>
                         </tr>
                         <tr>
-                          <td>Loyal (12+ months)</td>
+                          <td>12+ months</td>
                           <td>-1.6</td>
                           <td><span class="badge bg-success">Low</span></td>
                           <td><strong id="acq-seg-loyal">0%</strong></td>
@@ -1699,11 +1703,9 @@
                     <th>Date</th>
                     <th>Event Type</th>
                     <th>Tier</th>
-                    <th>Affected Cohort</th>
                     <th>Price Change</th>
                     <th>Promo</th>
                     <th>Notes</th>
-                    <th>Window</th>
                   </tr>
                 </thead>
                 <tbody id="event-table-body">
@@ -2505,7 +2507,7 @@
         <div class="modal-header">
           <div>
             <h5 class="modal-title" id="stepsOverviewLabel">
-              <i class="bi bi-compass me-2"></i> Explore the 10 Steps
+              <i class="bi bi-compass me-2"></i> Explore the 9 Steps
             </h5>
             <div class="small text-muted">Jump to any step with a single click.</div>
           </div>
@@ -2521,21 +2523,10 @@
                     <span>Name + Subtitle</span>
                     <span>RFP Citation</span>
                   </div>
-                  <button class="steps-table-row" type="button" data-step="0" style="--step-index: 1;">
+                  <button class="steps-table-row" type="button" data-step="1" style="--step-index: 1;">
                     <span class="steps-table-step">
                       <span class="step-dot steps-modal-dot module-data-foundation">1</span>
                       <span class="steps-table-step-label">Step 1</span>
-                    </span>
-                    <span class="steps-table-body">
-                      <strong>Price Elasticity Modeling</strong>
-                      <span class="text-muted">Understand how price changes impact subscriber behavior, revenue, and growth. Make data-driven pricing decisions with confidence.</span>
-                    </span>
-                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
-                  </button>
-                  <button class="steps-table-row" type="button" data-step="1" style="--step-index: 2;">
-                    <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-data-foundation">2</span>
-                      <span class="steps-table-step-label">Step 2</span>
                     </span>
                     <span class="steps-table-body">
                       <strong>Current State Overview</strong>
@@ -2543,10 +2534,10 @@
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="2" style="--step-index: 3;">
+                  <button class="steps-table-row" type="button" data-step="2" style="--step-index: 2;">
                     <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-elasticity">3</span>
-                      <span class="steps-table-step-label">Step 3</span>
+                      <span class="step-dot steps-modal-dot module-data-foundation">2</span>
+                      <span class="steps-table-step-label">Step 2</span>
                     </span>
                     <span class="steps-table-body">
                       <strong>Data Explorer</strong>
@@ -2554,65 +2545,10 @@
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="3" style="--step-index: 4;">
+                  <button class="steps-table-row" type="button" data-step="3" style="--step-index: 3;">
                     <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-elasticity">4</span>
-                      <span class="steps-table-step-label">Step 4</span>
-                    </span>
-                    <span class="steps-table-body">
-                      <strong>Acquisition Elasticity</strong>
-                      <span class="text-muted">Model how price changes affect new subscriber acquisition. Simulate scenarios and analyze impacts on sign-up rates.</span>
-                    </span>
-                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
-                  </button>
-                  <button class="steps-table-row" type="button" data-step="4" style="--step-index: 5;">
-                    <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-elasticity">5</span>
-                      <span class="steps-table-step-label">Step 5</span>
-                    </span>
-                    <span class="steps-table-body">
-                      <strong>Churn Elasticity</strong>
-                      <span class="text-muted">Understand how price increases drive subscriber churn. Model time-lagged effects and retention patterns.</span>
-                    </span>
-                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
-                  </button>
-                  <button class="steps-table-row" type="button" data-step="5" style="--step-index: 6;">
-                    <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-elasticity">6</span>
-                      <span class="steps-table-step-label">Step 6</span>
-                    </span>
-                    <span class="steps-table-body">
-                      <strong>Tier Migration</strong>
-                      <span class="text-muted">Model subscriber movement between pricing tiers. Analyze upgrade and downgrade patterns based on price gaps.</span>
-                    </span>
-                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
-                  </button>
-                  <button class="steps-table-row" type="button" data-step="6" style="--step-index: 7;">
-                    <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-elasticity">7</span>
-                      <span class="steps-table-step-label">Step 7</span>
-                    </span>
-                    <span class="steps-table-body">
-                      <strong>Customer Cohorts & Elasticity</strong>
-                      <span class="text-muted">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral segments and elasticity patterns.</span>
-                    </span>
-                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
-                  </button>
-                  <button class="steps-table-row" type="button" data-step="7" style="--step-index: 8;">
-                    <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-simulation">8</span>
-                      <span class="steps-table-step-label">Step 8</span>
-                    </span>
-                    <span class="steps-table-body">
-                      <strong>Segment Elasticity Comparison</strong>
-                      <span class="text-muted">Compare price elasticity across different customer segments. Identify which segments are most and least price-sensitive.</span>
-                    </span>
-                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
-                  </button>
-                  <button class="steps-table-row" type="button" data-step="8" style="--step-index: 9;">
-                    <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-simulation">9</span>
-                      <span class="steps-table-step-label">Step 9</span>
+                      <span class="step-dot steps-modal-dot module-data-foundation">3</span>
+                      <span class="steps-table-step-label">Step 3</span>
                     </span>
                     <span class="steps-table-body">
                       <strong>Event Calendar</strong>
@@ -2620,10 +2556,65 @@
                     </span>
                     <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
                   </button>
-                  <button class="steps-table-row" type="button" data-step="9" style="--step-index: 10;">
+                  <button class="steps-table-row" type="button" data-step="4" style="--step-index: 4;">
                     <span class="steps-table-step">
-                      <span class="step-dot steps-modal-dot module-simulation">10</span>
-                      <span class="steps-table-step-label">Step 10</span>
+                      <span class="step-dot steps-modal-dot module-segmentation">4</span>
+                      <span class="steps-table-step-label">Step 4</span>
+                    </span>
+                    <span class="steps-table-body">
+                      <strong>Customer Cohorts & Elasticity</strong>
+                      <span class="text-muted">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral segments and elasticity patterns.</span>
+                    </span>
+                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
+                  </button>
+                  <button class="steps-table-row" type="button" data-step="5" style="--step-index: 5;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-segmentation">5</span>
+                      <span class="steps-table-step-label">Step 5</span>
+                    </span>
+                    <span class="steps-table-body">
+                      <strong>Segment Elasticity Comparison</strong>
+                      <span class="text-muted">Compare price elasticity across different customer segments. Identify which segments are most and least price-sensitive.</span>
+                    </span>
+                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
+                  </button>
+                  <button class="steps-table-row" type="button" data-step="6" style="--step-index: 6;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-elasticity">6</span>
+                      <span class="steps-table-step-label">Step 6</span>
+                    </span>
+                    <span class="steps-table-body">
+                      <strong>Acquisition Elasticity</strong>
+                      <span class="text-muted">Model how price changes affect new subscriber acquisition. Simulate scenarios and analyze impacts on sign-up rates.</span>
+                    </span>
+                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
+                  </button>
+                  <button class="steps-table-row" type="button" data-step="7" style="--step-index: 7;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-elasticity">7</span>
+                      <span class="steps-table-step-label">Step 7</span>
+                    </span>
+                    <span class="steps-table-body">
+                      <strong>Churn Elasticity</strong>
+                      <span class="text-muted">Understand how price increases drive subscriber churn. Model time-lagged effects and retention patterns.</span>
+                    </span>
+                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
+                  </button>
+                  <button class="steps-table-row" type="button" data-step="8" style="--step-index: 8;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-elasticity">8</span>
+                      <span class="steps-table-step-label">Step 8</span>
+                    </span>
+                    <span class="steps-table-body">
+                      <strong>Tier Migration</strong>
+                      <span class="text-muted">Model subscriber movement between pricing tiers. Analyze upgrade and downgrade patterns based on price gaps.</span>
+                    </span>
+                    <span class="steps-table-rfp">[slide x] - Placeholder text for RFP notes that you will replace later.</span>
+                  </button>
+                  <button class="steps-table-row" type="button" data-step="9" style="--step-index: 9;">
+                    <span class="steps-table-step">
+                      <span class="step-dot steps-modal-dot module-analytics">9</span>
+                      <span class="steps-table-step-label">Step 9</span>
                     </span>
                     <span class="steps-table-body">
                       <strong>AI Chat & Advanced Analytics</strong>

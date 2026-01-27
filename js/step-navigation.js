@@ -6,6 +6,18 @@
 
 const TOTAL_STEPS = 10; // 0-9
 let currentStep = 0;
+const stepSectionMap = {
+  0: 'section-0',
+  1: 'section-1',
+  2: 'section-2',
+  3: 'section-8',
+  4: 'section-6',
+  5: 'section-7',
+  6: 'section-3',
+  7: 'section-4',
+  8: 'section-5',
+  9: 'section-9'
+};
 
 /**
  * Navigate to a specific step
@@ -18,17 +30,19 @@ function goToStep(step) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
 
   // Show the target section wrapper
-  const section = document.getElementById(`section-${step}`);
+  const sectionId = stepSectionMap[step];
+  const section = sectionId ? document.getElementById(sectionId) : null;
   if (section) {
     section.classList.add('active');
   }
 
   // Update step indicators
-  document.querySelectorAll('.step-dot').forEach((dot, index) => {
+  document.querySelectorAll('.step-dot').forEach(dot => {
+    const dotStep = parseInt(dot.dataset.step, 10);
     dot.classList.remove('active', 'completed');
-    if (index < step) {
+    if (!Number.isNaN(dotStep) && dotStep < step) {
       dot.classList.add('completed');
-    } else if (index === step) {
+    } else if (dotStep === step) {
       dot.classList.add('active');
     }
   });
@@ -131,31 +145,17 @@ function showStepContent(step) {
       }
       break;
     case 3:
-      // Acquisition Elasticity - Show elasticity models, force Acquisition tab, hide tabs
-      showElasticityModel('acquisition', 'step-3-acquisition-container');
-      // Initialize simplified acquisition model
-      if (window.initAcquisitionSimple && typeof window.initAcquisitionSimple === 'function') {
-        // Small delay to ensure DOM is ready
-        setTimeout(() => window.initAcquisitionSimple(), 100);
+      // Event Calendar
+      const eventCalendarSection = document.getElementById('event-calendar-section');
+      const calendarContentArea = document.getElementById('step-8-calendar-container-content');
+      if (eventCalendarSection && calendarContentArea) {
+        eventCalendarSection.style.display = 'block';
+        if (eventCalendarSection.parentElement !== calendarContentArea) {
+          calendarContentArea.appendChild(eventCalendarSection);
+        }
       }
       break;
     case 4:
-      // Churn Elasticity - Show elasticity models, force Churn tab, hide tabs
-      showElasticityModel('churn', 'step-4-churn-container');
-      // Initialize simplified churn model
-      if (window.initChurnSimple && typeof window.initChurnSimple === 'function') {
-        setTimeout(() => window.initChurnSimple(), 100);
-      }
-      break;
-    case 5:
-      // Tier Migration - Show elasticity models, force Migration tab, hide tabs
-      showElasticityModel('migration', 'step-5-migration-container');
-      // Initialize simplified migration model
-      if (window.initMigrationSimple && typeof window.initMigrationSimple === 'function') {
-        setTimeout(() => window.initMigrationSimple(), 100);
-      }
-      break;
-    case 6:
       // Customer Cohorts & Elasticity (segmentation only)
       const segmentationSection6 = document.getElementById('segmentation-section');
       const segmentContentArea6 = document.getElementById('step-6-segmentation-container-content');
@@ -166,7 +166,7 @@ function showStepContent(step) {
         }
       }
       break;
-    case 7:
+    case 5:
       // Segment Elasticity Comparison (analysis only)
       const segmentAnalysisSection7 = document.getElementById('segment-analysis-section');
       const analysisContentArea7 = document.getElementById('step-7-analysis-container-content');
@@ -177,15 +177,29 @@ function showStepContent(step) {
         }
       }
       break;
+    case 6:
+      // Acquisition Elasticity - Show elasticity models, force Acquisition tab, hide tabs
+      showElasticityModel('acquisition', 'step-3-acquisition-container');
+      // Initialize simplified acquisition model
+      if (window.initAcquisitionSimple && typeof window.initAcquisitionSimple === 'function') {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => window.initAcquisitionSimple(), 100);
+      }
+      break;
+    case 7:
+      // Churn Elasticity - Show elasticity models, force Churn tab, hide tabs
+      showElasticityModel('churn', 'step-4-churn-container');
+      // Initialize simplified churn model
+      if (window.initChurnSimple && typeof window.initChurnSimple === 'function') {
+        setTimeout(() => window.initChurnSimple(), 100);
+      }
+      break;
     case 8:
-      // Event Calendar
-      const eventCalendarSection = document.getElementById('event-calendar-section');
-      const calendarContentArea = document.getElementById('step-8-calendar-container-content');
-      if (eventCalendarSection && calendarContentArea) {
-        eventCalendarSection.style.display = 'block';
-        if (eventCalendarSection.parentElement !== calendarContentArea) {
-          calendarContentArea.appendChild(eventCalendarSection);
-        }
+      // Tier Migration - Show elasticity models, force Migration tab, hide tabs
+      showElasticityModel('migration', 'step-5-migration-container');
+      // Initialize simplified migration model
+      if (window.initMigrationSimple && typeof window.initMigrationSimple === 'function') {
+        setTimeout(() => window.initMigrationSimple(), 100);
       }
       break;
     case 9:
@@ -297,13 +311,13 @@ function createStepNavigation(prevStep, nextStep, nextLabel = 'Next') {
  */
 function injectStepNavigations() {
   const stepConfigs = [
-    { step: 2, container: 'step-2-data-viewer-container', prev: 1, next: 3, nextLabel: 'Next: Acquisition Elasticity' },
-    { step: 3, container: 'step-3-acquisition-container', prev: 2, next: 4, nextLabel: 'Next: Churn Elasticity' },
-    { step: 4, container: 'step-4-churn-container', prev: 3, next: 5, nextLabel: 'Next: Tier Migration' },
-    { step: 5, container: 'step-5-migration-container', prev: 4, next: 6, nextLabel: 'Next: Customer Cohorts' },
-    { step: 6, container: 'step-6-segmentation-container', prev: 5, next: 7, nextLabel: 'Next: Segment Comparison' },
-    { step: 7, container: 'step-7-analysis-container', prev: 6, next: 8, nextLabel: 'Next: Event Calendar' },
-    { step: 8, container: 'step-8-calendar-container', prev: 7, next: 9, nextLabel: 'Next: AI Chat & Analytics' },
+    { step: 2, container: 'step-2-data-viewer-container', prev: 1, next: 3, nextLabel: 'Next: Event Calendar' },
+    { step: 3, container: 'step-8-calendar-container', prev: 2, next: 4, nextLabel: 'Next: Customer Cohorts' },
+    { step: 4, container: 'step-6-segmentation-container', prev: 3, next: 5, nextLabel: 'Next: Segment Comparison' },
+    { step: 5, container: 'step-7-analysis-container', prev: 4, next: 6, nextLabel: 'Next: Acquisition Elasticity' },
+    { step: 6, container: 'step-3-acquisition-container', prev: 5, next: 7, nextLabel: 'Next: Churn Elasticity' },
+    { step: 7, container: 'step-4-churn-container', prev: 6, next: 8, nextLabel: 'Next: Tier Migration' },
+    { step: 8, container: 'step-5-migration-container', prev: 7, next: 9, nextLabel: 'Next: AI Chat & Analytics' },
     { step: 9, container: 'step-9-chat-container', prev: 8, next: 0, nextLabel: null }
   ];
 

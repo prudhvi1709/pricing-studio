@@ -199,10 +199,6 @@ function showEventDetails(event) {
       </div>
       <p class="mb-2">${event.notes || 'No description available'}</p>
       ${priceInfo ? `<div class="alert alert-info mb-0"><i class="bi bi-info-circle me-2"></i>${priceInfo}</div>` : ''}
-      ${event.affected_cohort && event.affected_cohort !== 'all' ?
-        `<div class="mt-2 small text-info">
-          <i class="bi bi-people me-2"></i>Affected Cohort: ${formatCohortName(event.affected_cohort)}
-        </div>` : ''}
     </div>
   `;
 
@@ -220,7 +216,7 @@ function renderEventTable() {
   const filteredEvents = filterEvents();
 
   if (filteredEvents.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No events match the current filters</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No events match the current filters</td></tr>';
     return;
   }
 
@@ -241,11 +237,9 @@ function renderEventTable() {
         <td class="text-nowrap">${dateStr}</td>
         <td><span class="badge ${badge.class}">${badge.text}</span></td>
         <td>${formatTier(event.tier)}</td>
-        <td class="small">${formatCohortName(event.affected_cohort)}</td>
         <td class="text-nowrap">${priceChange}</td>
         <td>${promo}</td>
         <td class="small">${event.notes || '-'}</td>
-        <td><span class="badge ${getWindowBadge(event.validation_window)}">${event.validation_window}</span></td>
       </tr>
     `;
   });
