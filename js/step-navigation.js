@@ -227,6 +227,10 @@ function showElasticityModel(modelType, containerId) {
 
   if (!elasticityModelsSection || !contentArea) return;
 
+  if (window.hideScenarioResults && typeof window.hideScenarioResults === 'function') {
+    window.hideScenarioResults();
+  }
+
   // Show ONLY the elasticity models section (scenario engine)
   // NOT the comparison or analytics sections - those are separate
   elasticityModelsSection.style.display = 'block';
@@ -263,9 +267,21 @@ function showElasticityModel(modelType, containerId) {
     targetTab.classList.add('show', 'active');
   }
 
+  if (window.setActiveModelType && typeof window.setActiveModelType === 'function') {
+    window.setActiveModelType(modelType);
+  }
+
   // Ensure scenario cards are populated
   if (window.populateElasticityModelTabs && typeof window.populateElasticityModelTabs === 'function') {
     window.populateElasticityModelTabs();
+  }
+
+  // If the target model has no results yet, ensure results stay hidden
+  if (window.getCurrentResultForModel && typeof window.getCurrentResultForModel === 'function') {
+    const modelResult = window.getCurrentResultForModel(modelType);
+    if (!modelResult && window.hideScenarioResults && typeof window.hideScenarioResults === 'function') {
+      window.hideScenarioResults();
+    }
   }
 }
 

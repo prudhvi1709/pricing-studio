@@ -621,7 +621,7 @@ export function renderTierMixShift(containerId, data, options = {}) {
 
   // Prepare data
   const tiers = ['ad_supported', 'ad_free'];
-  const tierLabels = ['Ad-Supported', 'Ad-Free'];
+  const tierLabels = ['Ad-Lite', 'Ad-Free'];
   const colors = ['#dc3545', '#ffc107'];
 
   const chartData = [

@@ -469,7 +469,7 @@ function getEventPriceInfo(event) {
  */
 function formatTier(tier) {
   const tiers = {
-    'ad_supported': 'Ad-Supported',
+    'ad_supported': 'Ad-Lite',
     'ad_free': 'Ad-Free',
     'bundle': 'Bundle',
     'all': 'All Tiers'

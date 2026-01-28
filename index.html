@@ -113,15 +113,23 @@
     <!-- Section 1: Dashboard -->
     <section class="section" id="section-1">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 1</div>
-      <h2 class="section-title">
-        Current State Overview
-        <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step1" title="View Methodology">
-          <i class="bi bi-info-circle"></i>
-        </button>
-      </h2>
-      <p class="section-subtitle">Before exploring price elasticity, let's understand our current pricing tiers and key performance metrics.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 1</div>
+        <h2 class="section-title">
+          Current State Overview
+          <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step1" title="View Methodology">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </h2>
+        <p class="section-subtitle">Before exploring price elasticity, let's understand our current pricing tiers and key performance metrics.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 9: We lock down the data and KPI definitions first, so pricing decisions are based on consistent inputs.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Top Navigation -->
@@ -167,7 +175,7 @@
       <div class="row g-4 mb-5">
         <div class="col-md-6">
           <div class="glass-card tier-card ad-lite">
-            <div class="tier-name">Ad-Supported</div>
+            <div class="tier-name">Ad-Lite</div>
             <div class="tier-price">$5.99<span>/month</span></div>
             <div class="mt-2">
               Limited ads • HD streaming
@@ -248,10 +256,18 @@
   <!-- Section 2: Data Explorer -->
   <section class="section" id="section-2">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 2</div>
-      <h2 class="section-title">Data Explorer</h2>
-      <p class="section-subtitle">Explore the raw datasets that power our price elasticity models. Browse through subscriber data, segments, and more.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 2</div>
+        <h2 class="section-title">Data Explorer</h2>
+        <p class="section-subtitle">Explore the raw datasets that power our price elasticity models. Browse through subscriber data, segments, and more.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 10: We build one “source of truth” panel so all models use the same price and promo history.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Data Viewer will be shown here by step-navigation.js -->
@@ -267,15 +283,23 @@
   <!-- Section 3: Acquisition Elasticity -->
   <section class="section" id="section-3">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 6</div>
-      <h2 class="section-title">
-        Acquisition Elasticity
-        <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step3" title="View Methodology">
-          <i class="bi bi-info-circle"></i>
-        </button>
-      </h2>
-      <p class="section-subtitle">Model how price changes affect new subscriber acquisition. Simulate scenarios and analyze impacts on sign-up rates.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 6</div>
+        <h2 class="section-title">
+          Acquisition Elasticity
+          <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step3" title="View Methodology">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </h2>
+        <p class="section-subtitle">Model how price changes affect new subscriber acquisition. Simulate scenarios and analyze impacts on sign-up rates.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 15: We first quantify how acquisition responds at discrete price points so gross adds can be forecast confidently for candidate moves.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Acquisition elasticity content will be shown here by step-navigation.js -->
@@ -291,15 +315,23 @@
   <!-- Section 4: Churn Elasticity -->
   <section class="section" id="section-4">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 7</div>
-      <h2 class="section-title">
-        Churn Elasticity
-        <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step4" title="View Methodology">
-          <i class="bi bi-info-circle"></i>
-        </button>
-      </h2>
-      <p class="section-subtitle">Understand how price increases drive subscriber churn. Model time-lagged effects and retention patterns.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 7</div>
+        <h2 class="section-title">
+          Churn Elasticity
+          <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step4" title="View Methodology">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </h2>
+        <p class="section-subtitle">Understand how price increases drive subscriber churn. Model time-lagged effects and retention patterns.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 16: We then model churn as a lagged payback curve so promo roll-offs and delayed risk are visible before decisions are approved.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Churn elasticity content will be shown here by step-navigation.js -->
@@ -315,15 +347,23 @@
   <!-- Section 5: Tier Migration -->
   <section class="section" id="section-5">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 8</div>
-      <h2 class="section-title">
-        Tier Migration
-        <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step5" title="View Methodology">
-          <i class="bi bi-info-circle"></i>
-        </button>
-      </h2>
-      <p class="section-subtitle">Model subscriber movement between pricing tiers. Analyze upgrade and downgrade patterns based on price gaps.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 8</div>
+        <h2 class="section-title">
+          Tier Migration
+          <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step5" title="View Methodology">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </h2>
+        <p class="section-subtitle">Model subscriber movement between pricing tiers. Analyze upgrade and downgrade patterns based on price gaps.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 17: Tier migration is modelled as a tier-gap response, so upgrades, downgrades, and mix-shift are forecast at implementable price differences.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Tier migration content will be shown here by step-navigation.js -->
@@ -339,15 +379,23 @@
   <!-- Section 6: Customer Cohorts & Elasticity -->
   <section class="section" id="section-6">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 4</div>
-      <h2 class="section-title">
-        Customer Cohorts & Elasticity
-        <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step6" title="View Methodology">
-          <i class="bi bi-info-circle"></i>
-        </button>
-      </h2>
-      <p class="section-subtitle">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral segments and elasticity patterns.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 4</div>
+        <h2 class="section-title">
+          Customer Cohorts & Elasticity
+          <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step6" title="View Methodology">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </h2>
+        <p class="section-subtitle">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral segments and elasticity patterns.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 11: We segment customers into cohorts because pricing changes don't affect everyone the same way.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Segmentation content will be shown here by step-navigation.js -->
@@ -363,15 +411,23 @@
   <!-- Section 7: Segment Elasticity Comparison -->
   <section class="section" id="section-7">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 5</div>
-      <h2 class="section-title">
-        Segment Elasticity Comparison
-        <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step7" title="View Methodology">
-          <i class="bi bi-info-circle"></i>
-        </button>
-      </h2>
-      <p class="section-subtitle">Compare price elasticity across different customer segments. Identify which segments are most and least price-sensitive.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 5</div>
+        <h2 class="section-title">
+          Segment Elasticity Comparison
+          <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#methodology-modal-step7" title="View Methodology">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </h2>
+        <p class="section-subtitle">Compare price elasticity across different customer segments. Identify which segments are most and least price-sensitive.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 14: We model elasticity as a linked system because price and promotions affect acquisition, churn, and tier-mix in fundamentally different ways.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Segment analysis content will be shown here by step-navigation.js -->
@@ -387,10 +443,18 @@
   <!-- Section 8: Event Calendar -->
   <section class="section" id="section-8">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 3</div>
-      <h2 class="section-title">Event Calendar</h2>
-      <p class="section-subtitle">Track important events and their impact on business metrics. Understand how external factors influence subscriber behavior.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 3</div>
+        <h2 class="section-title">Event Calendar</h2>
+        <p class="section-subtitle">Track important events and their impact on business metrics. Understand how external factors influence subscriber behavior.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 12: We keep the model grounded by tying results back to real price and promo events.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Event calendar content will be shown here by step-navigation.js -->
@@ -406,10 +470,18 @@
   <!-- Section 9: Chat & Advanced Tools -->
   <section class="section" id="section-9">
   <div class="container">
-    <div class="section-header">
-      <div class="section-number">Step 9</div>
-      <h2 class="section-title">AI Chat & Advanced Analytics</h2>
-      <p class="section-subtitle">Chat with AI to get insights, ask questions about your data, and access advanced analytical tools.</p>
+    <div class="section-header section-header-split">
+      <div class="section-header-main">
+        <div class="section-number">Step 9</div>
+        <h2 class="section-title">AI Chat & Advanced Analytics</h2>
+        <p class="section-subtitle">Chat with AI to get insights, ask questions about your data, and access advanced analytical tools.</p>
+      </div>
+      <div class="section-header-citation">
+        <div class="section-citation-card">
+          <div class="section-citation-label">RFP Citation</div>
+          <div class="section-citation-text">Slide 19: GenAI wraps the scenario engine as a “Pricing Copilot” that accelerates analysis, explains trade-offs, and produces approval-ready decision packs.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Chat section will be shown here by step-navigation.js -->
@@ -659,7 +731,7 @@
                 </div>
 
                 <!-- Segment Elasticity Table -->
-                <div class="glass-card mt-4">
+                <div class="glass-card">
                   <h5 class="mb-3">Elasticity by Customer Segment</h5>
                   <div class="table-responsive">
                     <table class="table table-sm">
@@ -797,8 +869,30 @@
 
               <!-- Right Column: Time-Horizon Visualization -->
               <div class="col-lg-7">
-                <!-- Time-Horizon Bars -->
+                <!-- Survival Curve (Retention Forecast) -->
                 <div class="glass-card">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Retention Forecast (Survival Curve)</h5>
+
+                  </div>
+                  <div style="position: relative; height: 300px;">
+                    <canvas id="survival-curve-chart"></canvas>
+                  </div>
+                  <div class="small text-muted mt-2">
+                    <i class="bi bi-info-circle me-1"></i>Shows percentage of customers retained over time. Shaded area represents retention loss due to price increase.
+                  </div>
+                </div>
+
+                <!-- Cumulative Churn Chart -->
+                <div class="glass-card mt-4">
+                  <h5 class="mb-3">Cumulative Churn Over Time</h5>
+                  <div style="position: relative; height: 300px;">
+                    <canvas id="churn-chart-simple"></canvas>
+                  </div>
+                </div>
+
+                <!-- Time-Horizon Bars -->
+                <div class="glass-card mt-4">
                   <h5 class="mb-4"><i class="bi bi-clock-history me-2"></i>Churn Impact by Time Horizon</h5>
 
                   <div class="mb-4">
@@ -843,28 +937,6 @@
                       <div class="fill" id="bar-12plus" style="width: 35%; background: var(--dplus-green);"></div>
                       <span class="time-bar-label">Remaining subscribers accept new price</span>
                     </div>
-                  </div>
-                </div>
-
-                <!-- Cumulative Churn Chart -->
-                <div class="glass-card mt-4">
-                  <h5 class="mb-3">Cumulative Churn Over Time</h5>
-                  <div style="position: relative; height: 300px;">
-                    <canvas id="churn-chart-simple"></canvas>
-                  </div>
-                </div>
-
-                <!-- Survival Curve (Retention Forecast) -->
-                <div class="glass-card mt-4">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Retention Forecast (Survival Curve)</h5>
-
-                  </div>
-                  <div style="position: relative; height: 300px;">
-                    <canvas id="survival-curve-chart"></canvas>
-                  </div>
-                  <div class="small text-muted mt-2">
-                    <i class="bi bi-info-circle me-1"></i>Shows percentage of customers retained over time. Shaded area represents retention loss due to price increase.
                   </div>
                 </div>
               </div>
@@ -967,8 +1039,20 @@
 
               <!-- Right Column: Visualization -->
               <div class="col-lg-7">
+                <!-- Sankey Flow Diagram -->
+                <div class="glass-card mt-4">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Migration Flow Diagram</h5>
+
+                  </div>
+                  <div id="sankey-diagram" style="width: 100%; height: 400px;"></div>
+                  <div class="small text-muted mt-2">
+                    <i class="bi bi-info-circle me-1"></i>Flow width represents volume of subscribers. Blue = stay, Green = upgrade, Red = downgrade, Gray = churn.
+                  </div>
+                </div>
+
                 <!-- Tier Distribution Flow -->
-                <div class="glass-card">
+                <div class="glass-card mt-4">
                   <h5 class="mb-4"><i class="bi bi-pie-chart me-2"></i>Projected Tier Distribution</h5>
 
                   <div class="migration-flow mb-4">
@@ -1030,18 +1114,6 @@
                     <canvas id="migration-chart-simple"></canvas>
                   </div>
                 </div>
-
-                <!-- Sankey Flow Diagram -->
-                <div class="glass-card mt-4">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Migration Flow Diagram</h5>
-
-                  </div>
-                  <div id="sankey-diagram" style="width: 100%; height: 400px;"></div>
-                  <div class="small text-muted mt-2">
-                    <i class="bi bi-info-circle me-1"></i>Flow width represents volume of subscribers. Blue = stay, Green = upgrade, Red = downgrade, Gray = churn.
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -1098,6 +1170,13 @@
             <i class="bi bi-play-fill me-2"></i>
             Simulate Selected Scenario
           </button>
+          <div id="simulate-loading" class="simulate-loading" style="display: none;">
+            <div id="simulate-loading-label" class="simulate-loading-label">Running scenario simulation...</div>
+            <div class="progress">
+              <div id="simulate-loading-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                   role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            </div>
+          </div>
         </div>
 
         <!-- Results Container -->
@@ -1114,7 +1193,7 @@
             </div>
             <div class="card-body">
               <div class="row align-items-start decision-engine-controls">
-                <div class="col-md-4">
+                <div class="col-md-5">
                   <label class="form-label fw-bold">
                     <i class="bi bi-bullseye me-1"></i>Objective Lens
                   </label>
@@ -1127,13 +1206,6 @@
                   <div class="small text-muted mt-1" id="objective-description">
                     Maximizes revenue and ARPU with acceptable churn levels
                   </div>
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label fw-bold">
-                    <i class="bi bi-shield-check me-1"></i>Churn Cap (%)
-                  </label>
-                  <input type="number" id="churn-cap-input" class="form-control decision-engine-input"
-                         value="5.0" step="0.5" min="0" max="20">
                 </div>
                 <div class="col-md-3 d-flex">
                   <span class="form-label fw-bold decision-engine-spacer">Action</span>
@@ -1451,7 +1523,7 @@
           <div class="col-md-3">
             <label class="form-label fw-bold">Subscription Tier</label>
             <select id="segment-tier-select" class="form-select">
-              <option value="ad_supported">Ad-Supported</option>
+              <option value="ad_supported">Ad-Lite</option>
               <option value="ad_free" selected>Ad-Free</option>
             </select>
           </div>
@@ -1606,7 +1678,7 @@
           <div class="col-md-3">
             <label class="form-label fw-bold">Tier</label>
             <select id="compare-tier-select" class="form-select">
-              <option value="ad_supported">Ad-Supported</option>
+              <option value="ad_supported">Ad-Lite</option>
               <option value="ad_free" selected>Ad-Free</option>
             </select>
           </div>
@@ -1804,7 +1876,7 @@
             <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Interpret the current scenario results and trade-offs</button>
             <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Suggest a scenario to maximize revenue with churn under 5%</button>
             <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Explain the demand curve chart for the current tier</button>
-            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Show high-churn segments in the ad-supported tier</button>
+            <button class="btn btn-sm btn-outline-secondary suggested-query" disabled>Show high-churn segments in the Ad-Lite tier</button>
           </div>
         </div>
       </div>
@@ -2010,7 +2082,7 @@
             </thead>
             <tbody>
               <tr>
-                <td>Ad-Supported</td>
+                <td>Ad-Lite</td>
                 <td><strong>-2.1</strong></td>
                 <td>Most price-sensitive (value seekers)</td>
               </tr>
@@ -2218,7 +2290,7 @@
           <h6 class="mb-3 mt-4"><i class="bi bi-arrows-move me-2"></i> Migration Patterns</h6>
 
           <div class="card mb-3">
-            <div class="card-header "><strong>Downgrade Triggers (Ad-Free → Ad-Supported)</strong></div>
+            <div class="card-header "><strong>Downgrade Triggers (Ad-Free → Ad-Lite)</strong></div>
             <div class="card-body">
               <ul class="mb-0">
                 <li>Base downgrade rate: <strong>2-5% monthly</strong></li>
@@ -2229,7 +2301,7 @@
           </div>
 
           <div class="card mb-3">
-            <div class="card-header "><strong>Upgrade Triggers (Ad-Supported → Ad-Free)</strong></div>
+            <div class="card-header "><strong>Upgrade Triggers (Ad-Lite → Ad-Free)</strong></div>
             <div class="card-body">
               <ul class="mb-0">
                 <li>Base upgrade rate: <strong>3-7% monthly</strong></li>
@@ -2268,9 +2340,9 @@
 
               <p class="mb-2 mt-3"><strong>Supported Tier Structures:</strong></p>
               <ul class="small">
-                <li><strong>2-Tier:</strong> Ad-Supported ↔ Ad-Free</li>
-                <li><strong>3-Tier Bundle:</strong> Ad-Supported, Ad-Free, Bundle (Discovery+ + Max)</li>
-                <li><strong>3-Tier Basic:</strong> Basic, Ad-Supported, Ad-Free</li>
+                <li><strong>2-Tier:</strong> Ad-Lite ↔ Ad-Free</li>
+                <li><strong>3-Tier Bundle:</strong> Ad-Lite, Ad-Free, Bundle (Discovery+ + Max)</li>
+                <li><strong>3-Tier Basic:</strong> Basic, Ad-Lite, Ad-Free</li>
               </ul>
 
               <p class="mb-2 mt-3"><strong>Sample Coefficients (3-Tier Bundle):</strong></p>
@@ -2359,7 +2431,7 @@
             <div class="card-body">
               <code>Segment Elasticity = Base Tier Elasticity × Axis1 Modifier × Axis2 Modifier × Axis3 Modifier</code>
               <p class="small text-muted mt-3 mb-0">
-                <strong>Example:</strong> Ad-supported promo-driven price-sensitive switcher:<br>
+                <strong>Example:</strong> Ad-Lite promo-driven price-sensitive switcher:<br>
                 -2.1 (base) × 1.4 (promo) × 1.3 (downgrader) × 1.2 (switcher) = <strong>-4.55</strong> (highly elastic)
               </p>
             </div>
@@ -2440,7 +2512,7 @@
           <h6 class="mb-3 mt-4" style="color: #6366f1;"><i class="bi bi-funnel me-2"></i> Filtering & Aggregation</h6>
           <p>Analysis supports multiple filter combinations:</p>
           <ul>
-            <li><strong>By Tier:</strong> Compare within ad-supported or ad-free tiers</li>
+            <li><strong>By Tier:</strong> Compare within Ad-Lite or ad-free tiers</li>
             <li><strong>By Tenure:</strong> New (0-6mo), mid-tenure (6-18mo), loyal (18+mo)</li>
             <li><strong>By Engagement:</strong> Heavy users (>20hr/month), light users (<5hr/month)</li>
             <li><strong>By Risk:</strong> High churn risk (>10% monthly), stable (<3% monthly)</li>

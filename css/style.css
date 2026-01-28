@@ -534,6 +534,54 @@ html {
   margin-bottom: 2rem;
 }
 
+.section-header-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.section-header-main {
+  min-width: 260px;
+}
+
+.section-header-citation {
+  flex: 0 0 auto;
+  max-width: 360px;
+  margin-top: 1.3rem;
+}
+
+.section-citation-card {
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(13, 110, 253, 0.06);
+}
+
+.section-citation-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--dplus-blue);
+  margin-bottom: 0.35rem;
+}
+
+.section-citation-text {
+  font-size: 0.9rem;
+  color: #1f2937;
+}
+
+[data-bs-theme="dark"] .section-citation-card {
+  border-color: rgba(255,255,255,0.1);
+  background: rgba(59, 130, 246, 0.12);
+}
+
+[data-bs-theme="dark"] .section-citation-text {
+  color: rgba(255,255,255,0.85);
+}
+
 .section-number {
   font-size: 0.75rem;
   font-weight: 600;
@@ -692,6 +740,35 @@ html {
   justify-content: space-between;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
+}
+
+/* Simulate Loading Bar */
+.simulate-loading {
+  max-width: 420px;
+  margin: 1rem auto 0;
+  text-align: left;
+}
+
+.simulate-loading-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: var(--dplus-blue);
+}
+
+.simulate-loading .progress {
+  height: 16px;
+  background-color: rgba(0, 102, 255, 0.12);
+  border: 1px solid rgba(0, 102, 255, 0.2);
+}
+
+[data-bs-theme="dark"] .simulate-loading-label {
+  color: #93c5fd;
+}
+
+[data-bs-theme="dark"] .simulate-loading .progress {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 [data-bs-theme="dark"] .section-header-nav {

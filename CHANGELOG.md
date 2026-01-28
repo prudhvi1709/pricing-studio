@@ -354,16 +354,16 @@ Completed **Phase 2 Elasticity Models** with all three core pricing models imple
 **Model Type**: Multinomial Logit with softmax probability
 
 **Configurations**:
-- **2-tier**: Ad-Supported ↔ Ad-Free (original scenarios)
-- **3-tier Bundle**: Ad-Supported, Ad-Free, Bundle ($14.99)
-- **3-tier Basic**: Basic ($2.99), Ad-Supported, Ad-Free
+- **2-tier**: Ad-Lite ↔ Ad-Free (original scenarios)
+- **3-tier Bundle**: Ad-Lite, Ad-Free, Bundle ($14.99)
+- **3-tier Basic**: Basic ($2.99), Ad-Lite, Ad-Free
 
 **Automatic Tier Detection**: Routes scenarios to correct model based on price point
 
 **Validated Predictions**:
-- Bundle: 60% Ad-Free → Bundle, 9-11% Ad-Supported → Bundle
-- iOS +$0.99: 5.7% Ad-Free → Ad-Supported downgrade
-- Basic: 14.8% Ad-Supported → Basic downgrade
+- Bundle: 60% Ad-Free → Bundle, 9-11% Ad-Lite → Bundle
+- iOS +$0.99: 5.7% Ad-Free → Ad-Lite downgrade
+- Basic: 14.8% Ad-Lite → Basic downgrade
 
 **Coefficients** (Bundle example):
 ```python
@@ -505,7 +505,7 @@ Completed **Phase 2 Elasticity Models** with all three core pricing models imple
 All models tuned through iterative validation against streaming industry benchmarks:
 
 **Bundle ($14.99)**: 5 iterations
-- Target: Ad-Free → Bundle 55-70%, Ad-Supported → Bundle 9-11%
+- Target: Ad-Free → Bundle 55-70%, Ad-Lite → Bundle 9-11%
 - Final: 60.9% and 9.4% ✅
 
 **iOS (+$0.99)**: 3 iterations
@@ -513,7 +513,7 @@ All models tuned through iterative validation against streaming industry benchma
 - Final: 5.7% ✅
 
 **Basic ($2.99)**: 4 iterations
-- Target: Ad-Supported → Basic 10-15%
+- Target: Ad-Lite → Basic 10-15%
 - Final: 14.8% ✅
 
 **Churn ($1 increase)**: 6 iterations

@@ -1,10 +1,10 @@
 [
   {
     "id": "scenario_001",
-    "name": "Increase Ad-supported by $1.00",
+    "name": "Increase Ad-Lite by $1.00",
     "category": "price_increase",
     "model_type": "churn",
-    "description": "Test $1 price increase on ad-supported tier (from $5.99 to $6.99)",
+    "description": "Test $1 price increase on Ad-Lite tier (from $5.99 to $6.99)",
     "impact_summary": "Projected +3.5% revenue, -2.1% subscribers, +0.9% churn",
     "config": {
       "tier": "ad_supported",
@@ -58,7 +58,7 @@
     "name": "Launch 50% Off Promo (3 months)",
     "category": "promotion",
     "model_type": "acquisition",
-    "description": "Offer 50% discount for 3 months on ad-supported tier ($2.99 for 3mo, then $5.99)",
+    "description": "Offer 50% discount for 3 months on Ad-Lite tier ($2.99 for 3mo, then $5.99)",
     "impact_summary": "Projected +35% new subs during promo, -18% revenue short-term, net positive after 12mo",
     "config": {
       "tier": "ad_supported",
@@ -128,7 +128,7 @@
     "name": "Introduce Basic Tier at $2.99",
     "category": "new_tier",
     "model_type": "migration",
-    "description": "Launch new Basic tier at $2.99/mo with limited content library and ad-supported",
+    "description": "Launch new Basic tier at $2.99/mo with limited content library and Ad-Lite",
     "impact_summary": "Projected +25% total subs, -8% tier mix to Basic, net revenue neutral due to volume",
     "config": {
       "tier": "basic",
@@ -190,10 +190,10 @@
   },
   {
     "id": "scenario_007",
-    "name": "Decrease Ad-supported to $4.99",
+    "name": "Decrease Ad-Lite to $4.99",
     "category": "price_decrease",
     "model_type": "acquisition",
-    "description": "Lower ad-supported tier price from $5.99 to $4.99 to compete with basic tiers",
+    "description": "Lower Ad-Lite tier price from $5.99 to $4.99 to compete with basic tiers",
     "impact_summary": "Projected +15% new subs, +8% total subs, -8% ARPU, net revenue flat",
     "config": {
       "tier": "ad_supported",

@@ -135,6 +135,7 @@ export async function simulateScenario(scenario, options = {}) {
     const result = {
       scenario_id: scenario.id,
       scenario_name: scenario.name,
+      model_type: scenario.model_type,
       elasticity: elasticityInfo.elasticity,
       confidence_interval: elasticityInfo.confidenceInterval,
 
@@ -1109,6 +1110,7 @@ export async function simulateScenarioWithPyodide(scenario, options = {}) {
     const result = {
       scenario_id: scenario.id,
       scenario_name: scenario.name,
+      model_type: scenario.model_type,
       scenario_config: {
         ...scenario.config,
         baseline_tier: baselineTier  // Store proxy tier used for baseline

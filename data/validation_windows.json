@@ -35,7 +35,7 @@
       "Churn model training",
       "Acquisition model training"
     ],
-    "notes": "Ideal training period with stable pricing and no confounding events. Ad-supported at $4.99, ad-free at $6.99 throughout period."
+    "notes": "Ideal training period with stable pricing and no confounding events. Ad-Lite at $4.99, ad-free at $6.99 throughout period."
   },
   "primary_test_window": {
     "window_id": "TEST_2023_POST_PRICE_CHANGE",
@@ -56,7 +56,7 @@
       "Churn response measurement",
       "Acquisition impact testing"
     ],
-    "notes": "Test period following June 2023 price increases. Measures clean elasticity response without confounding promos. Ad-supported $4.99\u2192$5.99, ad-free $6.99\u2192$7.99."
+    "notes": "Test period following June 2023 price increases. Measures clean elasticity response without confounding promos. Ad-Lite $4.99\u2192$5.99, ad-free $6.99\u2192$7.99."
   },
   "validation_windows": [
     {

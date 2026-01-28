@@ -77,7 +77,7 @@ class SegmentationEngine {
             // Axis 2: Engagement & Churn Propensity
             'ad_value_seekers': {
                 label: 'Ad-Value Seekers',
-                description: 'Ad-supported plan, high ad completion, low ARPU',
+                description: 'Ad-Lite plan, high ad completion, low ARPU',
                 elasticity_level: 'Highly price elastic, sensitive to small increases'
             },
             'ad_tolerant_upgraders': {

@@ -61,7 +61,7 @@ const DEFAULT_SYSTEM_PROMPT = `You are the Scenario Analysis Assistant for the D
 - Average Churn Rate: {currentChurn}
 
 **Price Elasticity by Tier:**
-- Ad-Supported ($5.99/mo): {elasticityAdSupported} (Most price-sensitive)
+- Ad-Lite ($5.99/mo): {elasticityAdSupported} (Most price-sensitive)
 - Ad-Free ($9.99/mo): {elasticityAdFree} (Moderately elastic)
 
 **Available Scenarios:**
@@ -311,7 +311,7 @@ function buildSystemPrompt() {
         const avgARPU = (totalARPU / totalSegments).toFixed(2);
 
         segmentSummary = `${totalSegments} behavioral segments across 3 tiers:
-- Ad-Supported: ${tierCounts['ad_supported'] || 0} segments
+- Ad-Lite: ${tierCounts['ad_supported'] || 0} segments
 - Ad-Free: ${tierCounts['ad_free'] || 0} segments
 Total Subscribers: ${totalSubscribers.toLocaleString()}
 Avg Churn Rate: ${avgChurn}%

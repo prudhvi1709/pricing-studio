@@ -677,7 +677,7 @@
         },
         "hulu_price": {
           "type": "float",
-          "description": "Hulu ad-supported tier price",
+          "description": "Hulu Ad-Lite tier price",
           "format": "float",
           "example": 7.99,
           "nullable": false,
@@ -686,7 +686,7 @@
         },
         "disney_price": {
           "type": "float",
-          "description": "Disney+ ad-supported tier price",
+          "description": "Disney+ Ad-Lite tier price",
           "format": "float",
           "example": 7.99,
           "nullable": false,

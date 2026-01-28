@@ -24,11 +24,39 @@ import { rankScenarios, getObjectiveDescription } from './decision-engine.js';
 import { exportToPDF, exportToXLSX } from './decision-pack.js';
 
 // Global state
-let selectedScenario = null;
 let allScenarios = [];
-let savedScenarios = [];
-let currentResult = null;
 let dataLoaded = false;
+
+const modelTypes = ['acquisition', 'churn', 'migration'];
+let activeModelType = 'acquisition';
+
+let selectedScenarioByModel = {
+  acquisition: null,
+  churn: null,
+  migration: null
+};
+
+let currentResultByModel = {
+  acquisition: null,
+  churn: null,
+  migration: null
+};
+
+let savedScenariosByModel = {
+  acquisition: [],
+  churn: [],
+  migration: []
+};
+
+let allSimulationResultsByModel = {
+  acquisition: [],
+  churn: [],
+  migration: []
+};
+
+let selectedScenario = selectedScenarioByModel[activeModelType];
+let savedScenarios = savedScenariosByModel[activeModelType];
+let currentResult = currentResultByModel[activeModelType];
 
 // Format helpers
 function formatNumber(num) {
@@ -53,6 +81,173 @@ function formatPercent(num, decimals = 1) {
     return 'N/A';
   }
   return `${num.toFixed(decimals)}%`;
+}
+
+function getModelTypeFromTabId(tabId) {
+  if (tabId === 'acquisition-tab') return 'acquisition';
+  if (tabId === 'churn-tab') return 'churn';
+  if (tabId === 'migration-tab') return 'migration';
+  return activeModelType;
+}
+
+function syncScenarioSelectionUI() {
+  const activePane = document.querySelector('.tab-pane.active');
+  if (!activePane) return;
+  activePane.querySelectorAll('.scenario-card-tab').forEach(card => card.classList.remove('selected'));
+  if (selectedScenario) {
+    const card = activePane.querySelector(`.scenario-card-tab[data-scenario-id="${selectedScenario.id}"]`);
+    if (card) card.classList.add('selected');
+  }
+}
+
+function updateScenarioComparisonUI() {
+  const count = savedScenarios.length;
+  const countLabel = document.getElementById('saved-scenarios-count');
+  const compareBtn = document.getElementById('compare-btn');
+  const comparisonSection = document.getElementById('comparison-section');
+  const comparisonCharts = document.getElementById('comparison-charts');
+
+  if (countLabel) {
+    countLabel.textContent = `${count} scenario${count !== 1 ? 's' : ''} saved`;
+  }
+  if (compareBtn) {
+    compareBtn.disabled = count < 2;
+  }
+  if (comparisonSection) {
+    comparisonSection.style.display = count > 0 ? 'block' : 'none';
+  }
+  if (comparisonCharts && count < 2) {
+    comparisonCharts.style.display = 'none';
+  }
+}
+
+function updateSimulateButtonState() {
+  const simulateBtn = document.getElementById('simulate-btn-models');
+  if (simulateBtn) {
+    simulateBtn.disabled = !selectedScenario;
+  }
+}
+
+function updateResultContainerForModel() {
+  const resultContainer = document.getElementById('result-container-models');
+  if (!resultContainer) return;
+  const resolvedModelType = resolveModelTypeForResult(currentResult);
+  if (!currentResult || (resolvedModelType && resolvedModelType !== activeModelType)) {
+    resultContainer.style.display = 'none';
+    clearResultsUI();
+    return;
+  }
+  displayResultsInTabs(currentResult);
+  resultContainer.style.display = 'block';
+}
+
+function clearResultsUI() {
+  const cards = document.getElementById('result-cards-models');
+  if (cards) cards.innerHTML = '';
+  const warning = document.getElementById('new-tier-warning');
+  if (warning) {
+    warning.style.display = 'none';
+    warning.innerHTML = '';
+  }
+  const acquisitionDetail = document.getElementById('acquisition-results-detail');
+  const churnDetail = document.getElementById('churn-results-detail');
+  const migrationDetail = document.getElementById('migration-results-detail');
+  if (acquisitionDetail) acquisitionDetail.style.display = 'none';
+  if (churnDetail) churnDetail.style.display = 'none';
+  if (migrationDetail) migrationDetail.style.display = 'none';
+}
+
+function hideScenarioResults() {
+  const resultContainer = document.getElementById('result-container-models');
+  if (resultContainer) {
+    resultContainer.style.display = 'none';
+  }
+  clearResultsUI();
+}
+
+function setActiveModelType(modelType) {
+  if (!modelTypes.includes(modelType)) return;
+  activeModelType = modelType;
+  selectedScenario = selectedScenarioByModel[modelType];
+  savedScenarios = savedScenariosByModel[modelType];
+  currentResult = currentResultByModel[modelType];
+  allSimulationResults = allSimulationResultsByModel[modelType];
+  const comparisonCharts = document.getElementById('comparison-charts');
+  if (comparisonCharts) comparisonCharts.style.display = 'none';
+  // Clear any previously displayed results from other models
+  hideScenarioResults();
+  // Re-render results for this model if they exist
+  if (currentResult) {
+    displayResultsInTabs(currentResult);
+    const resultContainer = document.getElementById('result-container-models');
+    if (resultContainer) resultContainer.style.display = 'block';
+  }
+  syncScenarioSelectionUI();
+  updateScenarioComparisonUI();
+  updateSimulateButtonState();
+}
+
+function resolveModelTypeForResult(result) {
+  if (!result) return null;
+  if (result.model_type) return result.model_type;
+  if (result.scenario_config?.model_type) return result.scenario_config.model_type;
+  if (result.scenario_id) {
+    const match = allScenarios.find(s => s.id === result.scenario_id);
+    if (match?.model_type) return match.model_type;
+  }
+  return null;
+}
+
+function startSimulateLoading() {
+  const loadingEl = document.getElementById('simulate-loading');
+  const labelEl = document.getElementById('simulate-loading-label');
+  const barEl = document.getElementById('simulate-loading-bar');
+
+  if (!loadingEl || !labelEl || !barEl) {
+    return {
+      done: Promise.resolve(),
+      stop: () => {}
+    };
+  }
+
+  const duration = 2600 + Math.random() * 1000;
+  const start = performance.now();
+
+  loadingEl.style.display = 'block';
+  labelEl.textContent = 'Running scenario simulation...';
+  barEl.style.width = '0%';
+  barEl.textContent = '0%';
+  barEl.setAttribute('aria-valuenow', '0');
+
+  let resolveDone;
+  const done = new Promise(resolve => {
+    resolveDone = resolve;
+  });
+
+  const tick = (now) => {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const percent = Math.round(progress * 100);
+    barEl.style.width = `${percent}%`;
+    barEl.textContent = `${percent}%`;
+    barEl.setAttribute('aria-valuenow', String(percent));
+
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      labelEl.textContent = 'Finalizing...';
+      resolveDone();
+    }
+  };
+
+  requestAnimationFrame(tick);
+
+  return {
+    done,
+    stop: () => {
+      loadingEl.style.display = 'none';
+    }
+  };
 }
 
 // Load KPI data
@@ -123,7 +318,7 @@ async function updateElasticityAnalysis(result) {
     const demandCurveData = {
       tiers: [
         {
-          name: 'Ad-Supported',
+          name: 'Ad-Lite',
           elasticity: params.tiers.ad_supported.base_elasticity,
           currentPrice: 5.99,
           currentSubs: latestWeek.ad_supported.active_subscribers,
@@ -166,7 +361,7 @@ async function loadElasticityAnalytics() {
     const demandCurveData = {
       tiers: [
         {
-          name: 'Ad-Supported',
+          name: 'Ad-Lite',
           elasticity: params.tiers.ad_supported.base_elasticity,
           currentPrice: 5.99,
           currentSubs: latestWeek.ad_supported.active_subscribers,
@@ -199,7 +394,7 @@ async function loadElasticityAnalytics() {
 
     const heatmapData = {
       segments: ['New (0-3mo)', 'Tenured (3-12mo)', 'Tenured (12+mo)'],
-      tiers: ['Ad-Supported', 'Ad-Free'],
+      tiers: ['Ad-Lite', 'Ad-Free'],
       values: values
     };
 
@@ -211,7 +406,7 @@ async function loadElasticityAnalytics() {
 }
 
 // Store all simulation results for chatbot access
-let allSimulationResults = [];
+let allSimulationResults = allSimulationResultsByModel[activeModelType];
 
 // Initialize chat context with scenario-focused tools
 async function initializeChatContext() {
@@ -266,7 +461,7 @@ async function initializeChatContext() {
         demandCurve: {
           description: "Shows price elasticity - how demand changes with price for each tier",
           tiers: [
-            { name: 'Ad-Supported', elasticity: elasticityParams.tiers.ad_supported.base_elasticity, price: 5.99 },
+            { name: 'Ad-Lite', elasticity: elasticityParams.tiers.ad_supported.base_elasticity, price: 5.99 },
             { name: 'Ad-Free', elasticity: elasticityParams.tiers.ad_free.base_elasticity, price: 9.99 }
           ]
         },
@@ -361,13 +556,13 @@ async function initializeChatContext() {
             strategy: 'Price increase on lower-elasticity tier',
             tier: 'ad_free',
             priceChange: +1.00,
-            rationale: 'Ad-Free has lower elasticity than Ad-Supported, so moderate increases reduce subscriber loss'
+            rationale: 'Ad-Free has lower elasticity than Ad-Lite, so moderate increases reduce subscriber loss'
           },
           grow_subscribers: {
             strategy: 'Aggressive promotion on high-elasticity tier',
             tier: 'ad_supported',
             priceChange: -2.00,
-            rationale: 'Ad-Supported has highest elasticity (-2.1), so discounts drive maximum subscriber growth'
+            rationale: 'Ad-Lite has highest elasticity (-2.1), so discounts drive maximum subscriber growth'
           },
           reduce_churn: {
             strategy: 'Moderate price decrease to improve value perception',
@@ -420,7 +615,7 @@ async function initializeChatContext() {
             description: 'Shows price elasticity - how quantity demanded changes with price',
             interpretation: [
               'Steeper curve = higher elasticity = more price-sensitive customers',
-              `Ad-Supported (elasticity ${elasticityParams.tiers.ad_supported.base_elasticity}): Most price-sensitive`,
+              `Ad-Lite (elasticity ${elasticityParams.tiers.ad_supported.base_elasticity}): Most price-sensitive`,
               `Ad-Free (elasticity ${elasticityParams.tiers.ad_free.base_elasticity}): Moderately price-sensitive`
             ],
             insights: 'Use this to identify optimal price points for each tier. Flatter curves allow for price increases with minimal subscriber loss.'
@@ -745,23 +940,18 @@ async function loadData() {
 
 // Save current scenario
 function saveScenario() {
-  if (!currentResult) return;
+  const activeResult = currentResultByModel[activeModelType];
+  if (!activeResult) return;
 
-  savedScenarios.push({
-    ...currentResult,
+  savedScenariosByModel[activeModelType].push({
+    ...activeResult,
     savedAt: new Date().toISOString()
   });
+  savedScenarios = savedScenariosByModel[activeModelType];
 
-  // Update UI
-  document.getElementById('saved-scenarios-count').textContent = `${savedScenarios.length} scenario${savedScenarios.length !== 1 ? 's' : ''} saved`;
-  document.getElementById('compare-btn').disabled = savedScenarios.length < 2;
+  updateScenarioComparisonUI();
 
-  // Show comparison section
-  if (savedScenarios.length >= 1) {
-    document.getElementById('comparison-section').style.display = 'block';
-  }
-
-  alert(`Scenario "${currentResult.scenario_name}" saved! You can now compare it with other scenarios.`);
+  alert(`Scenario "${activeResult.scenario_name}" saved! You can now compare it with other scenarios.`);
 }
 
 // Compare saved scenarios
@@ -828,10 +1018,9 @@ function clearScenarios() {
   if (savedScenarios.length === 0) return;
 
   if (confirm('Are you sure you want to clear all saved scenarios?')) {
-    savedScenarios = [];
-    document.getElementById('saved-scenarios-count').textContent = '0 scenarios saved';
-    document.getElementById('compare-btn').disabled = true;
-    document.getElementById('comparison-charts').style.display = 'none';
+    savedScenariosByModel[activeModelType] = [];
+    savedScenarios = savedScenariosByModel[activeModelType];
+    updateScenarioComparisonUI();
   }
 }
 
@@ -959,11 +1148,13 @@ async function saveEditedScenario() {
   populateElasticityModelTabs();
 
   // If this was the selected scenario, re-select it
-  if (selectedScenario && selectedScenario.id === scenarioId) {
-    selectedScenario = scenario;
-    const cardElement = document.querySelector(`[data-scenario-id="${scenarioId}"]`);
-    if (cardElement) {
-      cardElement.classList.add('selected');
+  const modelType = scenario.model_type;
+  if (selectedScenarioByModel[modelType] && selectedScenarioByModel[modelType].id === scenarioId) {
+    selectedScenarioByModel[modelType] = scenario;
+    if (modelType === activeModelType) {
+      selectedScenario = scenario;
+      syncScenarioSelectionUI();
+      updateSimulateButtonState();
     }
   }
 
@@ -1693,16 +1884,22 @@ function populateElasticityModelTabs() {
       // Don't select if clicking edit button
       if (e.target.closest('.edit-scenario-btn-tab')) return;
 
-      // Remove selected class from all cards in all tabs
-      document.querySelectorAll('.scenario-card-tab').forEach(c => c.classList.remove('selected'));
-      // Add selected class to clicked card
+      const pane = this.closest('.tab-pane');
+      if (pane) {
+        pane.querySelectorAll('.scenario-card-tab').forEach(c => c.classList.remove('selected'));
+      }
       this.classList.add('selected');
-      // Enable simulate button
+
       const scenarioId = this.dataset.scenarioId;
       const selected = scenarios.find(s => s.id === scenarioId);
       if (selected) {
-        selectedScenario = selected;
-        document.getElementById('simulate-btn-models').disabled = false;
+        selectedScenarioByModel[selected.model_type] = selected;
+        if (selected.model_type !== activeModelType) {
+          setActiveModelType(selected.model_type);
+        } else {
+          selectedScenario = selected;
+        }
+        updateSimulateButtonState();
         console.log('Selected scenario:', scenarioId);
       }
     });
@@ -1743,15 +1940,15 @@ function populateElasticityModelTabs() {
 
         // Get current top 3 scenarios from the UI
         const top3Container = document.getElementById('top-scenarios-list');
-        if (!top3Container || !window.currentTop3Scenarios || window.currentTop3Scenarios.length === 0) {
+        const currentTop3 = window.currentTop3ScenariosByModel?.[activeModelType] || [];
+        if (!top3Container || currentTop3.length === 0) {
           alert('Please rank scenarios first to generate a decision pack.');
           return;
         }
 
         const objective = document.getElementById('objective-lens-select').value;
-        const churnCap = parseFloat(document.getElementById('churn-cap-input').value) / 100;
 
-        await exportToPDF(window.currentTop3Scenarios, objective, { churn_cap: churnCap });
+        await exportToPDF(currentTop3, objective, {});
 
       } catch (error) {
         console.error('Error exporting PDF:', error);
@@ -1775,7 +1972,8 @@ function populateElasticityModelTabs() {
           return;
         }
 
-        await exportToXLSX(savedScenarios, window.currentTop3Scenarios || null);
+        const currentTop3 = window.currentTop3ScenariosByModel?.[activeModelType] || null;
+        await exportToXLSX(savedScenarios, currentTop3);
 
       } catch (error) {
         console.error('Error exporting XLSX:', error);
@@ -1787,30 +1985,49 @@ function populateElasticityModelTabs() {
     });
   }
 
+  // Track active model tab for model-scoped state
+  document.querySelectorAll('#elasticityTabs .nav-link').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      const modelType = getModelTypeFromTabId(e.currentTarget.id);
+      setActiveModelType(modelType);
+    });
+    tab.addEventListener('shown.bs.tab', (e) => {
+      const modelType = getModelTypeFromTabId(e.target.id);
+      setActiveModelType(modelType);
+    });
+  });
+
+  const activeTab = document.querySelector('#elasticityTabs .nav-link.active');
+  if (activeTab) {
+    setActiveModelType(getModelTypeFromTabId(activeTab.id));
+  }
+
   // Add simulate button handler
   const simulateBtn = document.getElementById('simulate-btn-models');
   if (simulateBtn) {
     simulateBtn.addEventListener('click', async function() {
-      if (!selectedScenario) {
+      const activeScenario = selectedScenarioByModel[activeModelType];
+      if (!activeScenario) {
         console.warn('⚠️ No scenario selected!');
         return;
       }
 
-      console.log('🎬 Starting simulation for:', selectedScenario.id, selectedScenario.name);
+      console.log('🎬 Starting simulation for:', activeScenario.id, activeScenario.name);
 
       const resultContainer = document.getElementById('result-container-models');
 
       try {
         simulateBtn.disabled = true;
         simulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating...';
+        const loadingState = startSimulateLoading();
 
         console.log('📝 Scenario config:', {
-          tier: selectedScenario.config.tier,
-          current_price: selectedScenario.config.current_price,
-          new_price: selectedScenario.config.new_price,
-          price_change: selectedScenario.config.new_price - selectedScenario.config.current_price,
-          price_change_pct: ((selectedScenario.config.new_price - selectedScenario.config.current_price) / selectedScenario.config.current_price * 100).toFixed(2) + '%',
-          model_type: selectedScenario.model_type
+          tier: activeScenario.config.tier,
+          current_price: activeScenario.config.current_price,
+          new_price: activeScenario.config.new_price,
+          price_change: activeScenario.config.new_price - activeScenario.config.current_price,
+          price_change_pct: ((activeScenario.config.new_price - activeScenario.config.current_price) / activeScenario.config.current_price * 100).toFixed(2) + '%',
+          model_type: activeScenario.model_type
         });
 
         // Run simulation with Pyodide if available, otherwise fallback to JS
@@ -1818,17 +2035,21 @@ function populateElasticityModelTabs() {
         if (isPyodideAvailable()) {
           console.log('✅ Using Pyodide Python models');
           simulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running Python models...';
-          result = await simulateScenarioWithPyodide(selectedScenario, {
+          result = await simulateScenarioWithPyodide(activeScenario, {
             targetSegment: 'all',
             segmentAxis: null
           });
-        } else {
-          console.log('⚠️ Pyodide not ready, using JavaScript simulation');
-          result = await simulateScenario(selectedScenario, {
-            targetSegment: 'all',
-            segmentAxis: null
-          });
-        }
+      } else {
+        console.log('⚠️ Pyodide not ready, using JavaScript simulation');
+        result = await simulateScenario(activeScenario, {
+          targetSegment: 'all',
+          segmentAxis: null
+        });
+      }
+      result.model_type = activeScenario.model_type;
+
+      await loadingState.done;
+      loadingState.stop();
 
         // Display results in the new containers
         displayResultsInTabs(result);
@@ -1842,6 +2063,8 @@ function populateElasticityModelTabs() {
       } finally {
         simulateBtn.disabled = false;
         simulateBtn.innerHTML = '<i class="bi bi-play-fill me-2"></i>Simulate Selected Scenario';
+        const loadingEl = document.getElementById('simulate-loading');
+        if (loadingEl) loadingEl.style.display = 'none';
       }
     });
   }
@@ -1849,6 +2072,11 @@ function populateElasticityModelTabs() {
 
 // Expose populateElasticityModelTabs globally for step navigation
 window.populateElasticityModelTabs = populateElasticityModelTabs;
+window.setActiveModelType = setActiveModelType;
+window.hideScenarioResults = hideScenarioResults;
+window.getCurrentResultForModel = function(modelType) {
+  return currentResultByModel[modelType] || null;
+};
 
 /**
  * Create scenario card HTML for tabs
@@ -1976,7 +2204,26 @@ function calculateChurnPayback(result) {
  * Display simulation results in the tabbed interface
  */
 function displayResultsInTabs(result) {
-  currentResult = result; // Store for saving
+  const modelType = resolveModelTypeForResult(result);
+  if (!modelType) {
+    console.warn('Unable to resolve model type for result; skipping render', result);
+    return;
+  }
+  // Tag and bucket by model
+  result.model_type = modelType;
+  currentResultByModel[modelType] = result;
+
+  // Only render if this result belongs to the active model
+  if (modelType !== activeModelType) {
+    return;
+  }
+
+  // Clear any prior UI before rendering to avoid bleed-through
+  hideScenarioResults();
+
+  currentResult = result;
+  const resultContainer = document.getElementById('result-container-models');
+  if (resultContainer) resultContainer.style.display = 'block';
 
   // Debug logging
   console.log('📊 Displaying results:', {
@@ -1989,8 +2236,8 @@ function displayResultsInTabs(result) {
   });
 
   // Store in all simulation results for chatbot access
-  if (!allSimulationResults.find(r => r.scenario_id === result.scenario_id)) {
-    allSimulationResults.push(result);
+  if (!allSimulationResultsByModel[modelType].find(r => r.scenario_id === result.scenario_id)) {
+    allSimulationResultsByModel[modelType].push(result);
   }
 
   // Display warning for new tier scenarios
@@ -2100,7 +2347,6 @@ function displayResultsInTabs(result) {
   renderMigrationMatrix(result);
 
   // Show/hide appropriate detail table based on model type
-  const modelType = result.model_type || selectedScenario?.model_type;
   document.getElementById('acquisition-results-detail').style.display =
     (modelType === 'acquisition') ? 'block' : 'none';
   document.getElementById('churn-results-detail').style.display =
@@ -2434,7 +2680,7 @@ function render2TierMigrationMatrix(tableHeader, tableBody, migration) {
     </tr>
   `;
 
-  // Ad-Supported row
+  // Ad-Lite row
   const adSuppUpgrade = (migration.from_ad_supported?.to_ad_free || 0) * 100;
   const adSuppCancel = (migration.from_ad_supported?.cancel || 0) * 100;
   const adSuppNetMix = adSuppUpgrade - adSuppCancel;
@@ -2446,7 +2692,7 @@ function render2TierMigrationMatrix(tableHeader, tableBody, migration) {
 
   tableBody.innerHTML = `
     <tr>
-      <td><strong>Ad-Supported</strong></td>
+      <td><strong>Ad-Lite</strong></td>
       <td class="text-success">${adSuppUpgrade > 0 ? '+' : ''}${adSuppUpgrade.toFixed(1)}%</td>
       <td class="text-muted">—</td>
       <td class="text-danger">${adSuppCancel > 0 ? '+' : ''}${adSuppCancel.toFixed(1)}%</td>
@@ -2478,7 +2724,7 @@ function renderBundleMigrationMatrix(tableHeader, tableBody, migration) {
     </tr>
   `;
 
-  // FROM AD-SUPPORTED
+  // FROM Ad-Lite
   const as_to_af = (migration.from_ad_supported?.to_ad_free || 0) * 100;
   const as_to_bundle = (migration.from_ad_supported?.to_bundle || 0) * 100;
   const as_cancel = (migration.from_ad_supported?.cancel || 0) * 100;
@@ -2498,7 +2744,7 @@ function renderBundleMigrationMatrix(tableHeader, tableBody, migration) {
 
   tableBody.innerHTML = `
     <tr>
-      <td><strong>Ad-Supported</strong></td>
+      <td><strong>Ad-Lite</strong></td>
       <td class="text-success">${as_to_af > 0 ? '+' : ''}${as_to_af.toFixed(1)}%</td>
       <td class="text-primary">${as_to_bundle > 0 ? '+' : ''}${as_to_bundle.toFixed(1)}%</td>
       <td class="text-muted">—</td>
@@ -2546,7 +2792,7 @@ function renderBasicMigrationMatrix(tableHeader, tableBody, migration) {
   const basic_cancel = (migration.from_basic?.cancel || 0) * 100;
   const basic_net = basic_to_as + basic_to_af - basic_cancel;
 
-  // FROM AD-SUPPORTED
+  // FROM Ad-Lite
   const as_to_af = (migration.from_ad_supported?.to_ad_free || 0) * 100;
   const as_to_basic = (migration.from_ad_supported?.to_basic || 0) * 100;
   const as_cancel = (migration.from_ad_supported?.cancel || 0) * 100;
@@ -2568,7 +2814,7 @@ function renderBasicMigrationMatrix(tableHeader, tableBody, migration) {
       <td class="${basic_net >= 0 ? 'text-success' : 'text-danger'}"><strong>${basic_net > 0 ? '+' : ''}${basic_net.toFixed(1)}%</strong></td>
     </tr>
     <tr>
-      <td><strong>Ad-Supported</strong></td>
+      <td><strong>Ad-Lite</strong></td>
       <td class="text-muted">—</td>
       <td class="text-success">${as_to_af > 0 ? '+' : ''}${as_to_af.toFixed(1)}%</td>
       <td class="text-warning">${as_to_basic > 0 ? '+' : ''}${as_to_basic.toFixed(1)}%</td>
@@ -2598,17 +2844,12 @@ async function rankAndDisplayScenarios() {
   try {
     // Get selected objective and constraints
     const objective = document.getElementById('objective-lens-select').value;
-    const churnCap = parseFloat(document.getElementById('churn-cap-input').value) / 100;
-
-    const constraints = {
-      churn_cap: churnCap
-    };
 
     // Rank scenarios
-    const rankedScenarios = rankScenarios(savedScenarios, objective, constraints);
+    const rankedScenarios = rankScenarios(savedScenarios, objective, {});
 
     if (rankedScenarios.length === 0) {
-      alert('No scenarios meet the current constraints. Try adjusting the churn cap or saving more scenarios.');
+      alert('No scenarios available to rank. Try saving more scenarios.');
       return;
     }
 
@@ -2629,6 +2870,11 @@ function displayTop3Scenarios(top3) {
   const list = document.getElementById('top-scenarios-list');
 
   if (!container || !list) return;
+
+  if (!window.currentTop3ScenariosByModel) {
+    window.currentTop3ScenariosByModel = {};
+  }
+  window.currentTop3ScenariosByModel[activeModelType] = top3;
 
   let html = '';
   top3.forEach((scenario, index) => {
@@ -2694,9 +2940,6 @@ function displayTop3Scenarios(top3) {
 
   list.innerHTML = html;
   container.style.display = 'block';
-
-  // Store top 3 scenarios globally for export functionality
-  window.currentTop3Scenarios = top3;
 
   // Enable export buttons
   const exportPdfBtn = document.getElementById('export-pdf-btn');

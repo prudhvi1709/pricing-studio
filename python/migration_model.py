@@ -3,9 +3,9 @@ Tier Migration Model (2-Tier & 3-Tier Support)
 Uses Multinomial Logit with industry-calibrated coefficients
 
 Supports:
-- 2-tier: Ad-Supported ↔ Ad-Free
-- 3-tier Bundle: Ad-Supported, Ad-Free, Bundle (Discovery+ + Max)
-- 3-tier Basic: Basic, Ad-Supported, Ad-Free
+- 2-tier: Ad-Lite ↔ Ad-Free
+- 3-tier Bundle: Ad-Lite, Ad-Free, Bundle (Discovery+ + Max)
+- 3-tier Basic: Basic, Ad-Lite, Ad-Free
 """
 
 import numpy as np
@@ -18,7 +18,7 @@ import numpy as np
 # Bundle = Discovery+ Ad-Free ($8.99) + Max Ad-Free ($9.99) = $14.99 (saves $3.99)
 # Tuned for realistic transition rates: Ad-Free→Bundle 55-70%, Ad-Supp→Bundle 7-12%
 BUNDLE_COEFFICIENTS = {
-    # From Ad-Supported → Bundle (big price jump but compelling value)
+    # From Ad-Lite → Bundle (big price jump but compelling value)
     'ad_supp_to_bundle': {
         'intercept': -2.6,        # Very strong base resistance (2.5x price increase)
         'value_savings_pct': 0.020, # Conservative savings impact (21% savings → +0.42 utility)
@@ -38,7 +38,7 @@ BUNDLE_COEFFICIENTS = {
         'price_pressure': 0.10,   # Only if under financial stress
         'tenure_months': -0.018   # Longer tenure = stickier
     },
-    # From Bundle → Ad-Supported (VERY LOW - big step down)
+    # From Bundle → Ad-Lite (VERY LOW - big step down)
     'bundle_to_ad_supp': {
         'intercept': -5.0,        # Very strong resistance
         'price_pressure': 0.15,   # Extreme financial stress only
@@ -49,14 +49,14 @@ BUNDLE_COEFFICIENTS = {
 # 3-TIER BASIC COEFFICIENTS
 # Basic = $2.99 tier with limited content library
 BASIC_COEFFICIENTS = {
-    # From Ad-Supported → Basic (HIGH for price-sensitive)
+    # From Ad-Lite → Basic (HIGH for price-sensitive)
     'ad_supp_to_basic': {
         'intercept': -1.4,        # Strong resistance (save $3/month but limited library)
         'price_sensitivity': 0.12, # Price-sensitive customers downgrade
         'content_satisfaction': -0.18, # If unsatisfied with content
         'tenure_months': -0.010   # Newer customers more likely
     },
-    # From Basic → Ad-Supported (MODERATE - after experiencing limits)
+    # From Basic → Ad-Lite (MODERATE - after experiencing limits)
     'basic_to_ad_supp': {
         'intercept': -1.2,        # Some resistance (costs more)
         'content_need': 0.22,     # Limited library drives upgrades
@@ -130,7 +130,7 @@ def detect_tier_config(scenario):
 def predict_3tier_bundle(scenario):
     """
     Predict migration for 3-tier Bundle scenario
-    Tiers: Ad-Supported ($5.99), Ad-Free ($8.99), Bundle ($14.99)
+    Tiers: Ad-Lite ($5.99), Ad-Free ($8.99), Bundle ($14.99)
     """
     has_promo = 1 if scenario.get('promotion') else 0
     avg_tenure = 12  # months
@@ -138,7 +138,7 @@ def predict_3tier_bundle(scenario):
     # Bundle value proposition: saves $3.99 vs standalone ($18.98)
     savings_pct = 21.0  # (3.99 / 18.98) * 100
 
-    # FROM AD-SUPPORTED
+    # FROM Ad-Lite
     # Choices: Stay, → Ad-Free, → Bundle, Cancel
     u_stay_as = 0
 
@@ -165,7 +165,7 @@ def predict_3tier_bundle(scenario):
     probs_as = softmax(np.array([u_stay_as, u_to_af, u_to_bundle, u_cancel_as]))
 
     # FROM AD-FREE
-    # Choices: Stay, → Bundle, → Ad-Supported, Cancel
+    # Choices: Stay, → Bundle, → Ad-Lite, Cancel
     u_stay_af = 0
 
     u_af_to_bundle = (
@@ -191,7 +191,7 @@ def predict_3tier_bundle(scenario):
     probs_af = softmax(np.array([u_stay_af, u_af_to_bundle, u_af_to_as, u_cancel_af]))
 
     # FROM BUNDLE
-    # Choices: Stay, → Ad-Free, → Ad-Supported, Cancel
+    # Choices: Stay, → Ad-Free, → Ad-Lite, Cancel
     u_stay_bundle = 0
 
     u_bundle_to_af = (
@@ -246,13 +246,13 @@ def predict_3tier_bundle(scenario):
 def predict_3tier_basic(scenario):
     """
     Predict migration for 3-tier Basic scenario
-    Tiers: Basic ($2.99), Ad-Supported ($5.99), Ad-Free ($8.99)
+    Tiers: Basic ($2.99), Ad-Lite ($5.99), Ad-Free ($8.99)
     """
     has_promo = 1 if scenario.get('promotion') else 0
     avg_tenure = 12
 
     # FROM BASIC
-    # Choices: Stay, → Ad-Supported, → Ad-Free, Cancel
+    # Choices: Stay, → Ad-Lite, → Ad-Free, Cancel
     u_stay_basic = 0
 
     u_basic_to_as = (
@@ -275,7 +275,7 @@ def predict_3tier_basic(scenario):
 
     probs_basic = softmax(np.array([u_stay_basic, u_basic_to_as, u_basic_to_af, u_cancel_basic]))
 
-    # FROM AD-SUPPORTED
+    # FROM Ad-Lite
     # Choices: Stay, → Ad-Free, → Basic, Cancel
     u_stay_as = 0
 
@@ -302,7 +302,7 @@ def predict_3tier_basic(scenario):
     probs_as = softmax(np.array([u_stay_as, u_as_to_af, u_as_to_basic, u_cancel_as]))
 
     # FROM AD-FREE
-    # Choices: Stay, → Ad-Supported, → Basic, Cancel
+    # Choices: Stay, → Ad-Lite, → Basic, Cancel
     u_stay_af = 0
 
     u_af_to_as = (
@@ -356,7 +356,7 @@ def predict_3tier_basic(scenario):
 # ============================================================================
 
 def predict_2tier(scenario):
-    """Original 2-tier model: Ad-Supported ↔ Ad-Free"""
+    """Original 2-tier model: Ad-Lite ↔ Ad-Free"""
     ad_supported_price = scenario.get('ad_supported_price', 5.99)
     ad_free_price = scenario.get('ad_free_price', 8.99)
     has_promo = 1 if scenario.get('promotion') else 0
@@ -364,7 +364,7 @@ def predict_2tier(scenario):
 
     price_gap = ad_free_price - ad_supported_price
 
-    # FROM AD-SUPPORTED
+    # FROM Ad-Lite
     u_stay_as = 0
     u_upgrade = (
         MIGRATION_COEFFICIENTS_2TIER['upgrade']['intercept'] +
