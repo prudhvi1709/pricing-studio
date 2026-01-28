@@ -297,6 +297,9 @@ html {
 .steps-modal .modal-content {
   border-radius: 0;
   border: none;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .steps-modal .modal-dialog {
@@ -317,7 +320,15 @@ html {
 
 .steps-modal .modal-body {
   padding: 0.75rem 1.5rem 1.25rem;
-  overflow: hidden;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Avoid forcing full-height layout inside the steps modal */
+.steps-modal .modal-body .container-fluid,
+.steps-modal .modal-body .row {
+  height: auto !important;
 }
 
 [data-bs-theme="dark"] .steps-modal .modal-content {
@@ -345,7 +356,7 @@ html {
 }
 
 .steps-table-header {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 700;
@@ -359,7 +370,7 @@ html {
 
 .steps-table-row {
   border-radius: 16px;
-  padding: 0.65rem 1rem;
+  padding: 0.8rem 1.15rem;
   border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.08);
   transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.55s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -406,23 +417,23 @@ html {
 }
 
 .steps-table-step-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .steps-table-body {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.9rem;
+  font-size: 0.97rem;
   line-height: 1.25;
 }
 
 .steps-table-body strong {
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .steps-table-rfp {
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   color: rgba(255, 255, 255, 0.75);
 }
 
