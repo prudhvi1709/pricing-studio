@@ -467,7 +467,7 @@ html {
 
 /* Main content - account for fixed nav */
 .main-content {
-  padding-top: 80px;
+  padding-top: 96px;
   min-height: 100vh;
 }
 
@@ -1631,4 +1631,10 @@ html {
   font-size: 2rem;
   font-weight: bold;
   transition: all 0.3s ease;
+}
+
+/* Event Details Table */
+.event-details-table {
+  max-height: 100vh;
+  overflow-y: auto;
 }
