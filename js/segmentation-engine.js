@@ -603,6 +603,9 @@ class SegmentationEngine {
         if (adjusted.avg_cac !== undefined) {
             adjusted.avg_cac = parseFloat(adjusted.avg_cac) * multipliers.cac;
         }
+        if(adjusted.subscriber_count !== undefined && multipliers.subscriber_count !== undefined) {
+            adjusted.subscriber_count = Math.round(parseFloat(adjusted.subscriber_count) * multipliers.subscriber_count);
+        }
         return adjusted;
     }
 }

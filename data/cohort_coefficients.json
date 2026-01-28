@@ -8,7 +8,8 @@
       "arpu": 1.0,
       "cac": 1.0,
       "watch_hours": 1.0,
-      "cac_sensitivity": 1.0
+      "cac_sensitivity": 1.0,
+      "subscriber_count": 1.0
     }
   },
   "promo_driven_joiners": {
@@ -20,7 +21,8 @@
       "arpu": 0.9,
       "cac": 1.2,
       "watch_hours": 0.9,
-      "cac_sensitivity": 1.2
+      "cac_sensitivity": 1.2,
+      "subscriber_count": 0.25
     }
   },
   "content_led_high_intent_joiners": {
@@ -32,7 +34,8 @@
       "arpu": 1.1,
       "cac": 0.95,
       "watch_hours": 1.1,
-      "cac_sensitivity": 0.9
+      "cac_sensitivity": 0.9,
+      "subscriber_count": 0.30
     }
   },
   "long_tenure_loyalists": {
@@ -44,7 +47,8 @@
       "arpu": 1.15,
       "cac": 0.9,
       "watch_hours": 1.1,
-      "cac_sensitivity": 0.85
+      "cac_sensitivity": 0.85,
+      "subscriber_count": 0.20
     }
   },
   "habitual_streamers": {
@@ -56,7 +60,8 @@
       "arpu": 1.05,
       "cac": 0.95,
       "watch_hours": 1.2,
-      "cac_sensitivity": 0.9
+      "cac_sensitivity": 0.9,
+      "subscriber_count": 0.15
     }
   },
   "price_sensitive_churn_risks": {
@@ -68,7 +73,8 @@
       "arpu": 0.85,
       "cac": 1.1,
       "watch_hours": 0.85,
-      "cac_sensitivity": 1.3
+      "cac_sensitivity": 1.3,
+      "subscriber_count": 0.15
     }
   },
   "promo_roll_off_churners": {
@@ -80,7 +86,8 @@
       "arpu": 0.9,
       "cac": 1.15,
       "watch_hours": 0.9,
-      "cac_sensitivity": 1.15
+      "cac_sensitivity": 1.15,
+      "subscriber_count": 0.10
     }
   },
   "ad_supported_value_seekers": {
@@ -92,7 +99,8 @@
       "arpu": 0.85,
       "cac": 1.05,
       "watch_hours": 0.9,
-      "cac_sensitivity": 1.2
+      "cac_sensitivity": 1.2,
+      "subscriber_count": 0.40
     }
   },
   "ad_free_loyalists": {
@@ -104,7 +112,8 @@
       "arpu": 1.15,
       "cac": 0.95,
       "watch_hours": 1.05,
-      "cac_sensitivity": 0.9
+      "cac_sensitivity": 0.9,
+      "subscriber_count": 0.25
     }
   },
   "tier_switchers": {
@@ -116,7 +125,8 @@
       "arpu": 0.95,
       "cac": 1.05,
       "watch_hours": 0.95,
-      "cac_sensitivity": 1.1
+      "cac_sensitivity": 1.1,
+      "subscriber_count": 0.20
     }
   }
 }
