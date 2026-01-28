@@ -168,6 +168,15 @@ function createAcquisitionChartSimple() {
     }
   };
 
+  // Use loaded baseline data or fallback to placeholder values
+  const initialData = acquisitionParams && acquisitionParams.ad_supported
+    ? [
+        acquisitionParams.ad_supported.segments.new_0_3mo.baseline_adds,
+        acquisitionParams.ad_supported.segments.tenured_3_12mo.baseline_adds,
+        acquisitionParams.ad_supported.segments.tenured_12plus.baseline_adds
+      ]
+    : [1000, 1400, 1600];
+
   acquisitionChartSimple = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -175,14 +184,14 @@ function createAcquisitionChartSimple() {
       datasets: [
         {
           label: 'Baseline',
-          data: [1000, 1400, 1600],
+          data: initialData,
           backgroundColor: 'rgba(99, 102, 241, 0.5)',
           borderColor: 'rgba(99, 102, 241, 1)',
           borderWidth: 2
         },
         {
           label: 'Projected',
-          data: [1000, 1400, 1600],
+          data: initialData,
           backgroundColor: 'rgba(16, 185, 129, 0.5)',
           borderColor: 'rgba(16, 185, 129, 1)',
           borderWidth: 2,
@@ -300,15 +309,34 @@ function updateAcquisitionModel() {
   const priceSlider = document.getElementById('acq-price-slider');
   const priceDisplay = document.getElementById('acq-price-display');
 
-  if (!tierSelect || !priceSlider || !acquisitionParams) return;
+  if (!tierSelect || !priceSlider || !acquisitionParams) {
+    console.warn('⚠️ updateAcquisitionModel early return:', {
+      tierSelect: !!tierSelect,
+      priceSlider: !!priceSlider,
+      acquisitionParams: !!acquisitionParams
+    });
+    return;
+  }
 
   const tier = tierSelect.value;
   const params = acquisitionParams[tier];
-  if (!params) return;
+  if (!params) {
+    console.warn('⚠️ updateAcquisitionModel no params for tier:', tier);
+    return;
+  }
   const currentPrice = params.price;
   const newPrice = parseFloat(priceSlider.value);
   const priceChangePct = ((newPrice - currentPrice) / currentPrice) * 100;
   const elasticity = params.base_elasticity;
+
+  console.log('📊 Acquisition Model Update:', {
+    tier,
+    currentPrice,
+    newPrice,
+    priceChangePct: priceChangePct.toFixed(2) + '%',
+    elasticity,
+    chartExists: !!acquisitionChartSimple
+  });
 
   // Update displays
   priceDisplay.textContent = '$' + newPrice.toFixed(2);
@@ -350,6 +378,12 @@ function updateAcquisitionModel() {
       lower: value * (1 - Z_SCORE * STD_ERROR),
       upper: value * (1 + Z_SCORE * STD_ERROR)
     }));
+
+    console.log('📈 Updating Acquisition Chart:', {
+      baselineData: baselineData,
+      projectedData: projectedData,
+      difference: projectedData.map((val, i) => val - baselineData[i])
+    });
 
     acquisitionChartSimple.data.datasets[0].data = baselineData;
     acquisitionChartSimple.data.datasets[1].data = projectedData;

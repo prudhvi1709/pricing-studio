@@ -131,6 +131,10 @@ function createMigrationChartSimple() {
     migrationChartSimple.destroy();
   }
 
+  // Use loaded baseline data or fallback to placeholder values
+  const initialLitePct = migrationParams ? migrationParams.baselineLitePct : 62;
+  const initialFreePct = migrationParams ? migrationParams.baselineFreePct : 38;
+
   migrationChartSimple = new Chart(ctx, {
     type: 'line',
     data: {
@@ -138,7 +142,7 @@ function createMigrationChartSimple() {
       datasets: [
         {
           label: 'Ad-Lite %',
-          data: [62, 61, 60, 59, 58],
+          data: [initialLitePct, initialLitePct, initialLitePct, initialLitePct, initialLitePct],
           borderColor: 'rgba(245, 158, 11, 1)',
           backgroundColor: 'rgba(245, 158, 11, 0.1)',
           fill: true,
@@ -147,7 +151,7 @@ function createMigrationChartSimple() {
         },
         {
           label: 'Ad-Free %',
-          data: [38, 39, 40, 41, 42],
+          data: [initialFreePct, initialFreePct, initialFreePct, initialFreePct, initialFreePct],
           borderColor: 'rgba(0, 102, 255, 1)',
           backgroundColor: 'rgba(0, 102, 255, 0.1)',
           fill: true,
@@ -392,12 +396,30 @@ function updateMigrationModel() {
   const adliteSlider = document.getElementById('mig-adlite-slider');
   const adfreeSlider = document.getElementById('mig-adfree-slider');
 
-  if (!adliteSlider || !adfreeSlider || !migrationParams) return;
+  if (!adliteSlider || !adfreeSlider || !migrationParams) {
+    console.warn('⚠️ updateMigrationModel early return:', {
+      adliteSlider: !!adliteSlider,
+      adfreeSlider: !!adfreeSlider,
+      migrationParams: !!migrationParams
+    });
+    return;
+  }
 
   const adlitePrice = parseFloat(adliteSlider.value);
   const adfreePrice = parseFloat(adfreeSlider.value);
   const newGap = adfreePrice - adlitePrice;
   const gapChange = ((newGap - migrationParams.baselineGap) / migrationParams.baselineGap) * 100;
+
+  console.log('📊 Migration Model Update:', {
+    baselineAdLitePrice: migrationParams.baselineAdLitePrice,
+    baselineAdFreePrice: migrationParams.baselineAdFreePrice,
+    adlitePrice,
+    adfreePrice,
+    baselineGap: migrationParams.baselineGap,
+    newGap,
+    gapChange: gapChange.toFixed(2) + '%',
+    chartExists: !!migrationChartSimple
+  });
 
   // Update displays
   document.getElementById('mig-adlite-display').textContent = '$' + adlitePrice.toFixed(2);
@@ -468,6 +490,17 @@ function updateMigrationModel() {
       liteTrend.push(migrationParams.baselineLitePct + (newLitePct - migrationParams.baselineLitePct) * (i / 4));
       freeTrend.push(migrationParams.baselineFreePct + (newFreePct - migrationParams.baselineFreePct) * (i / 4));
     }
+
+    console.log('📈 Updating Migration Chart:', {
+      baselineLitePct: migrationParams.baselineLitePct,
+      baselineFreePct: migrationParams.baselineFreePct,
+      newLitePct: newLitePct,
+      newFreePct: newFreePct,
+      shift: shift,
+      liteTrend: liteTrend,
+      freeTrend: freeTrend
+    });
+
     migrationChartSimple.data.datasets[0].data = liteTrend;
     migrationChartSimple.data.datasets[1].data = freeTrend;
     migrationChartSimple.update('none'); // Instant update

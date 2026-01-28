@@ -68,7 +68,7 @@ async function initChurnSimple() {
     // Load parameters from actual data
     await loadChurnParams();
 
-    // Create charts
+    // Create charts with loaded parameters
     createChurnChartSimple();
     createSurvivalCurveChart();
 
@@ -107,6 +107,36 @@ function createChurnChartSimple() {
     churnChartSimple.destroy();
   }
 
+  // Use loaded baseline churn or fallback to ad_supported baseline
+  const initialBaseline = churnParams ? churnParams.ad_supported.baseline_churn : 4.2;
+
+  // Calculate initial projected data with default slider value ($1)
+  const defaultPriceIncrease = 1; // Default slider value from HTML
+  const tierParams = churnParams ? churnParams.ad_supported : null;
+  let initialProjectedData = [initialBaseline, initialBaseline, initialBaseline, initialBaseline, initialBaseline, initialBaseline];
+
+  if (tierParams) {
+    const priceChangePct = (defaultPriceIncrease / tierParams.price) * 100;
+    const totalChurnImpact = tierParams.baseline_churn * tierParams.churn_elasticity * (priceChangePct / 100);
+    const impacts = {
+      '0_4': totalChurnImpact * churnTimeLag['0_4_weeks'],
+      '4_8': totalChurnImpact * churnTimeLag['4_8_weeks'],
+      '8_12': totalChurnImpact * churnTimeLag['8_12_weeks'],
+      '12plus': totalChurnImpact * churnTimeLag['12_plus']
+    };
+
+    initialProjectedData = [
+      initialBaseline,
+      initialBaseline + impacts['0_4'],
+      initialBaseline + impacts['4_8'],
+      initialBaseline + impacts['8_12'],
+      initialBaseline + (impacts['8_12'] + impacts['12plus']) / 2,
+      initialBaseline + impacts['12plus']
+    ];
+
+    console.log('🎨 Creating Churn Chart with initial projected data:', initialProjectedData);
+  }
+
   churnChartSimple = new Chart(ctx, {
     type: 'line',
     data: {
@@ -114,7 +144,7 @@ function createChurnChartSimple() {
       datasets: [
         {
           label: 'Baseline Churn',
-          data: [4.2, 4.2, 4.2, 4.2, 4.2, 4.2],
+          data: [initialBaseline, initialBaseline, initialBaseline, initialBaseline, initialBaseline, initialBaseline],
           borderColor: 'rgba(99, 102, 241, 1)',
           backgroundColor: 'rgba(99, 102, 241, 0.1)',
           borderDash: [5, 5],
@@ -124,7 +154,7 @@ function createChurnChartSimple() {
         },
         {
           label: 'Projected Churn',
-          data: [4.2, 5.0, 6.0, 7.0, 6.5, 5.1],
+          data: initialProjectedData,
           borderColor: 'rgba(239, 68, 68, 1)',
           backgroundColor: 'rgba(239, 68, 68, 0.1)',
           fill: true,
@@ -195,6 +225,52 @@ function createSurvivalCurveChart() {
     survivalCurveChart.destroy();
   }
 
+  // Use loaded baseline churn to calculate initial retention curve
+  const initialBaseline = churnParams ? churnParams.ad_supported.baseline_churn : 4.2;
+  const baselineRetention = [
+    100,
+    100 - (initialBaseline * 0.25),
+    100 - (initialBaseline * 0.5),
+    100 - (initialBaseline * 0.75),
+    100 - (initialBaseline * 1.0),
+    100 - (initialBaseline * 1.25),
+    100 - (initialBaseline * 1.5)
+  ];
+
+  // Calculate initial scenario retention with default slider value ($1)
+  const defaultPriceIncrease = 1;
+  const tierParams = churnParams ? churnParams.ad_supported : null;
+  let initialScenarioRetention = baselineRetention;
+
+  if (tierParams) {
+    const priceChangePct = (defaultPriceIncrease / tierParams.price) * 100;
+    const totalChurnImpact = tierParams.baseline_churn * tierParams.churn_elasticity * (priceChangePct / 100);
+    const impacts = {
+      '0_4': totalChurnImpact * churnTimeLag['0_4_weeks'],
+      '4_8': totalChurnImpact * churnTimeLag['4_8_weeks'],
+      '8_12': totalChurnImpact * churnTimeLag['8_12_weeks'],
+      '12plus': totalChurnImpact * churnTimeLag['12_plus']
+    };
+
+    let cumulativeChurn = 0;
+    const scenarioRetention = [100];
+    cumulativeChurn += impacts['0_4'];
+    scenarioRetention.push(100 - (initialBaseline * 0.25 + cumulativeChurn * 0.25));
+    cumulativeChurn += impacts['4_8'];
+    scenarioRetention.push(100 - (initialBaseline * 0.5 + cumulativeChurn * 0.5));
+    cumulativeChurn += impacts['8_12'];
+    scenarioRetention.push(100 - (initialBaseline * 0.75 + cumulativeChurn * 0.75));
+    cumulativeChurn += impacts['12plus'] * 0.5;
+    scenarioRetention.push(100 - (initialBaseline * 1.0 + cumulativeChurn * 1.0));
+    cumulativeChurn += impacts['12plus'] * 0.3;
+    scenarioRetention.push(100 - (initialBaseline * 1.25 + cumulativeChurn * 1.0));
+    cumulativeChurn += impacts['12plus'] * 0.2;
+    scenarioRetention.push(100 - (initialBaseline * 1.5 + cumulativeChurn * 1.0));
+
+    initialScenarioRetention = scenarioRetention;
+    console.log('🎨 Creating Survival Curve with initial scenario data:', initialScenarioRetention);
+  }
+
   survivalCurveChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -202,7 +278,7 @@ function createSurvivalCurveChart() {
       datasets: [
         {
           label: 'Baseline Retention',
-          data: [100, 98.0, 96.2, 94.5, 93.0, 91.7, 90.5],
+          data: baselineRetention,
           borderColor: 'rgba(99, 102, 241, 1)',
           backgroundColor: 'rgba(99, 102, 241, 0.0)',
           borderWidth: 3,
@@ -213,7 +289,7 @@ function createSurvivalCurveChart() {
         },
         {
           label: 'Scenario Retention',
-          data: [100, 97.0, 94.5, 91.8, 89.5, 87.8, 86.5],
+          data: initialScenarioRetention,
           borderColor: 'rgba(239, 68, 68, 1)',
           backgroundColor: 'rgba(239, 68, 68, 0.0)',
           borderWidth: 3,
@@ -224,7 +300,7 @@ function createSurvivalCurveChart() {
         },
         {
           label: 'Retention Loss',
-          data: [100, 97.0, 94.5, 91.8, 89.5, 87.8, 86.5],
+          data: initialScenarioRetention,
           borderColor: 'transparent',
           backgroundColor: 'rgba(239, 68, 68, 0.15)',
           fill: '-1',
@@ -333,14 +409,29 @@ function setupChurnInteractivity() {
  */
 function updateChurnModel(currentTier = 'ad_supported') {
   const priceSlider = document.getElementById('churn-price-slider');
-  if (!priceSlider || !churnParams) return;
+  if (!priceSlider || !churnParams) {
+    console.warn('⚠️ updateChurnModel early return:', { priceSlider: !!priceSlider, churnParams: !!churnParams });
+    return;
+  }
 
   const tierParams = churnParams[currentTier];
-  if (!tierParams) return;
+  if (!tierParams) {
+    console.warn('⚠️ updateChurnModel no tier params for:', currentTier);
+    return;
+  }
 
   const priceIncrease = parseFloat(priceSlider.value);
   const currentTierPrice = tierParams.price;
   const priceChangePct = (priceIncrease / currentTierPrice) * 100;
+
+  console.log('📊 Churn Model Update:', {
+    priceIncrease,
+    currentTierPrice,
+    priceChangePct: priceChangePct.toFixed(2) + '%',
+    baseline_churn: tierParams.baseline_churn,
+    churn_elasticity: tierParams.churn_elasticity,
+    chartExists: !!churnChartSimple
+  });
 
   // Update displays
   document.getElementById('churn-increase-display').textContent = '+$' + priceIncrease.toFixed(2);
@@ -386,6 +477,14 @@ function updateChurnModel(currentTier = 'ad_supported') {
       tierBaseline + (impacts['8_12'] + impacts['12plus']) / 2,
       tierBaseline + impacts['12plus']
     ];
+
+    console.log('📈 Updating Churn Chart:', {
+      baseline: tierBaseline,
+      impacts: impacts,
+      projectedData: projectedData,
+      baselineData: [tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline]
+    });
+
     // Update baseline data too
     churnChartSimple.data.datasets[0].data = [tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline];
     churnChartSimple.data.datasets[1].data = projectedData;

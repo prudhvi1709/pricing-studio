@@ -165,6 +165,28 @@ function hideScenarioResults() {
   clearResultsUI();
 }
 
+/**
+ * Update Decision Engine ranking display for the current active model type
+ */
+function updateDecisionEngineDisplay() {
+  const container = document.getElementById('top-scenarios-container');
+  const list = document.getElementById('top-scenarios-list');
+
+  if (!container || !list) return;
+
+  // Check if rankings exist for the current model type
+  const currentTop3 = window.currentTop3ScenariosByModel?.[activeModelType];
+
+  if (currentTop3 && currentTop3.length > 0) {
+    // Rankings exist for this model, display them
+    displayTop3Scenarios(currentTop3);
+  } else {
+    // No rankings for this model, hide the container
+    container.style.display = 'none';
+    list.innerHTML = '';
+  }
+}
+
 function setActiveModelType(modelType) {
   if (!modelTypes.includes(modelType)) return;
   activeModelType = modelType;
@@ -172,19 +194,36 @@ function setActiveModelType(modelType) {
   savedScenarios = savedScenariosByModel[modelType];
   currentResult = currentResultByModel[modelType];
   allSimulationResults = allSimulationResultsByModel[modelType];
+
+  // Debug logging
+  console.log(`🔄 Switching to ${modelType} model`, {
+    hasResult: !!currentResult,
+    resultModelType: currentResult?.model_type,
+    resultScenarioId: currentResult?.scenario_id,
+    storedResults: Object.keys(currentResultByModel).reduce((acc, key) => {
+      acc[key] = currentResultByModel[key] ? {
+        model_type: currentResultByModel[key].model_type,
+        scenario_id: currentResultByModel[key].scenario_id
+      } : null;
+      return acc;
+    }, {})
+  });
+
   const comparisonCharts = document.getElementById('comparison-charts');
   if (comparisonCharts) comparisonCharts.style.display = 'none';
   // Clear any previously displayed results from other models
   hideScenarioResults();
   // Re-render results for this model if they exist
   if (currentResult) {
-    displayResultsInTabs(currentResult);
+    displayResultsInTabs(currentResult, true); // Pass true to indicate this is a re-display, not a new simulation
     const resultContainer = document.getElementById('result-container-models');
     if (resultContainer) resultContainer.style.display = 'block';
   }
   syncScenarioSelectionUI();
   updateScenarioComparisonUI();
   updateSimulateButtonState();
+  // Update Decision Engine display for this model
+  updateDecisionEngineDisplay();
 }
 
 function resolveModelTypeForResult(result) {
@@ -1020,7 +1059,14 @@ function clearScenarios() {
   if (confirm('Are you sure you want to clear all saved scenarios?')) {
     savedScenariosByModel[activeModelType] = [];
     savedScenarios = savedScenariosByModel[activeModelType];
+
+    // Also clear rankings for this model
+    if (window.currentTop3ScenariosByModel) {
+      window.currentTop3ScenariosByModel[activeModelType] = null;
+    }
+
     updateScenarioComparisonUI();
+    updateDecisionEngineDisplay();
   }
 }
 
@@ -1997,15 +2043,25 @@ function populateElasticityModelTabs() {
     });
   });
 
-  const activeTab = document.querySelector('#elasticityTabs .nav-link.active');
-  if (activeTab) {
-    setActiveModelType(getModelTypeFromTabId(activeTab.id));
+  // Only auto-detect active tab on first load (when activeModelType is not set)
+  // Don't do this on subsequent calls because setActiveModelType is called before populateElasticityModelTabs()
+  // Doing auto-detection on every call was causing the active model to be overwritten during step navigation
+  // because the tab links weren't being updated, only the tab panes
+  if (!activeModelType) {
+    const activeTab = document.querySelector('#elasticityTabs .nav-link.active');
+    if (activeTab) {
+      setActiveModelType(getModelTypeFromTabId(activeTab.id));
+    }
   }
 
-  // Add simulate button handler
+  // Add simulate button handler (remove old handler first to prevent duplicates)
   const simulateBtn = document.getElementById('simulate-btn-models');
   if (simulateBtn) {
-    simulateBtn.addEventListener('click', async function() {
+    // Clone and replace button to remove all event listeners
+    const newSimulateBtn = simulateBtn.cloneNode(true);
+    simulateBtn.parentNode.replaceChild(newSimulateBtn, simulateBtn);
+
+    newSimulateBtn.addEventListener('click', async function() {
       const activeScenario = selectedScenarioByModel[activeModelType];
       if (!activeScenario) {
         console.warn('⚠️ No scenario selected!');
@@ -2017,8 +2073,8 @@ function populateElasticityModelTabs() {
       const resultContainer = document.getElementById('result-container-models');
 
       try {
-        simulateBtn.disabled = true;
-        simulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating...';
+        newSimulateBtn.disabled = true;
+        newSimulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Simulating...';
         const loadingState = startSimulateLoading();
 
         console.log('📝 Scenario config:', {
@@ -2034,7 +2090,7 @@ function populateElasticityModelTabs() {
         let result;
         if (isPyodideAvailable()) {
           console.log('✅ Using Pyodide Python models');
-          simulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running Python models...';
+          newSimulateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running Python models...';
           result = await simulateScenarioWithPyodide(activeScenario, {
             targetSegment: 'all',
             segmentAxis: null
@@ -2047,6 +2103,13 @@ function populateElasticityModelTabs() {
         });
       }
       result.model_type = activeScenario.model_type;
+
+      // Debug: Verify result has correct model_type before displaying
+      console.log(`🎯 Simulation complete for ${activeScenario.model_type}:`, {
+        scenario_id: result.scenario_id,
+        model_type: result.model_type,
+        activeModelType: activeModelType
+      });
 
       await loadingState.done;
       loadingState.stop();
@@ -2061,8 +2124,8 @@ function populateElasticityModelTabs() {
         console.error('Error simulating scenario:', error);
         alert('Error running simulation: ' + error.message);
       } finally {
-        simulateBtn.disabled = false;
-        simulateBtn.innerHTML = '<i class="bi bi-play-fill me-2"></i>Simulate Selected Scenario';
+        newSimulateBtn.disabled = false;
+        newSimulateBtn.innerHTML = '<i class="bi bi-play-fill me-2"></i>Simulate Selected Scenario';
         const loadingEl = document.getElementById('simulate-loading');
         if (loadingEl) loadingEl.style.display = 'none';
       }
@@ -2202,19 +2265,52 @@ function calculateChurnPayback(result) {
 
 /**
  * Display simulation results in the tabbed interface
+ * @param {Object} result - The simulation result to display
+ * @param {boolean} isRedisplay - True if this is re-displaying an existing result (don't re-store it)
  */
-function displayResultsInTabs(result) {
+function displayResultsInTabs(result, isRedisplay = false) {
   const modelType = resolveModelTypeForResult(result);
   if (!modelType) {
     console.warn('Unable to resolve model type for result; skipping render', result);
     return;
   }
-  // Tag and bucket by model
-  result.model_type = modelType;
-  currentResultByModel[modelType] = result;
+
+  // Ensure the result object has the correct model_type
+  if (!result.model_type) {
+    result.model_type = modelType;
+  }
+
+  // Verify that the result's model_type matches the resolved modelType
+  if (result.model_type !== modelType) {
+    console.warn(`⚠️ Result model_type mismatch! result.model_type=${result.model_type}, resolved=${modelType}. Using resolved.`);
+    result.model_type = modelType;
+  }
+
+  // Only store the result if this is a NEW simulation, not a re-display
+  if (!isRedisplay) {
+    currentResultByModel[modelType] = result;
+    console.log(`💾 Storing result for ${modelType} model:`, result.scenario_id);
+  } else {
+    console.log(`🔁 Re-displaying existing result for ${modelType} model:`, result.scenario_id);
+  }
+
+  // Debug logging
+  console.log(`📊 displayResultsInTabs called`, {
+    resolvedModelType: modelType,
+    activeModelType: activeModelType,
+    isRedisplay: isRedisplay,
+    willRender: modelType === activeModelType,
+    scenario_id: result.scenario_id,
+    resultModelType: result.model_type,
+    storageState: Object.keys(currentResultByModel).reduce((acc, key) => {
+      acc[key] = currentResultByModel[key] ? currentResultByModel[key].scenario_id : null;
+      return acc;
+    }, {})
+  });
 
   // Only render if this result belongs to the active model
   if (modelType !== activeModelType) {
+    console.log(`⏭️ Skipping render: modelType (${modelType}) !== activeModelType (${activeModelType})`);
     return;
   }
 
@@ -2222,6 +2318,7 @@ function displayResultsInTabs(result) {
   hideScenarioResults();
 
   currentResult = result;
+  console.log(`✅ Rendering results for ${modelType} model, scenario: ${result.scenario_id}`);
   const resultContainer = document.getElementById('result-container-models');
   if (resultContainer) resultContainer.style.display = 'block';
 
@@ -2264,6 +2361,15 @@ function displayResultsInTabs(result) {
   // Calculate Payback Metrics (RFP Slide 15-16)
   const acquisitionPayback = calculateAcquisitionPayback(result);
   const churnPayback = calculateChurnPayback(result);
+
+  console.log(`💳 Rendering KPI cards for ${modelType}:`, {
+    scenario_id: result.scenario_id,
+    model_type: result.model_type,
+    forecasted_revenue: result.forecasted.revenue,
+    delta_revenue: result.delta.revenue,
+    subscribers: subscribers,
+    container_exists: !!container
+  });
 
   container.innerHTML = `
     <div class="col-md-2">
@@ -2347,12 +2453,20 @@ function displayResultsInTabs(result) {
   renderMigrationMatrix(result);
 
   // Show/hide appropriate detail table based on model type
-  document.getElementById('acquisition-results-detail').style.display =
-    (modelType === 'acquisition') ? 'block' : 'none';
-  document.getElementById('churn-results-detail').style.display =
-    (modelType === 'churn') ? 'block' : 'none';
-  document.getElementById('migration-results-detail').style.display =
-    (modelType === 'migration') ? 'block' : 'none';
+  const acquisitionDetail = document.getElementById('acquisition-results-detail');
+  const churnDetail = document.getElementById('churn-results-detail');
+  const migrationDetail = document.getElementById('migration-results-detail');
+
+  if (acquisitionDetail) acquisitionDetail.style.display = (modelType === 'acquisition') ? 'block' : 'none';
+  if (churnDetail) churnDetail.style.display = (modelType === 'churn') ? 'block' : 'none';
+  if (migrationDetail) migrationDetail.style.display = (modelType === 'migration') ? 'block' : 'none';
+
+  console.log(`👁️ Detail sections visibility:`, {
+    modelType: modelType,
+    acquisition: acquisitionDetail?.style.display,
+    churn: churnDetail?.style.display,
+    migration: migrationDetail?.style.display
+  });
 }
 
 /**
@@ -2360,6 +2474,14 @@ function displayResultsInTabs(result) {
  */
 function renderRevenueChartInTabs(result) {
   const ctx = document.getElementById('revenue-chart-models');
+
+  console.log(`📊 Rendering revenue chart:`, {
+    scenario_id: result.scenario_id,
+    model_type: result.model_type,
+    baseline_revenue: result.baseline.revenue,
+    forecasted_revenue: result.forecasted.revenue,
+    chart_exists: !!window.revenueChartModels
+  });
 
   if (window.revenueChartModels) {
     window.revenueChartModels.destroy();
