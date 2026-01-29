@@ -301,6 +301,9 @@ function updateSankeyDiagram(upgradeRate = null, downgradeRate = null, cancelLit
   const height = 400;
   const margin = { top: 20, right: 100, bottom: 20, left: 100 };
 
+  // Remove any existing tooltip
+  d3.selectAll('.sankey-tooltip').remove();
+
   // Clear and create SVG
   container.innerHTML = '';
   const svg = d3.select(container)
@@ -329,6 +332,22 @@ function updateSankeyDiagram(upgradeRate = null, downgradeRate = null, cancelLit
     churn: '#6b7280'        // Gray
   };
 
+  // Create tooltip div
+  const tooltip = d3.select('body')
+    .append('div')
+    .attr('class', 'sankey-tooltip')
+    .style('position', 'absolute')
+    .style('visibility', 'hidden')
+    .style('background-color', 'rgba(0, 0, 0, 0.9)')
+    .style('color', '#fff')
+    .style('padding', '12px 16px')
+    .style('border-radius', '8px')
+    .style('font-size', '13px')
+    .style('line-height', '1.6')
+    .style('pointer-events', 'none')
+    .style('z-index', '9999')
+    .style('box-shadow', '0 4px 12px rgba(0,0,0,0.3)');
+
   // Draw links (flows)
   svg.append('g')
     .selectAll('path')
@@ -339,16 +358,62 @@ function updateSankeyDiagram(upgradeRate = null, downgradeRate = null, cancelLit
     .attr('stroke-width', d => Math.max(1, d.width))
     .attr('fill', 'none')
     .attr('opacity', 0.4)
-    .on('mouseover', function(event, d) {
+    .on('mouseover', function(_event, d) {
       d3.select(this).attr('opacity', 0.7);
+
+      // Calculate flow metrics
+      const sourceTier = d.source.id === 0 ? 'Ad-Lite' : 'Ad-Free';
+      const targetTier = d.target.id === 2 ? 'Ad-Lite' : (d.target.id === 3 ? 'Ad-Free' : 'Churned');
+      const sourceTotal = d.source.id === 0 ? totalLite : totalFree;
+      const pct = (d.value / sourceTotal * 100).toFixed(1);
+
+      // Get prices from sliders
+      const adlitePrice = parseFloat(document.getElementById('mig-adlite-slider').value);
+      const adfreePrice = parseFloat(document.getElementById('mig-adfree-slider').value);
+
+      // Calculate revenue impact
+      let revenueImpact = 0;
+      let revenueText = '';
+
+      if (d.type === 'upgrade') {
+        revenueImpact = d.value * (adfreePrice - adlitePrice);
+        revenueText = `Revenue Impact: <span style="color: #10b981;">+$${Math.abs(revenueImpact).toLocaleString()}</span>`;
+      } else if (d.type === 'downgrade') {
+        revenueImpact = d.value * (adlitePrice - adfreePrice);
+        revenueText = `Revenue Impact: <span style="color: #ef4444;">$${revenueImpact.toLocaleString()}</span>`;
+      } else if (d.type === 'churn') {
+        const lostPrice = d.source.id === 0 ? adlitePrice : adfreePrice;
+        revenueImpact = -1 * d.value * lostPrice;
+        revenueText = `Revenue Impact: <span style="color: #ef4444;">-$${Math.abs(revenueImpact).toLocaleString()}</span>`;
+      } else {
+        revenueText = `Revenue Impact: <span style="color: #94a3b8;">No change (retention)</span>`;
+      }
+
+      // Build tooltip HTML
+      const flowType = d.type === 'stay' ? 'Retention' :
+                       d.type === 'upgrade' ? 'Upgrade' :
+                       d.type === 'downgrade' ? 'Downgrade' : 'Churn';
+
+      tooltip.html(`
+        <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px;">
+          ${flowType}: ${sourceTier} → ${targetTier}
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div>Subscribers: <strong>${d.value.toLocaleString()}</strong></div>
+          <div>Percentage: <strong>${pct}%</strong> of ${sourceTier}</div>
+          <div>${revenueText}</div>
+        </div>
+      `)
+        .style('visibility', 'visible');
+    })
+    .on('mousemove', function(event) {
+      tooltip
+        .style('top', (event.pageY - 10) + 'px')
+        .style('left', (event.pageX + 15) + 'px');
     })
     .on('mouseout', function() {
       d3.select(this).attr('opacity', 0.4);
-    })
-    .append('title')
-    .text(d => {
-      const pct = (d.value / (d.source.id < 2 ? (d.source.id === 0 ? totalLite : totalFree) : 1) * 100).toFixed(1);
-      return `${d.source.name.replace('\n', ' ')} → ${d.target.name.replace('\n', ' ')}\n${d.value.toLocaleString()} subs (${pct}%)`;
+      tooltip.style('visibility', 'hidden');
     });
 
   // Draw nodes
@@ -414,20 +479,7 @@ function setupMigrationInteractivity() {
       const selectedCohort = cohortSelect.value;
       console.log('🔄 Switching to migration cohort:', selectedCohort);
 
-      if (cohortData[selectedCohort]) {
-        const cohort = cohortData[selectedCohort];
-
-        // Update baseline migration rates from cohort profile
-        if (cohort.migration_upgrade !== undefined) {
-          migrationParams.baselineUpgrade = cohort.migration_upgrade * 3; // Scale to percentage
-          console.log(`  ✓ Upgrade willingness: ${migrationParams.baselineUpgrade.toFixed(1)}%`);
-        }
-        if (cohort.migration_downgrade !== undefined) {
-          migrationParams.baselineDowngrade = cohort.migration_downgrade * 2; // Scale to percentage
-          console.log(`  ✓ Downgrade propensity: ${migrationParams.baselineDowngrade.toFixed(1)}%`);
-        }
-      }
-
+      // Cohort-specific parameters are now read directly in updateMigrationModel()
       updateMigrationModel();
     });
   }
@@ -454,11 +506,17 @@ function updateMigrationModel() {
   const newGap = adfreePrice - adlitePrice;
   const gapChange = ((newGap - migrationParams.baselineGap) / migrationParams.baselineGap) * 100;
 
+  // Calculate price changes for each tier (for churn calculation)
+  const adlitePriceChange = ((adlitePrice - migrationParams.baselineAdLitePrice) / migrationParams.baselineAdLitePrice) * 100;
+  const adfreePriceChange = ((adfreePrice - migrationParams.baselineAdFreePrice) / migrationParams.baselineAdFreePrice) * 100;
+
   console.log('📊 Migration Model Update:', {
     baselineAdLitePrice: migrationParams.baselineAdLitePrice,
     baselineAdFreePrice: migrationParams.baselineAdFreePrice,
     adlitePrice,
     adfreePrice,
+    adlitePriceChange: adlitePriceChange.toFixed(2) + '%',
+    adfreePriceChange: adfreePriceChange.toFixed(2) + '%',
     baselineGap: migrationParams.baselineGap,
     newGap,
     gapChange: gapChange.toFixed(2) + '%',
@@ -471,45 +529,176 @@ function updateMigrationModel() {
   document.getElementById('mig-price-gap').textContent = '$' + newGap.toFixed(2);
   document.getElementById('mig-gap-change').textContent = (gapChange >= 0 ? '+' : '') + gapChange.toFixed(1) + '%';
 
-  // Calculate migration probabilities (non-linear model with crossover)
-  // Upgrade curve: Sigmoid with plateau (high willingness at small gaps, then flattens)
-  // Downgrade curve: Exponential with acceleration (low at small gaps, steep increase at large gaps)
+  // Get cohort-specific migration parameters
+  const selectedCohort = document.getElementById('mig-cohort-select')?.value || 'baseline';
+  const cohort = (cohortData && cohortData[selectedCohort]) || cohortData?.baseline || {};
 
-  // Upgrade: Sigmoid function (decreasing with gap size, plateaus)
-  const upgradeMax = 10.0;  // Max 10% upgrade rate at narrow gaps
-  const upgradeK = -0.75;    // Steepness (negative = decreasing)
+  // Migration asymmetry factor: how much more willing to migrate based on cohort
+  // Deal Hunter: 4.5 (very asymmetric - extreme reactions)
+  // Tier Flexible: 3.8 (high asymmetry)
+  // Baseline: 2.2 (moderate)
+  const asymmetryFactor = cohort.migration_asymmetry_factor || 2.2;
+
+  // Base migration willingness (higher = more willing to switch tiers)
+  const upgradeWillingness = cohort.migration_upgrade || 1.0;
+  const downgradeWillingness = cohort.migration_downgrade || 1.2;
+
+  console.log('🎯 Cohort Migration Profile:', {
+    cohort: selectedCohort,
+    asymmetryFactor,
+    upgradeWillingness,
+    downgradeWillingness
+  });
+
+  // Calculate migration probabilities based on BOTH gap size AND individual price changes
+  // Key insight: When ad-lite increases but ad-free stays constant, upgrade rate should spike!
+
+  // Upgrade Rate Calculation:
+  // 1. Base upgrade willingness depends on gap size (sigmoid)
+  // 2. Ad-lite price increase amplifies upgrade motivation (customers flee higher ad-lite price)
+  // 3. Ad-free price increase reduces upgrade motivation (ad-free becomes less attractive)
+  // 4. Cohort asymmetry factor amplifies/dampens the response
+
+  const upgradeMax = 12.0;  // Max 12% upgrade rate (baseline)
+  const upgradeK = -0.75;    // Steepness (negative = decreasing with gap)
   const upgradeMidpoint = 2.5;  // Inflection at $2.5 gap
-  const upgradePct = upgradeMax / (1 + Math.exp(upgradeK * (newGap - upgradeMidpoint)));
 
-  // Downgrade: Exponential with threshold acceleration
+  // Base upgrade from gap (narrower gap = more upgrades)
+  let upgradePct = upgradeMax / (1 + Math.exp(upgradeK * (newGap - upgradeMidpoint)));
+
+  // When ad-lite increases significantly, upgrade motivation should OVERRIDE low baseline willingness
+  // This is the "fleeing expensive tier" effect - MUCH stronger for high-asymmetry cohorts
+  let priceMotivatedUpgrade = 0;
+  if (adlitePriceChange > 0) {
+    // More aggressive formula for price-motivated upgrade
+    // Deal Hunter with asymmetry 4.5 and +33% price = 20-30% upgrade pressure
+    // Formula: (price_change_pct / 5) × (asymmetry / 2.2) × gap_attractiveness
+
+    // Gap attractiveness: if gap is small (< $3), ad-free is more attractive
+    const gapAttractiveness = newGap < 3 ? 1.5 : (newGap < 4 ? 1.2 : 1.0);
+
+    priceMotivatedUpgrade = (adlitePriceChange / 5) * (asymmetryFactor / 2.2) * gapAttractiveness;
+
+    console.log('📈 Ad-lite increased - Price-motivated upgrade:', {
+      priceChange: adlitePriceChange.toFixed(1) + '%',
+      asymmetryFactor: asymmetryFactor.toFixed(2),
+      gapAttractiveness: gapAttractiveness.toFixed(2),
+      priceMotivatedUpgrade: priceMotivatedUpgrade.toFixed(2) + '%'
+    });
+  }
+
+  // When ad-free increases, upgrade becomes less attractive
+  let priceResistanceUpgrade = 0;
+  if (adfreePriceChange > 0) {
+    // If ad-free also increases, reduce upgrade motivation
+    priceResistanceUpgrade = (adfreePriceChange / 10) * (asymmetryFactor / 2.2);
+  }
+
+  // Final upgrade rate combines:
+  // 1. Gap-based willingness (weighted by cohort baseline willingness)
+  // 2. Price-motivated fleeing from expensive ad-lite
+  // 3. Price resistance to expensive ad-free
+  const gapBasedUpgrade = upgradePct * upgradeWillingness;
+  upgradePct = gapBasedUpgrade + priceMotivatedUpgrade - priceResistanceUpgrade;
+
+  // Ensure non-negative
+  upgradePct = Math.max(0, upgradePct);
+
+  // Cap upgrade at dynamic limit based on asymmetry (more aggressive cap)
+  const upgradeMaxCap = 40.0 * (asymmetryFactor / 2.2);
+  upgradePct = Math.min(upgradeMaxCap, upgradePct);
+
+  console.log('🎯 Final Upgrade Calculation:', {
+    gapBasedUpgrade: gapBasedUpgrade.toFixed(2) + '%',
+    priceMotivatedUpgrade: priceMotivatedUpgrade.toFixed(2) + '%',
+    priceResistance: priceResistanceUpgrade.toFixed(2) + '%',
+    finalUpgrade: upgradePct.toFixed(2) + '%'
+  });
+
+  // Downgrade Rate Calculation:
+  // 1. Base downgrade depends on gap size (exponential with threshold)
+  // 2. Ad-free price increase amplifies downgrade motivation (customers flee higher ad-free price)
+  // 3. Ad-lite price increase reduces downgrade motivation (ad-lite becomes less attractive)
+  // 4. Cohort asymmetry factor amplifies/dampens the response
+
   const downgradeBase = 0.8;  // Base rate at narrow gaps
   const downgradeThreshold = 4.5;  // Acceleration kicks in at $4.5 gap
   let downgradePct;
 
   if (newGap < downgradeThreshold) {
-    // Quadratic growth before threshold (steeper than before)
     downgradePct = downgradeBase + 3.5 * Math.pow(newGap / downgradeThreshold, 2);
   } else {
-    // Exponential growth beyond threshold
     downgradePct = downgradeBase + 3.5 + 4.0 * Math.exp(0.35 * (newGap - downgradeThreshold));
   }
 
-  // Crossover point should be around $4 gap:
-  // At $4: upgrade ~4.5%, downgrade ~4.5% (equilibrium!)
-  // At $2: upgrade ~10%, downgrade ~1% (net upgrade flow)
-  // At $6: upgrade ~1.5%, downgrade ~10% (net downgrade flow)
+  // Price-motivated downgrade when ad-free becomes expensive
+  let priceMotivatedDowngrade = 0;
+  if (adfreePriceChange > 0) {
+    // More aggressive downgrade formula
+    const gapAttractiveness = newGap > 5 ? 1.5 : (newGap > 4 ? 1.2 : 1.0);
+    priceMotivatedDowngrade = (adfreePriceChange / 5) * (asymmetryFactor / 2.2) * gapAttractiveness;
+  }
+
+  // Price resistance to downgrade when ad-lite is also expensive
+  let priceResistanceDowngrade = 0;
+  if (adlitePriceChange > 0) {
+    priceResistanceDowngrade = (adlitePriceChange / 10) * (asymmetryFactor / 2.2);
+  }
+
+  // Final downgrade rate combines:
+  // 1. Gap-based willingness (weighted by cohort baseline willingness)
+  // 2. Price-motivated fleeing from expensive ad-free
+  // 3. Price resistance to expensive ad-lite
+  const gapBasedDowngrade = downgradePct * downgradeWillingness;
+  downgradePct = gapBasedDowngrade + priceMotivatedDowngrade - priceResistanceDowngrade;
+
+  // Ensure non-negative
+  downgradePct = Math.max(0, downgradePct);
+
+  // Cap downgrade
+  const downgradeMaxCap = 35.0 * (asymmetryFactor / 2.2);
+  downgradePct = Math.min(downgradeMaxCap, downgradePct);
+
+  // Dynamic Churn Calculation (based on price elasticity)
+  // Churn increases when prices increase, regardless of tier gap
+  // Using churn elasticity from cohort data (baseline: 6.5 for baseline cohort)
+
+  const churnElasticity = cohort.churn_elasticity || 6.5;
+
+  // More aggressive churn formula for high-elasticity cohorts
+  // Churn impact = (elasticity × price_change_pct) / 50
+  // This makes the impact stronger - Deal Hunter with 15.0 elasticity and 33% increase = 10% churn impact
+  const churnImpactLite = (churnElasticity * adlitePriceChange) / 50; // More aggressive
+  const churnImpactFree = (churnElasticity * adfreePriceChange) / 50;
+
+  let cancelLitePct = migrationParams.baselineCancelLite + churnImpactLite;
+  let cancelFreePct = migrationParams.baselineCancelFree + churnImpactFree;
+
+  // Floor churn at baseline, cap at 35% for extreme scenarios
+  cancelLitePct = Math.max(migrationParams.baselineCancelLite, Math.min(35, cancelLitePct));
+  cancelFreePct = Math.max(migrationParams.baselineCancelFree, Math.min(35, cancelFreePct));
+
+  console.log('💀 Churn Calculation:', {
+    cohort: selectedCohort,
+    churnElasticity: churnElasticity.toFixed(1),
+    adlitePriceChange: adlitePriceChange.toFixed(1) + '%',
+    adfreePriceChange: adfreePriceChange.toFixed(1) + '%',
+    churnImpactLite: churnImpactLite.toFixed(2) + ' pp',
+    cancelLitePct: cancelLitePct.toFixed(2) + '%',
+    cancelFreePct: cancelFreePct.toFixed(2) + '%'
+  });
 
   // Update table
   document.getElementById('mig-upgrade-pct').textContent = upgradePct.toFixed(1) + '%';
   document.getElementById('mig-downgrade-pct').textContent = downgradePct.toFixed(1) + '%';
-  document.getElementById('mig-cancel-lite-pct').textContent = migrationParams.baselineCancelLite.toFixed(1) + '%';
-  document.getElementById('mig-cancel-free-pct').textContent = migrationParams.baselineCancelFree.toFixed(1) + '%';
+  document.getElementById('mig-cancel-lite-pct').textContent = cancelLitePct.toFixed(1) + '%';
+  document.getElementById('mig-cancel-free-pct').textContent = cancelFreePct.toFixed(1) + '%';
 
-  // Calculate subscriber counts
+  // Calculate subscriber counts (using dynamic churn rates)
   const upgradeSubs = Math.round(migrationParams.adLiteSubs * (upgradePct / 100));
   const downgradeSubs = Math.round(migrationParams.adFreeSubs * (downgradePct / 100));
-  const cancelLiteSubs = Math.round(migrationParams.adLiteSubs * (migrationParams.baselineCancelLite / 100));
-  const cancelFreeSubs = Math.round(migrationParams.adFreeSubs * (migrationParams.baselineCancelFree / 100));
+  const cancelLiteSubs = Math.round(migrationParams.adLiteSubs * (cancelLitePct / 100));
+  const cancelFreeSubs = Math.round(migrationParams.adFreeSubs * (cancelFreePct / 100));
 
   document.getElementById('mig-upgrade-subs').textContent = '~' + upgradeSubs.toLocaleString();
   document.getElementById('mig-downgrade-subs').textContent = '~' + downgradeSubs.toLocaleString();
@@ -586,12 +775,12 @@ function updateMigrationModel() {
     migrationChartSimple.update('none'); // Instant update
   }
 
-  // Update Sankey diagram
+  // Update Sankey diagram (with dynamic churn rates)
   updateSankeyDiagram(
     upgradePct,
     downgradePct,
-    migrationParams.baselineCancelLite,
-    migrationParams.baselineCancelFree
+    cancelLitePct,
+    cancelFreePct
   );
 }
 
