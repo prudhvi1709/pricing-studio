@@ -232,7 +232,7 @@ function createChurnChartSimple() {
       scales: {
         y: {
           min: 3.5,  // Zoomed in from 3 to 3.5 (closer to data range)
-          max: 6.5,  // Zoomed in from 10 to 6.5 (closer to data range)
+          max: 8.5,  // Increased to 8.5 to show high-elasticity cohorts
           grid: {
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark'
               ? 'rgba(255,255,255,0.1)'
@@ -260,7 +260,7 @@ function createChurnChartSimple() {
 }
 
 /**
- * Create the survival curve (retention forecast) chart
+ * Create the survival curve (retention forecast) chart with revenue impact
  */
 function createSurvivalCurveChart() {
   const ctx = document.getElementById('survival-curve-chart');
@@ -290,6 +290,7 @@ function createSurvivalCurveChart() {
   const defaultPriceIncrease = 1;
   const tierParams = churnParams ? churnParams.ad_supported : null;
   let initialScenarioRetention = baselineRetention;
+  let initialRevenueImpact = [0, 0, 0, 0, 0, 0, 0];
 
   if (tierParams) {
     const priceChangePct = (defaultPriceIncrease / tierParams.price) * 100;
@@ -317,7 +318,32 @@ function createSurvivalCurveChart() {
     scenarioRetention.push(100 - (initialBaseline * 1.5 + cumulativeChurn * 1.0));
 
     initialScenarioRetention = scenarioRetention;
+
+    // Calculate initial revenue impact (cumulative over 24 weeks)
+    // Assume baseline of 100,000 current subscribers
+    const baselineSubCount = 100000;
+    const currentPrice = tierParams.price;
+    const newPrice = currentPrice + defaultPriceIncrease;
+
+    initialRevenueImpact = [0]; // Start at $0
+    let cumulativeRevenue = 0;
+
+    // Calculate period-by-period revenue
+    for (let i = 0; i < baselineRetention.length - 1; i++) {
+      const baselineSubsAvg = baselineSubCount * ((baselineRetention[i] + baselineRetention[i+1]) / 2) / 100;
+      const scenarioSubsAvg = baselineSubCount * ((scenarioRetention[i] + scenarioRetention[i+1]) / 2) / 100;
+
+      const monthlyBillingCycles = 1;
+      const baselineRevPeriod = baselineSubsAvg * currentPrice * monthlyBillingCycles;
+      const scenarioRevPeriod = scenarioSubsAvg * newPrice * monthlyBillingCycles;
+
+      const periodRevenue = scenarioRevPeriod - baselineRevPeriod;
+      cumulativeRevenue += periodRevenue;
+      initialRevenueImpact.push(cumulativeRevenue);
+    }
+
     console.log('🎨 Creating Survival Curve with initial scenario data:', initialScenarioRetention);
+    console.log('💰 Initial revenue impact:', initialRevenueImpact);
   }
 
   survivalCurveChart = new Chart(ctx, {
@@ -334,7 +360,9 @@ function createSurvivalCurveChart() {
           fill: false,
           tension: 0.3,
           pointRadius: 4,
-          pointHoverRadius: 6
+          pointHoverRadius: 6,
+          yAxisID: 'y',
+          order: 2
         },
         {
           label: 'Scenario Retention',
@@ -342,20 +370,25 @@ function createSurvivalCurveChart() {
           borderColor: 'rgba(239, 68, 68, 1)',
           backgroundColor: 'rgba(239, 68, 68, 0.0)',
           borderWidth: 3,
+          fill: { target: 0, above: 'rgba(239, 68, 68, 0.2)' },
+          tension: 0.3,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          yAxisID: 'y',
+          order: 1
+        },
+        {
+          label: 'Revenue Impact',
+          data: initialRevenueImpact,
+          borderColor: 'rgba(251, 191, 36, 1)',
+          backgroundColor: 'rgba(251, 191, 36, 0.1)',
+          borderWidth: 3,
           fill: false,
           tension: 0.3,
           pointRadius: 4,
-          pointHoverRadius: 6
-        },
-        {
-          label: 'Retention Loss',
-          data: initialScenarioRetention,
-          borderColor: 'transparent',
-          backgroundColor: 'rgba(239, 68, 68, 0.15)',
-          fill: '-1',
-          tension: 0.3,
-          pointRadius: 0,
-          borderWidth: 0
+          pointHoverRadius: 6,
+          yAxisID: 'yRevenue',
+          order: 3
         }
       ]
     },
@@ -369,15 +402,21 @@ function createSurvivalCurveChart() {
       plugins: {
         legend: {
           labels: {
-            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529',
-            filter: (item) => item.text !== 'Retention Loss'
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
           }
         },
         tooltip: {
           callbacks: {
             label: function(context) {
-              if (context.dataset.label === 'Retention Loss') return null;
-              return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+              if (context.datasetIndex === 2) {
+                // Revenue Impact dataset
+                const value = context.parsed.y;
+                const sign = value >= 0 ? '+' : '';
+                return context.dataset.label + ': ' + sign + '$' + value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+              } else {
+                // Retention datasets
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+              }
             },
             afterBody: function(tooltipItems) {
               const index = tooltipItems[0].dataIndex;
@@ -391,7 +430,7 @@ function createSurvivalCurveChart() {
       },
       scales: {
         y: {
-          min: 88,  // Zoomed in from 80 to 88 (closer to data range)
+          min: 70,  // Set to 70% for maximum visibility of high-retention cohorts
           max: 100,
           grid: {
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark'
@@ -405,6 +444,25 @@ function createSurvivalCurveChart() {
           title: {
             display: true,
             text: 'Retention Rate (%)',
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
+          }
+        },
+        yRevenue: {
+          type: 'linear',
+          position: 'right',
+          grid: {
+            drawOnChartArea: false
+          },
+          ticks: {
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529',
+            callback: function(value) {
+              const sign = value >= 0 ? '+' : '';
+              return sign + '$' + (value / 1000).toFixed(0) + 'K';
+            }
+          },
+          title: {
+            display: true,
+            text: 'Cumulative Revenue Impact ($)',
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
           }
         },
@@ -575,7 +633,7 @@ function updateChurnModel(currentTier = 'ad_supported') {
     churnChartSimple.update('none'); // Instant update
   }
 
-  // Update survival curve chart
+  // Update survival curve chart with revenue impact
   if (survivalCurveChart) {
     const tierBaseline = tierParams.baseline_churn;
 
@@ -615,9 +673,52 @@ function updateChurnModel(currentTier = 'ad_supported') {
       scenario: scenarioRetention.map(r => r.toFixed(1) + '%')
     });
 
+    // Calculate revenue impact over time (cumulative over 24 weeks)
+    // Assume baseline of 100,000 current subscribers
+    const baselineSubCount = 100000;
+    const currentTierPrice = tierParams.price;
+    const newPrice = currentTierPrice + priceIncrease;
+
+    let revenueImpact = [0]; // Start at $0
+    let cumulativeRevenue = 0;
+
+    // Calculate period-by-period revenue (each period is 4 weeks)
+    for (let i = 0; i < baselineRetention.length - 1; i++) {
+      // Average subscriber count during this 4-week period
+      const baselineSubsAvg = baselineSubCount * ((baselineRetention[i] + baselineRetention[i+1]) / 2) / 100;
+      const scenarioSubsAvg = baselineSubCount * ((scenarioRetention[i] + scenarioRetention[i+1]) / 2) / 100;
+
+      // Monthly revenue for this period (assuming monthly billing)
+      const monthlyBillingCycles = 1; // Each 4-week period ≈ 1 billing cycle
+      const baselineRevPeriod = baselineSubsAvg * currentTierPrice * monthlyBillingCycles;
+      const scenarioRevPeriod = scenarioSubsAvg * newPrice * monthlyBillingCycles;
+
+      const periodRevenue = scenarioRevPeriod - baselineRevPeriod;
+      cumulativeRevenue += periodRevenue;
+      revenueImpact.push(cumulativeRevenue);
+    }
+
+    console.log('💰 Revenue impact over time:', revenueImpact.map(r => '$' + Math.round(r).toLocaleString()));
+
+    // Update summary metrics
+    const finalRetainedSubs = Math.round(baselineSubCount * (scenarioRetention[scenarioRetention.length - 1] / 100));
+    const finalRevenueImpact = Math.round(revenueImpact[revenueImpact.length - 1]);
+
+    const retainedSubsEl = document.getElementById('churn-retained-subs');
+    const totalRevenueEl = document.getElementById('churn-total-revenue');
+    if (retainedSubsEl) {
+      retainedSubsEl.textContent = finalRetainedSubs.toLocaleString();
+      retainedSubsEl.className = 'metric-value';
+    }
+    if (totalRevenueEl) {
+      const sign = finalRevenueImpact >= 0 ? '+' : '';
+      totalRevenueEl.textContent = sign + '$' + finalRevenueImpact.toLocaleString();
+      totalRevenueEl.className = 'metric-value ' + (finalRevenueImpact >= 0 ? 'text-success' : 'text-danger');
+    }
+
     survivalCurveChart.data.datasets[0].data = baselineRetention;
     survivalCurveChart.data.datasets[1].data = scenarioRetention;
-    survivalCurveChart.data.datasets[2].data = scenarioRetention; // For shaded area
+    survivalCurveChart.data.datasets[2].data = revenueImpact; // Revenue impact line
     survivalCurveChart.update('none');
   }
 }
