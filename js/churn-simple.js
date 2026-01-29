@@ -12,17 +12,30 @@ let survivalCurveChart = null;
 // Churn parameters (loaded from elasticity-params.json)
 let churnParams = null;
 
-// Churn time lag distribution (derived from time_horizon_adjustments in elasticity-params.json)
+// Churn time lag distribution (loaded from cohort_coefficients.json)
 // These represent how churn impact is distributed across time horizons
-let churnTimeLag = {
-  '0_4_weeks': 0.10,   // 10% of total impact in first 4 weeks
-  '4_8_weeks': 0.30,   // 30% of total impact in weeks 4-8 (peak)
-  '8_12_weeks': 0.45,  // 45% of total impact in weeks 8-12 (continued peak)
-  '12_plus': 0.15      // 15% residual impact beyond 12 weeks
-};
+let churnTimeLag = null;  // Will be loaded from data
 
 // Baseline churn rate (loaded from elasticity-params.json)
 let baselineChurn = null;
+
+// Cohort data for dynamic curve shaping
+let cohortData = null;
+
+/**
+ * Load cohort data for curve shaping
+ */
+async function loadCohortData() {
+  try {
+    const response = await fetch('data/cohort_coefficients.json');
+    cohortData = await response.json();
+    console.log('✓ Loaded cohort profiles:', Object.keys(cohortData).filter(k => k !== 'metadata').length);
+    return cohortData;
+  } catch (error) {
+    console.error('Error loading cohort data:', error);
+    return null;
+  }
+}
 
 /**
  * Load churn parameters from actual data sources
@@ -50,6 +63,41 @@ async function loadChurnParams() {
     // Set default baseline churn (ad_supported)
     baselineChurn = churnParams.ad_supported.baseline_churn;
 
+    // Load time-lag distribution from cohort_coefficients.json
+    try {
+      const response = await fetch('data/cohort_coefficients.json');
+      const cohortData = await response.json();
+
+      // Use baseline cohort's time-lag distribution (aggregate of all cohorts)
+      if (cohortData.baseline && cohortData.baseline.time_lag_distribution) {
+        const dist = cohortData.baseline.time_lag_distribution;
+        churnTimeLag = {
+          '0_4_weeks': dist['0_4_weeks'] || 0.15,
+          '4_8_weeks': dist['4_8_weeks'] || 0.25,
+          '8_12_weeks': dist['8_12_weeks'] || 0.30,
+          '12_plus': (dist['12_16_weeks'] || 0.20) + (dist['16_20_weeks'] || 0.10)  // Combine last two periods
+        };
+        console.log('✓ Loaded time-lag distribution from cohort_coefficients.json:', churnTimeLag);
+      } else {
+        // Fallback to default if cohort data not available
+        churnTimeLag = {
+          '0_4_weeks': 0.15,
+          '4_8_weeks': 0.25,
+          '8_12_weeks': 0.30,
+          '12_plus': 0.30
+        };
+        console.warn('⚠️ Using fallback time-lag distribution');
+      }
+    } catch (cohortError) {
+      console.warn('⚠️ Could not load cohort_coefficients.json, using fallback:', cohortError);
+      churnTimeLag = {
+        '0_4_weeks': 0.15,
+        '4_8_weeks': 0.25,
+        '8_12_weeks': 0.30,
+        '12_plus': 0.30
+      };
+    }
+
     console.log('Churn parameters loaded from actual data:', churnParams);
     return churnParams;
   } catch (error) {
@@ -67,6 +115,7 @@ async function initChurnSimple() {
   try {
     // Load parameters from actual data
     await loadChurnParams();
+    await loadCohortData();
 
     // Create charts with loaded parameters
     createChurnChartSimple();
@@ -182,8 +231,8 @@ function createChurnChartSimple() {
       },
       scales: {
         y: {
-          min: 3,
-          max: 10,
+          min: 3.5,  // Zoomed in from 3 to 3.5 (closer to data range)
+          max: 6.5,  // Zoomed in from 10 to 6.5 (closer to data range)
           grid: {
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark'
               ? 'rgba(255,255,255,0.1)'
@@ -342,7 +391,7 @@ function createSurvivalCurveChart() {
       },
       scales: {
         y: {
-          min: 80,
+          min: 88,  // Zoomed in from 80 to 88 (closer to data range)
           max: 100,
           grid: {
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark'
@@ -376,6 +425,7 @@ function createSurvivalCurveChart() {
 function setupChurnInteractivity() {
   const priceSlider = document.getElementById('churn-price-slider');
   const tierBtns = document.querySelectorAll('.tier-btn');
+  const cohortSelect = document.getElementById('churn-cohort-select');
 
   if (!priceSlider || !churnParams) {
     console.warn('Churn controls not found or params not loaded');
@@ -402,6 +452,40 @@ function setupChurnInteractivity() {
       updateChurnModel(currentTier);
     });
   });
+
+  // Cohort selection change
+  if (cohortSelect && cohortData) {
+    cohortSelect.addEventListener('change', () => {
+      const selectedCohort = cohortSelect.value;
+      console.log('🔄 Switching to churn cohort:', selectedCohort);
+
+      if (cohortData[selectedCohort]) {
+        const cohort = cohortData[selectedCohort];
+
+        // Update time-lag distribution from cohort profile
+        if (cohort.time_lag_distribution) {
+          const dist = cohort.time_lag_distribution;
+          churnTimeLag = {
+            '0_4_weeks': dist['0_4_weeks'] || 0.15,
+            '4_8_weeks': dist['4_8_weeks'] || 0.25,
+            '8_12_weeks': dist['8_12_weeks'] || 0.30,
+            '12_plus': (dist['12_16_weeks'] || 0.20) + (dist['16_20_weeks'] || 0.10)
+          };
+          console.log(`  ✓ Curve shape: [${Object.values(dist).map(v => (v*100).toFixed(0)+'%').join(', ')}]`);
+        }
+
+        // Update churn elasticity from cohort
+        Object.keys(churnParams).forEach(tier => {
+          churnParams[tier].churn_elasticity = cohort.churn_elasticity;
+        });
+
+        console.log(`  ✓ Churn elasticity: ${cohort.churn_elasticity.toFixed(2)}`);
+      }
+
+      // Force update to show new curve shape
+      updateChurnModel(currentTier);
+    });
+  }
 }
 
 /**
@@ -495,45 +579,41 @@ function updateChurnModel(currentTier = 'ad_supported') {
   if (survivalCurveChart) {
     const tierBaseline = tierParams.baseline_churn;
 
-    // Calculate cumulative churn and convert to retention
-    // Baseline: consistent churn rate over time
-    const baselineRetention = [
-      100,
-      100 - (tierBaseline * 0.25),
-      100 - (tierBaseline * 0.5),
-      100 - (tierBaseline * 0.75),
-      100 - (tierBaseline * 1.0),
-      100 - (tierBaseline * 1.25),
-      100 - (tierBaseline * 1.5)
+    // Calculate actual churn rates at each period from the churn chart data
+    const churnRates = [
+      tierBaseline,                         // Week 0-4: baseline
+      tierBaseline + impacts['0_4'],        // Week 4-8: baseline + impact
+      tierBaseline + impacts['4_8'],        // Week 8-12: baseline + impact
+      tierBaseline + impacts['8_12'],       // Week 12-16: baseline + impact
+      tierBaseline + (impacts['8_12'] + impacts['12plus']) / 2,  // Week 16-20: average
+      tierBaseline + impacts['12plus']      // Week 20-24: baseline + residual
     ];
 
-    // Scenario: time-lagged churn accumulation
-    let cumulativeChurn = 0;
-    const scenarioRetention = [100];
+    console.log('📊 Churn rates by period:', churnRates.map(r => r.toFixed(2) + '%'));
 
-    // Week 4
-    cumulativeChurn += impacts['0_4'];
-    scenarioRetention.push(100 - (tierBaseline * 0.25 + cumulativeChurn * 0.25));
+    // Baseline: Apply consistent baseline churn rate each period
+    let baselineRetention = [100];
+    let currentRetention = 100;
+    for (let i = 0; i < 6; i++) {
+      // Each period, lose (tierBaseline/100) of remaining subscribers
+      currentRetention = currentRetention * (1 - tierBaseline / 100);
+      baselineRetention.push(currentRetention);
+    }
 
-    // Week 8
-    cumulativeChurn += impacts['4_8'];
-    scenarioRetention.push(100 - (tierBaseline * 0.5 + cumulativeChurn * 0.5));
+    // Scenario: Apply time-varying churn rates from churnRates array
+    // This ensures survival curve slope matches churn rate at each point!
+    let scenarioRetention = [100];
+    currentRetention = 100;
+    for (let i = 0; i < 6; i++) {
+      // Each period, lose (churnRates[i]/100) of remaining subscribers
+      currentRetention = currentRetention * (1 - churnRates[i] / 100);
+      scenarioRetention.push(currentRetention);
+    }
 
-    // Week 12
-    cumulativeChurn += impacts['8_12'];
-    scenarioRetention.push(100 - (tierBaseline * 0.75 + cumulativeChurn * 0.75));
-
-    // Week 16
-    cumulativeChurn += impacts['12plus'] * 0.5;
-    scenarioRetention.push(100 - (tierBaseline * 1.0 + cumulativeChurn * 1.0));
-
-    // Week 20
-    cumulativeChurn += impacts['12plus'] * 0.3;
-    scenarioRetention.push(100 - (tierBaseline * 1.25 + cumulativeChurn * 1.0));
-
-    // Week 24
-    cumulativeChurn += impacts['12plus'] * 0.2;
-    scenarioRetention.push(100 - (tierBaseline * 1.5 + cumulativeChurn * 1.0));
+    console.log('📉 Survival curve retention:', {
+      baseline: baselineRetention.map(r => r.toFixed(1) + '%'),
+      scenario: scenarioRetention.map(r => r.toFixed(1) + '%')
+    });
 
     survivalCurveChart.data.datasets[0].data = baselineRetention;
     survivalCurveChart.data.datasets[1].data = scenarioRetention;

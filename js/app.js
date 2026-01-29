@@ -1453,7 +1453,11 @@ function renderSegmentComparisonTable() {
       churn_rate: avgChurn,
       arpu: avgArpu,
       elasticity: elasticity || -2.0,
-      risk_level: Math.abs(elasticity) > 2.5 ? 'High' : (Math.abs(elasticity) > 2.0 ? 'Medium' : 'Low')
+      // Updated thresholds to match new elasticity range (-2.66 to -0.68)
+      // High: top 33% most elastic (< -1.8)
+      // Medium: middle 33% (-1.8 to -1.2)
+      // Low: bottom 33% least elastic (> -1.2)
+      risk_level: Math.abs(elasticity) > 1.8 ? 'High' : (Math.abs(elasticity) > 1.2 ? 'Medium' : 'Low')
     };
   });
 

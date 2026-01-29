@@ -11,6 +11,24 @@ let migrationChartSimple = null;
 // Migration parameters (loaded from elasticity-params.json and weekly_aggregated.csv)
 let migrationParams = null;
 
+// Cohort data for asymmetry factors
+let cohortData = null;
+
+/**
+ * Load cohort data for migration asymmetry
+ */
+async function loadCohortData() {
+  try {
+    const response = await fetch('data/cohort_coefficients.json');
+    cohortData = await response.json();
+    console.log('✓ Loaded cohort profiles for migration');
+    return cohortData;
+  } catch (error) {
+    console.error('Error loading cohort data:', error);
+    return null;
+  }
+}
+
 /**
  * Load migration parameters from actual data sources
  */
@@ -91,6 +109,7 @@ async function initMigrationSimple() {
   try {
     // Load parameters from actual data
     await loadMigrationParams();
+    await loadCohortData();
 
     // Create chart and Sankey diagram
     createMigrationChartSimple();
@@ -378,6 +397,7 @@ function updateSankeyDiagram(upgradeRate = null, downgradeRate = null, cancelLit
 function setupMigrationInteractivity() {
   const adliteSlider = document.getElementById('mig-adlite-slider');
   const adfreeSlider = document.getElementById('mig-adfree-slider');
+  const cohortSelect = document.getElementById('mig-cohort-select');
 
   if (!adliteSlider || !adfreeSlider) {
     console.warn('Migration controls not found');
@@ -387,6 +407,30 @@ function setupMigrationInteractivity() {
   // Slider inputs
   adliteSlider.addEventListener('input', updateMigrationModel);
   adfreeSlider.addEventListener('input', updateMigrationModel);
+
+  // Cohort selection change
+  if (cohortSelect && cohortData) {
+    cohortSelect.addEventListener('change', () => {
+      const selectedCohort = cohortSelect.value;
+      console.log('🔄 Switching to migration cohort:', selectedCohort);
+
+      if (cohortData[selectedCohort]) {
+        const cohort = cohortData[selectedCohort];
+
+        // Update baseline migration rates from cohort profile
+        if (cohort.migration_upgrade !== undefined) {
+          migrationParams.baselineUpgrade = cohort.migration_upgrade * 3; // Scale to percentage
+          console.log(`  ✓ Upgrade willingness: ${migrationParams.baselineUpgrade.toFixed(1)}%`);
+        }
+        if (cohort.migration_downgrade !== undefined) {
+          migrationParams.baselineDowngrade = cohort.migration_downgrade * 2; // Scale to percentage
+          console.log(`  ✓ Downgrade propensity: ${migrationParams.baselineDowngrade.toFixed(1)}%`);
+        }
+      }
+
+      updateMigrationModel();
+    });
+  }
 }
 
 /**
@@ -427,11 +471,33 @@ function updateMigrationModel() {
   document.getElementById('mig-price-gap').textContent = '$' + newGap.toFixed(2);
   document.getElementById('mig-gap-change').textContent = (gapChange >= 0 ? '+' : '') + gapChange.toFixed(1) + '%';
 
-  // Calculate migration probabilities (simplified model)
-  // Narrower gap = more upgrades, wider gap = more downgrades
-  const gapFactor = newGap / migrationParams.baselineGap;
-  const upgradePct = migrationParams.baselineUpgrade / gapFactor;
-  const downgradePct = migrationParams.baselineDowngrade * gapFactor;
+  // Calculate migration probabilities (non-linear model with crossover)
+  // Upgrade curve: Sigmoid with plateau (high willingness at small gaps, then flattens)
+  // Downgrade curve: Exponential with acceleration (low at small gaps, steep increase at large gaps)
+
+  // Upgrade: Sigmoid function (decreasing with gap size, plateaus)
+  const upgradeMax = 10.0;  // Max 10% upgrade rate at narrow gaps
+  const upgradeK = -0.75;    // Steepness (negative = decreasing)
+  const upgradeMidpoint = 2.5;  // Inflection at $2.5 gap
+  const upgradePct = upgradeMax / (1 + Math.exp(upgradeK * (newGap - upgradeMidpoint)));
+
+  // Downgrade: Exponential with threshold acceleration
+  const downgradeBase = 0.8;  // Base rate at narrow gaps
+  const downgradeThreshold = 4.5;  // Acceleration kicks in at $4.5 gap
+  let downgradePct;
+
+  if (newGap < downgradeThreshold) {
+    // Quadratic growth before threshold (steeper than before)
+    downgradePct = downgradeBase + 3.5 * Math.pow(newGap / downgradeThreshold, 2);
+  } else {
+    // Exponential growth beyond threshold
+    downgradePct = downgradeBase + 3.5 + 4.0 * Math.exp(0.35 * (newGap - downgradeThreshold));
+  }
+
+  // Crossover point should be around $4 gap:
+  // At $4: upgrade ~4.5%, downgrade ~4.5% (equilibrium!)
+  // At $2: upgrade ~10%, downgrade ~1% (net upgrade flow)
+  // At $6: upgrade ~1.5%, downgrade ~10% (net downgrade flow)
 
   // Update table
   document.getElementById('mig-upgrade-pct').textContent = upgradePct.toFixed(1) + '%';
@@ -482,13 +548,27 @@ function updateMigrationModel() {
     arrow.style.color = 'var(--dplus-blue)';
   }
 
-  // Update chart
+  // Update chart with proper compounding migration rates
   if (migrationChartSimple) {
+    // Calculate net migration rate per period (monthly)
+    // Net flow = upgrades - downgrades (as a percentage of Ad-Lite population)
+    const netFlowRate = (upgradePct - downgradePct) / 100; // Convert to decimal
+
+    // Apply compounding migration each month
     const liteTrend = [migrationParams.baselineLitePct];
     const freeTrend = [migrationParams.baselineFreePct];
-    for (let i = 1; i <= 4; i++) {
-      liteTrend.push(migrationParams.baselineLitePct + (newLitePct - migrationParams.baselineLitePct) * (i / 4));
-      freeTrend.push(migrationParams.baselineFreePct + (newFreePct - migrationParams.baselineFreePct) * (i / 4));
+
+    let currentLitePct = migrationParams.baselineLitePct;
+
+    for (let month = 1; month <= 4; month++) {
+      // Each month, a percentage of Ad-Lite subscribers migrate
+      // This compounds because we apply rate to the NEW mix, not the original
+      const absoluteChange = currentLitePct * netFlowRate;
+      currentLitePct = Math.max(40, Math.min(80, currentLitePct - absoluteChange));
+      const currentFreePct = 100 - currentLitePct;
+
+      liteTrend.push(currentLitePct);
+      freeTrend.push(currentFreePct);
     }
 
     console.log('📈 Updating Migration Chart:', {

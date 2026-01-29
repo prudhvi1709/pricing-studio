@@ -11,11 +11,29 @@ let acquisitionChartSimple = null;
 // Elasticity parameters (loaded from elasticity-params.json and weekly_aggregated.csv)
 let acquisitionParams = null;
 
+// Cohort data for dynamic elasticity
+let cohortData = null;
+
 // Configuration
 const CONFIDENCE_INTERVAL = 0.95; // 95% CI
 const STD_ERROR = 0.15; // 15% standard error (industry benchmark)
 const Z_SCORE = 1.96; // For 95% CI
 let showConfidenceIntervals = true;
+
+/**
+ * Load cohort data for dynamic elasticity
+ */
+async function loadCohortData() {
+  try {
+    const response = await fetch('data/cohort_coefficients.json');
+    cohortData = await response.json();
+    console.log('✓ Loaded cohort profiles for acquisition');
+    return cohortData;
+  } catch (error) {
+    console.error('Error loading cohort data:', error);
+    return null;
+  }
+}
 
 /**
  * Load acquisition parameters from actual data sources
@@ -27,14 +45,15 @@ async function loadAcquisitionParams() {
       loadWeeklyAggregated()
     ]);
 
-    // Calculate average weekly new subscribers by tier (from last 12 weeks)
+    // Calculate average monthly new subscribers by tier (from last 12 weeks)
+    // Convert weekly average to monthly (4.33 weeks per month)
     const recentWeeks = weeklyData.slice(-12);
     const avgNewSubs = {};
 
     ['ad_supported', 'ad_free'].forEach(tier => {
       const tierWeeks = recentWeeks.filter(w => w.tier === tier);
-      const avgNew = tierWeeks.reduce((sum, w) => sum + parseFloat(w.new_subscribers || 0), 0) / tierWeeks.length;
-      avgNewSubs[tier] = Math.round(avgNew);
+      const avgWeekly = tierWeeks.reduce((sum, w) => sum + parseFloat(w.new_subscribers || 0), 0) / tierWeeks.length;
+      avgNewSubs[tier] = Math.round(avgWeekly * 4.33); // Convert to monthly
     });
 
     // Build params object from actual data
@@ -83,6 +102,25 @@ async function initAcquisitionSimple() {
   try {
     // Load parameters from actual data
     await loadAcquisitionParams();
+    await loadCohortData();
+
+    // Apply initial cohort elasticity (before first chart update)
+    const cohortSelect = document.getElementById('acq-cohort-select');
+    const tierSelect = document.getElementById('acq-tier-select');
+    if (cohortSelect && cohortData && tierSelect) {
+      const selectedCohort = cohortSelect.value;
+      if (cohortData[selectedCohort]) {
+        const cohort = cohortData[selectedCohort];
+        const tier = tierSelect.value;
+        if (acquisitionParams[tier]) {
+          acquisitionParams[tier].base_elasticity = cohort.acquisition_elasticity;
+          acquisitionParams[tier].segments.new_0_3mo.elasticity = cohort.acquisition_elasticity;
+          acquisitionParams[tier].segments.tenured_3_12mo.elasticity = cohort.acquisition_elasticity;
+          acquisitionParams[tier].segments.tenured_12plus.elasticity = cohort.acquisition_elasticity;
+          console.log(`✓ Applied initial cohort "${selectedCohort}" elasticity: ${cohort.acquisition_elasticity.toFixed(2)}`);
+        }
+      }
+    }
 
     // Create chart
     createAcquisitionChartSimple();
@@ -187,7 +225,8 @@ function createAcquisitionChartSimple() {
           data: initialData,
           backgroundColor: 'rgba(99, 102, 241, 0.5)',
           borderColor: 'rgba(99, 102, 241, 1)',
-          borderWidth: 2
+          borderWidth: 2,
+          yAxisID: 'y'
         },
         {
           label: 'Projected',
@@ -195,7 +234,16 @@ function createAcquisitionChartSimple() {
           backgroundColor: 'rgba(16, 185, 129, 0.5)',
           borderColor: 'rgba(16, 185, 129, 1)',
           borderWidth: 2,
-          errorBars: []
+          errorBars: [],
+          yAxisID: 'y'
+        },
+        {
+          label: 'Revenue Impact',
+          data: [0, 0, 0],
+          backgroundColor: 'rgba(251, 191, 36, 0.5)',
+          borderColor: 'rgba(251, 191, 36, 1)',
+          borderWidth: 2,
+          yAxisID: 'yRevenue'
         }
       ]
     },
@@ -211,18 +259,28 @@ function createAcquisitionChartSimple() {
         tooltip: {
           callbacks: {
             label: function(context) {
-              let label = context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' new subs';
-              if (context.datasetIndex === 1 && context.dataset.errorBars && context.dataset.errorBars[context.dataIndex]) {
-                const eb = context.dataset.errorBars[context.dataIndex];
-                label += '\n95% CI: ' + Math.round(eb.lower).toLocaleString() + ' - ' + Math.round(eb.upper).toLocaleString();
+              if (context.datasetIndex === 2) {
+                // Revenue Impact dataset (LTV)
+                const value = context.parsed.y;
+                const sign = value >= 0 ? '+' : '';
+                return context.dataset.label + ': ' + sign + '$' + value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) + ' LTV';
+              } else {
+                // Subscriber datasets
+                let label = context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' new subs';
+                if (context.datasetIndex === 1 && context.dataset.errorBars && context.dataset.errorBars[context.dataIndex]) {
+                  const eb = context.dataset.errorBars[context.dataIndex];
+                  label += '\n95% CI: ' + Math.round(eb.lower).toLocaleString() + ' - ' + Math.round(eb.upper).toLocaleString();
+                }
+                return label;
               }
-              return label;
             }
           }
         }
       },
       scales: {
         y: {
+          type: 'linear',
+          position: 'left',
           beginAtZero: true,
           grid: {
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark'
@@ -234,7 +292,26 @@ function createAcquisitionChartSimple() {
           },
           title: {
             display: true,
-            text: 'New Subscribers',
+            text: 'New Subscribers (Monthly)',
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
+          }
+        },
+        yRevenue: {
+          type: 'linear',
+          position: 'right',
+          grid: {
+            drawOnChartArea: false
+          },
+          ticks: {
+            color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529',
+            callback: function(value) {
+              const sign = value >= 0 ? '+' : '';
+              return sign + '$' + value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            }
+          },
+          title: {
+            display: true,
+            text: 'Revenue Impact ($ LTV)',
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
           }
         },
@@ -262,6 +339,7 @@ function setupAcquisitionInteractivity() {
   const tierSelect = document.getElementById('acq-tier-select');
   const priceSlider = document.getElementById('acq-price-slider');
   const ciToggle = document.getElementById('acq-show-ci');
+  const cohortSelect = document.getElementById('acq-cohort-select');
 
   if (!tierSelect || !priceSlider) {
     console.warn('Acquisition controls not found');
@@ -296,6 +374,31 @@ function setupAcquisitionInteractivity() {
   if (ciToggle) {
     ciToggle.addEventListener('change', () => {
       showConfidenceIntervals = ciToggle.checked;
+      updateAcquisitionModel();
+    });
+  }
+
+  // Cohort selection change
+  if (cohortSelect && cohortData) {
+    cohortSelect.addEventListener('change', () => {
+      const selectedCohort = cohortSelect.value;
+      console.log('🔄 Switching to acquisition cohort:', selectedCohort);
+
+      if (cohortData[selectedCohort]) {
+        const cohort = cohortData[selectedCohort];
+        const tier = tierSelect.value;
+
+        // Update elasticity from cohort profile
+        if (acquisitionParams[tier]) {
+          acquisitionParams[tier].base_elasticity = cohort.acquisition_elasticity;
+          // CRITICAL FIX: Also update segment-level elasticities
+          acquisitionParams[tier].segments.new_0_3mo.elasticity = cohort.acquisition_elasticity;
+          acquisitionParams[tier].segments.tenured_3_12mo.elasticity = cohort.acquisition_elasticity;
+          acquisitionParams[tier].segments.tenured_12plus.elasticity = cohort.acquisition_elasticity;
+          console.log(`  ✓ Acquisition elasticity: ${cohort.acquisition_elasticity.toFixed(2)}`);
+        }
+      }
+
       updateAcquisitionModel();
     });
   }
@@ -379,15 +482,46 @@ function updateAcquisitionModel() {
       upper: value * (1 + Z_SCORE * STD_ERROR)
     }));
 
+    // Calculate revenue impact per segment based on lifetime value
+    // Each segment has different expected tenure (average months subscribed)
+    const tenureMonths = [1.5, 7.5, 18]; // Average months for 0-3mo, 3-12mo, 12+mo segments
+    const baselineRevenue = baselineData.map((subs, i) => subs * currentPrice * tenureMonths[i]);
+    const projectedRevenue = projectedData.map((subs, i) => subs * newPrice * tenureMonths[i]);
+    const revenueImpact = projectedRevenue.map((rev, i) => Math.round(rev - baselineRevenue[i]));
+
+    // Calculate totals for summary metrics
+    const totalBaselineSubs = baselineData.reduce((sum, val) => sum + val, 0);
+    const totalProjectedSubs = projectedData.reduce((sum, val) => sum + val, 0);
+    const totalRevenueImpact = revenueImpact.reduce((sum, val) => sum + val, 0);
+
     console.log('📈 Updating Acquisition Chart:', {
       baselineData: baselineData,
       projectedData: projectedData,
-      difference: projectedData.map((val, i) => val - baselineData[i])
+      difference: projectedData.map((val, i) => val - baselineData[i]),
+      baselineRevenue: baselineRevenue,
+      projectedRevenue: projectedRevenue,
+      revenueImpact: revenueImpact,
+      totalProjectedSubs: totalProjectedSubs,
+      totalRevenueImpact: totalRevenueImpact
     });
+
+    // Update summary metrics
+    const totalSubsEl = document.getElementById('acq-total-subs');
+    const totalRevenueEl = document.getElementById('acq-total-revenue');
+    if (totalSubsEl) {
+      totalSubsEl.textContent = totalProjectedSubs.toLocaleString() + ' /mo';
+      totalSubsEl.className = 'metric-value';
+    }
+    if (totalRevenueEl) {
+      const sign = totalRevenueImpact >= 0 ? '+' : '';
+      totalRevenueEl.textContent = sign + '$' + totalRevenueImpact.toLocaleString();
+      totalRevenueEl.className = 'metric-value ' + (totalRevenueImpact >= 0 ? 'text-success' : 'text-danger');
+    }
 
     acquisitionChartSimple.data.datasets[0].data = baselineData;
     acquisitionChartSimple.data.datasets[1].data = projectedData;
     acquisitionChartSimple.data.datasets[1].errorBars = errorBars;
+    acquisitionChartSimple.data.datasets[2].data = revenueImpact;
     acquisitionChartSimple.update('none'); // Use 'none' for instant update without animation
   }
 }

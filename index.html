@@ -608,7 +608,7 @@
   </div>
   </div>
 
-  <!-- NEW: Unified Scenario Engine with 3 Elasticity Models -->
+  <!-- Unified Scenario Engine with 3 Elasticity Models -->
   <div id="elasticity-models-section" style="display: none;">
   <div class="container my-4">
     <div class="card">
@@ -667,7 +667,23 @@
                 <div class="glass-card">
                   <h5 class="mb-4"><i class="bi bi-sliders me-2"></i>Adjust Price</h5>
 
-                  <!-- Tier Selection -->
+                  <!-- Cohort Selection -->
+                  <div class="mb-4">
+                    <label class="form-label fw-semibold">Select Cohort</label>
+                    <select class="form-select" id="acq-cohort-select">
+                      <option value="baseline">All Cohorts (Baseline)</option>
+                      <option value="ultra_loyal">Ultra Loyal (Habitual Streamers)</option>
+                      <option value="value_conscious">Value Conscious</option>
+                      <option value="deal_hunter">Deal Hunter (Promo-Only)</option>
+                      <option value="content_driven">Content Driven</option>
+                      <option value="tier_flexible">Tier Flexible</option>
+                      <option value="premium_seeker">Premium Seeker</option>
+                      <option value="at_risk">At Risk (Lapsers)</option>
+                    </select>
+                    <small class="text-muted">Switch cohorts to see dramatic elasticity differences!</small>
+                  </div>
+
+                                    <!-- Tier Selection -->
                   <div class="mb-4">
                     <label class="form-label fw-semibold">Select Tier</label>
                     <select class="form-select" id="acq-tier-select">
@@ -699,6 +715,14 @@
                     <div class="metric-row">
                       <span class="metric-label">Acquisition Impact</span>
                       <strong class="metric-value text-success" id="acq-impact">0%</strong>
+                    </div>
+                    <div class="metric-row">
+                      <span class="metric-label">Total New Subscribers</span>
+                      <strong class="metric-value" id="acq-total-subs">0</strong>
+                    </div>
+                    <div class="metric-row">
+                      <span class="metric-label">Total Revenue Impact (LTV)</span>
+                      <strong class="metric-value" id="acq-total-revenue">$0</strong>
                     </div>
                   </div>
                 </div>
@@ -823,7 +847,23 @@
                 <div class="glass-card">
                   <h5 class="mb-4"><i class="bi bi-sliders me-2"></i>Simulate Price Increase</h5>
 
-                  <!-- Price Increase Slider -->
+                  <!-- Cohort Selection -->
+                  <div class="mb-4">
+                    <label class="form-label fw-semibold">Select Cohort</label>
+                    <select class="form-select" id="churn-cohort-select">
+                      <option value="baseline">All Cohorts (Baseline)</option>
+                      <option value="ultra_loyal">Ultra Loyal - Delayed Ramp</option>
+                      <option value="value_conscious">Value Conscious - Moderate</option>
+                      <option value="deal_hunter">Deal Hunter - Sharp Spike!</option>
+                      <option value="content_driven">Content Driven - Conditional</option>
+                      <option value="tier_flexible">Tier Flexible</option>
+                      <option value="premium_seeker">Premium Seeker - Gentle Slope</option>
+                      <option value="at_risk">At Risk - Accelerating</option>
+                    </select>
+                    <small class="text-muted">Watch curves change shape and cross as you switch cohorts!</small>
+                  </div>
+
+                                    <!-- Price Increase Slider -->
                   <div class="mb-4">
                     <label class="form-label fw-semibold">Price Increase: <strong class="text-danger" id="churn-increase-display">+$1.00</strong></label>
                     <input type="range" class="price-slider" id="churn-price-slider" min="0" max="3" step="0.5" value="1">
@@ -996,7 +1036,23 @@
                 <div class="glass-card">
                   <h5 class="mb-4"><i class="bi bi-sliders me-2"></i>Adjust Tier Prices</h5>
 
-                  <!-- Ad-Lite Price Slider -->
+                  <!-- Cohort Selection -->
+                  <div class="mb-4">
+                    <label class="form-label fw-semibold">Select Cohort</label>
+                    <select class="form-select" id="mig-cohort-select">
+                      <option value="baseline">All Cohorts (Baseline)</option>
+                      <option value="ultra_loyal">Ultra Loyal</option>
+                      <option value="value_conscious">Value Conscious</option>
+                      <option value="deal_hunter">Deal Hunter</option>
+                      <option value="content_driven">Content Driven</option>
+                      <option value="tier_flexible">Tier Flexible - High Asymmetry!</option>
+                      <option value="premium_seeker">Premium Seeker - Upgrade-Willing</option>
+                      <option value="at_risk">At Risk</option>
+                    </select>
+                    <small class="text-muted">See crossover point shift with different cohorts!</small>
+                  </div>
+
+                                    <!-- Ad-Lite Price Slider -->
                   <div class="mb-4">
                     <label class="form-label fw-semibold">Ad-Lite Price: <strong class="text-primary" id="mig-adlite-display">$5.99</strong></label>
                     <input type="range" class="price-slider" id="mig-adlite-slider" min="3.99" max="7.99" step="0.50" value="5.99">
