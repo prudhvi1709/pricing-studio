@@ -53,7 +53,7 @@ export function renderSegmentKPICards(containerId, aggregatedKPIs) {
             color: '#43e97b'
         },
         {
-            label: 'Active Segments',
+            label: 'Active Cohorts',
             value: safeNumber(aggregatedKPIs.segment_count, 0),
             icon: 'bi-diagram-3-fill',
             color: '#fa709a'
@@ -729,7 +729,7 @@ export function render3AxisRadialChart(containerId, tier, highlightSegment = nul
         .attr('font-weight', 'bold')
         .attr('font-size', '16px')
         .attr('fill', '#333')
-        .text(`3-Axis Customer Segmentation - ${tier.replace('_', ' ').toUpperCase()} Tier`);
+        .text(`3-Axis Customer Cohorts - ${tier.replace('_', ' ').toUpperCase()} Tier`);
 }
 
 /**

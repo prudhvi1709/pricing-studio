@@ -252,6 +252,7 @@ function createAcquisitionChartSimple() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
+          position: 'bottom',
           labels: {
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e5e5e5' : '#212529'
           }
@@ -299,6 +300,7 @@ function createAcquisitionChartSimple() {
         yRevenue: {
           type: 'linear',
           position: 'right',
+          beginAtZero: true,
           grid: {
             drawOnChartArea: false
           },
@@ -522,6 +524,15 @@ function updateAcquisitionModel() {
     acquisitionChartSimple.data.datasets[1].data = projectedData;
     acquisitionChartSimple.data.datasets[1].errorBars = errorBars;
     acquisitionChartSimple.data.datasets[2].data = revenueImpact;
+
+    // Dynamically color revenue bars: red for negative, yellow for positive
+    acquisitionChartSimple.data.datasets[2].backgroundColor = revenueImpact.map(value =>
+      value < 0 ? 'rgba(239, 68, 68, 0.5)' : 'rgba(251, 191, 36, 0.5)'
+    );
+    acquisitionChartSimple.data.datasets[2].borderColor = revenueImpact.map(value =>
+      value < 0 ? 'rgba(239, 68, 68, 1)' : 'rgba(251, 191, 36, 1)'
+    );
+
     acquisitionChartSimple.update('none'); // Use 'none' for instant update without animation
   }
 }

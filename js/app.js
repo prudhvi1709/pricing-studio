@@ -673,7 +673,7 @@ async function initializeChatContext() {
             interpretation: 'Confidence intervals widen over time due to increasing uncertainty. Use for medium-term planning (3-6 months most reliable).'
           } : null,
           heatmap: {
-            name: 'Elasticity Heatmap by Segment',
+            name: 'Elasticity Heatmap by Cohort',
             description: 'Shows how price sensitivity varies by customer tenure and tier',
             interpretation: [
               'New subscribers (0-3mo) are typically more price-sensitive',
@@ -1579,26 +1579,12 @@ function initializeSegmentComparison() {
   const compareAxisSelect = document.getElementById('compare-axis-select');
   const compareTierSelect = document.getElementById('compare-tier-select');
   const compareSortSelect = document.getElementById('compare-sort-select');
-  const compareCohortSelect = document.getElementById('compare-cohort-select');
 
   if (!compareAxisSelect || !compareTierSelect || !compareSortSelect) return;
 
   compareAxisSelect.addEventListener('change', renderSegmentComparisonTable);
   compareTierSelect.addEventListener('change', renderSegmentComparisonTable);
   compareSortSelect.addEventListener('change', renderSegmentComparisonTable);
-  if (compareCohortSelect) {
-    populateCohortSelector('compare-cohort-select');
-
-    // Set initial cohort from dropdown value
-    window.segmentEngine.setActiveCohort(compareCohortSelect.value);
-
-    compareCohortSelect.addEventListener('change', () => {
-      window.segmentEngine.setActiveCohort(compareCohortSelect.value);
-      syncCohortSelectors(compareCohortSelect.value);
-      updateSegmentVisualization();
-      renderSegmentComparisonTable();
-    });
-  }
 
   // Initial render
   renderSegmentComparisonTable();
@@ -2390,11 +2376,14 @@ function displayResultsInTabs(result, isRedisplay = false) {
     forecasted_revenue: result.forecasted.revenue,
     delta_revenue: result.delta.revenue,
     subscribers: subscribers,
-    container_exists: !!container
+    container_exists: !!container,
+    delta_new_subscribers: result.delta?.new_subscribers,
+    delta_new_subscribers_pct: result.delta?.new_subscribers_pct,
+    forecasted_new_subscribers: result.forecasted?.new_subscribers
   });
 
   container.innerHTML = `
-    <div class="col-md-2">
+    <div class="col-md-3">
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">Subscribers</div>
@@ -2406,7 +2395,7 @@ function displayResultsInTabs(result, isRedisplay = false) {
         </div>
       </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">Revenue (Monthly)</div>
@@ -2418,7 +2407,7 @@ function displayResultsInTabs(result, isRedisplay = false) {
         </div>
       </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">ARPU</div>
@@ -2430,7 +2419,7 @@ function displayResultsInTabs(result, isRedisplay = false) {
         </div>
       </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
       <div class="card">
         <div class="card-body text-center">
           <div class="text-muted small">Churn Rate</div>
@@ -2441,7 +2430,7 @@ function displayResultsInTabs(result, isRedisplay = false) {
         </div>
       </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3">
       <div class="card border-primary">
         <div class="card-body text-center">
           <div class="text-muted small">

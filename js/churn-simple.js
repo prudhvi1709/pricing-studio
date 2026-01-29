@@ -231,8 +231,7 @@ function createChurnChartSimple() {
       },
       scales: {
         y: {
-          min: 3.5,  // Zoomed in from 3 to 3.5 (closer to data range)
-          max: 8.5,  // Increased to 8.5 to show high-elasticity cohorts
+          // Dynamic min/max - will be updated based on data
           grid: {
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark'
               ? 'rgba(255,255,255,0.1)'
@@ -430,8 +429,7 @@ function createSurvivalCurveChart() {
       },
       scales: {
         y: {
-          min: 70,  // Set to 70% for maximum visibility of high-retention cohorts
-          max: 100,
+          // Dynamic min/max - will be updated based on data
           grid: {
             color: document.documentElement.getAttribute('data-bs-theme') === 'dark'
               ? 'rgba(255,255,255,0.1)'
@@ -450,6 +448,7 @@ function createSurvivalCurveChart() {
         yRevenue: {
           type: 'linear',
           position: 'right',
+          // Dynamic scale - will be updated based on data
           grid: {
             drawOnChartArea: false
           },
@@ -620,15 +619,31 @@ function updateChurnModel(currentTier = 'ad_supported') {
       tierBaseline + impacts['12plus']
     ];
 
+    // Calculate dynamic y-axis range based on data
+    const baselineData = [tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline];
+    const allDataPoints = [...baselineData, ...projectedData];
+    const minValue = Math.min(...allDataPoints);
+    const maxValue = Math.max(...allDataPoints);
+    const range = maxValue - minValue;
+    const padding = Math.max(range * 0.15, 0.5); // 15% padding or minimum 0.5%
+
+    // Set dynamic scale
+    churnChartSimple.options.scales.y.min = Math.max(0, minValue - padding);
+    churnChartSimple.options.scales.y.max = maxValue + padding;
+
     console.log('📈 Updating Churn Chart:', {
       baseline: tierBaseline,
       impacts: impacts,
       projectedData: projectedData,
-      baselineData: [tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline]
+      baselineData: baselineData,
+      dynamicScale: {
+        min: churnChartSimple.options.scales.y.min.toFixed(2),
+        max: churnChartSimple.options.scales.y.max.toFixed(2)
+      }
     });
 
     // Update baseline data too
-    churnChartSimple.data.datasets[0].data = [tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline, tierBaseline];
+    churnChartSimple.data.datasets[0].data = baselineData;
     churnChartSimple.data.datasets[1].data = projectedData;
     churnChartSimple.update('none'); // Instant update
   }
@@ -715,6 +730,36 @@ function updateChurnModel(currentTier = 'ad_supported') {
       totalRevenueEl.textContent = sign + '$' + finalRevenueImpact.toLocaleString();
       totalRevenueEl.className = 'metric-value ' + (finalRevenueImpact >= 0 ? 'text-success' : 'text-danger');
     }
+
+    // Calculate dynamic y-axis range for retention (y-axis)
+    const allRetentionPoints = [...baselineRetention, ...scenarioRetention];
+    const minRetention = Math.min(...allRetentionPoints);
+    const maxRetention = Math.max(...allRetentionPoints);
+    const retentionRange = maxRetention - minRetention;
+    const retentionPadding = Math.max(retentionRange * 0.15, 2); // 15% padding or minimum 2%
+
+    survivalCurveChart.options.scales.y.min = Math.max(0, minRetention - retentionPadding);
+    survivalCurveChart.options.scales.y.max = Math.min(100, maxRetention + retentionPadding);
+
+    // Calculate dynamic scale for revenue (yRevenue axis)
+    const minRevenue = Math.min(...revenueImpact);
+    const maxRevenue = Math.max(...revenueImpact);
+    const revenueRange = maxRevenue - minRevenue;
+    const revenuePadding = Math.max(revenueRange * 0.15, 1000); // 15% padding or minimum $1000
+
+    survivalCurveChart.options.scales.yRevenue.min = minRevenue - revenuePadding;
+    survivalCurveChart.options.scales.yRevenue.max = maxRevenue + revenuePadding;
+
+    console.log('📊 Survival Chart Dynamic Scales:', {
+      retention: {
+        min: survivalCurveChart.options.scales.y.min.toFixed(1) + '%',
+        max: survivalCurveChart.options.scales.y.max.toFixed(1) + '%'
+      },
+      revenue: {
+        min: '$' + Math.round(survivalCurveChart.options.scales.yRevenue.min).toLocaleString(),
+        max: '$' + Math.round(survivalCurveChart.options.scales.yRevenue.max).toLocaleString()
+      }
+    });
 
     survivalCurveChart.data.datasets[0].data = baselineRetention;
     survivalCurveChart.data.datasets[1].data = scenarioRetention;

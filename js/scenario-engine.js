@@ -91,6 +91,14 @@ export async function simulateScenario(scenario, options = {}) {
       baseline.newSubscribers
     );
 
+    console.log('📊 Acquisition Forecast:', {
+      tier: scenario.config.tier,
+      baseline: baseline.newSubscribers,
+      forecasted: acquisitionForecast.forecastedAcquisition,
+      change: acquisitionForecast.change,
+      changePercent: acquisitionForecast.changePercent
+    });
+
     // Calculate revenue impact
     const revenueImpact = calculateRevenueImpact(
       demandForecast.forecastedSubscribers,

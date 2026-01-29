@@ -388,7 +388,7 @@
             <i class="bi bi-info-circle"></i>
           </button>
         </h2>
-        <p class="section-subtitle">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral segments and elasticity patterns.</p>
+        <p class="section-subtitle">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral cohorts and elasticity patterns.</p>
       </div>
       <div class="section-header-citation">
         <div class="section-citation-card">
@@ -740,7 +740,7 @@
                 <!-- Chart -->
                 <div class="glass-card">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Projected New Subscribers by Segment</h5>
+                    <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Projected New Subscribers by Cohort</h5>
                     <div class="form-check form-switch">
                       <input class="form-check-input" type="checkbox" id="acq-show-ci" checked>
                       <label class="form-check-label small" for="acq-show-ci">Show 95% CI</label>
@@ -1570,20 +1570,6 @@
               Pricing changes don't affect everyone the same way
             </p>
           </div>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-primary btn-sm" onclick="scrollToTab('acquisition')">
-              <i class="bi bi-arrow-up-circle me-1"></i>
-              Acquisition
-            </button>
-            <button class="btn btn-outline-warning btn-sm" onclick="scrollToTab('churn')">
-              <i class="bi bi-arrow-up-circle me-1"></i>
-              Churn
-            </button>
-            <button class="btn btn-outline-success btn-sm" onclick="scrollToTab('migration')">
-              <i class="bi bi-arrow-up-circle me-1"></i>
-              Migration
-            </button>
-          </div>
         </div>
       </div>
       <div class="card-body">
@@ -1627,7 +1613,7 @@
           <strong>Viewing:</strong> <span id="filter-stats">All segments</span>
         </div>
 
-        <!-- Segment Filters (Pills) -->
+        <!-- Cohort Filters (Pills) -->
         <div class="segment-filters mb-4">
           <div class="row g-3">
             <div class="col-md-4">
@@ -1650,16 +1636,16 @@
           </div>
         </div>
 
-        <!-- Segment KPI Dashboard -->
+        <!-- Cohort KPI Dashboard -->
         <div id="segment-kpi-dashboard" class="mb-4"></div>
 
         <!-- Export Buttons -->
         <div class="mb-3">
           <button id="export-segments-csv" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export to CSV
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Cohorts to CSV
           </button>
           <button id="export-viz-svg" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-file-earmark-image me-1"></i> Export SVG
+            <i class="bi bi-file-earmark-image me-1"></i> Export Visualization
           </button>
         </div>
 
@@ -1667,7 +1653,7 @@
         <div id="segment-visualization-container">
           <!-- Elasticity Heatmap -->
           <div id="heatmap-view" class="chart-container">
-            <h3 class="h6 mb-3">Segment Elasticity Heatmap</h3>
+            <h3 class="h6 mb-3">Cohort Elasticity Heatmap</h3>
             <div id="segment-elasticity-heatmap"></div>
           </div>
 
@@ -1675,7 +1661,7 @@
           <div id="3axis-view" class="chart-container" style="display: none;">
             <h3 class="h6 mb-3">3-Axis Elasticity Visualization</h3>
             <p class="text-muted small">
-              Circle size represents subscriber count. Click segments to explore details.
+              Circle size represents subscriber count. Click cohorts to explore details.
             </p>
             <div id="three-axis-radial-viz"></div>
             <div class="mt-3">
@@ -1690,7 +1676,7 @@
 
           <!-- Scatter Plot View -->
           <div id="scatter-view" class="chart-container" style="display: none;">
-            <h3 class="h6 mb-3">Segment Scatter Plot</h3>
+            <h3 class="h6 mb-3">Cohort Scatter Plot</h3>
             <p class="text-muted small">
               Bubble size represents ARPU, color represents churn rate. Hover for details.
             </p>
@@ -1702,35 +1688,21 @@
   </div>
   </div>
 
-  <!-- Segment Analysis & Comparison Section -->
+  <!-- Cohort Analysis & Comparison Section -->
   <div id="segment-analysis-section" class="container my-5" style="display: none;">
     <div class="card">
       <div class="card-header bg-primary text-white">
         <div class="d-flex justify-content-between align-items-center">
           <h2 class="h5 mb-0">
             <i class="bi bi-bar-chart-line me-2"></i>
-            Segment Elasticity Comparison
+            Cohort Elasticity Comparison
           </h2>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-light btn-sm" onclick="scrollToTab('acquisition')">
-              <i class="bi bi-arrow-up-circle me-1"></i>
-              Acquisition
-            </button>
-            <button class="btn btn-outline-light btn-sm" onclick="scrollToTab('churn')">
-              <i class="bi bi-arrow-up-circle me-1"></i>
-              Churn
-            </button>
-            <button class="btn btn-outline-light btn-sm" onclick="scrollToTab('migration')">
-              <i class="bi bi-arrow-up-circle me-1"></i>
-              Migration
-            </button>
-          </div>
         </div>
       </div>
       <div class="card-body">
         <!-- Controls -->
         <div class="row mb-4">
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label fw-bold">Axis</label>
             <select id="compare-axis-select" class="form-select">
               <option value="acquisition">Acquisition</option>
@@ -1738,26 +1710,20 @@
               <option value="monetization">Monetization</option>
             </select>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label fw-bold">Tier</label>
             <select id="compare-tier-select" class="form-select">
               <option value="ad_supported">Ad-Lite</option>
               <option value="ad_free" selected>Ad-Free</option>
             </select>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label fw-bold">Sort By</label>
             <select id="compare-sort-select" class="form-select">
               <option value="elasticity">Elasticity</option>
               <option value="subscribers">Subscribers</option>
               <option value="churn">Churn Rate</option>
               <option value="arpu">ARPU</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Cohort</label>
-            <select id="compare-cohort-select" class="form-select">
-              <option value="baseline" selected>All Cohorts (Baseline)</option>
             </select>
           </div>
         </div>
@@ -2378,7 +2344,7 @@
           <ol>
             <li>Calculate new price gaps between all tier pairs</li>
             <li>Estimate migration probabilities using logistic regression</li>
-            <li>Apply segment-specific modifiers (tenure, engagement)</li>
+            <li>Apply cohort-specific modifiers (tenure, engagement)</li>
             <li>Simulate month-by-month transitions using Markov chain</li>
             <li>Calculate net revenue impact accounting for mix shift</li>
           </ol>
@@ -2502,8 +2468,8 @@
 
           <h6 class="mb-3 mt-4"><i class="bi bi-table me-2"></i> Data Sources</h6>
           <ul>
-            <li><strong>customer_segments.csv:</strong> 375 segment definitions with characteristics</li>
-            <li><strong>segment_kpis.csv:</strong> Historical performance by segment</li>
+            <li><strong>customer_segments.csv:</strong> 375 cohort definitions with characteristics</li>
+            <li><strong>segment_kpis.csv:</strong> Historical performance by cohort</li>
             <li><strong>segment_elasticity.json:</strong> Calibrated elasticity parameters</li>
           </ul>
 
@@ -2583,7 +2549,7 @@
 
           <h6 class="mb-3 mt-4" style="color: #6366f1;"><i class="bi bi-file-earmark-arrow-down me-2"></i> Export Capabilities</h6>
           <ul>
-            <li><strong>CSV Export:</strong> Full segment data with elasticity and KPI metrics</li>
+            <li><strong>CSV Export:</strong> Full cohort data with elasticity and KPI metrics</li>
             <li><strong>SVG Export:</strong> Vector graphics for presentations</li>
             <li><strong>JSON Export:</strong> Raw data for further analysis</li>
           </ul>
@@ -2705,7 +2671,7 @@
                     </span>
                     <span class="steps-table-body">
                       <strong>Customer Cohorts & Elasticity</strong>
-                      <span class="text-muted">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral segments and elasticity patterns.</span>
+                      <span class="text-muted">Analyze customer cohorts and their differential responses to pricing changes. Explore behavioral cohorts and elasticity patterns.</span>
                     </span>
                     <span class="steps-table-rfp">Slide 11: We segment customers into cohorts because pricing changes don't affect everyone the same way.</span>
                   </button>
