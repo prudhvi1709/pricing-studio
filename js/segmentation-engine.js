@@ -184,26 +184,62 @@ class SegmentationEngine {
 
             // Level 1: 3-axis segment lookup
             const segmentData = tierData.segment_elasticity?.[compositeKey];
+
             if (segmentData && axis) {
-                const axisKey = `${axis}_axis`;
+                // Map UI axis names to JSON axis keys
+                // UI uses: 'acquisition', 'engagement', 'monetization'
+                // JSON has: 'acquisition_axis', 'churn_axis', 'migration_axis'
+                const axisMapping = {
+                    'acquisition': 'acquisition_axis',
+                    'engagement': 'churn_axis',  // Engagement relates to churn behavior
+                    'monetization': 'migration_axis'  // Monetization relates to tier migration
+                };
+
+                const axisKey = axisMapping[axis] || `${axis}_axis`;
                 const axisData = segmentData[axisKey];
 
                 if (axisData && axisData.elasticity !== undefined) {
                     const multipliers = this.#getCohortMultipliers();
-                    return axisData.elasticity * (multipliers?.elasticity || 1);
+
+                    // Apply the CORRECT multiplier based on axis type
+                    let appliedMultiplier = 1;
+                    if (axis === 'acquisition') {
+                        // Use acquisition elasticity multiplier
+                        appliedMultiplier = multipliers?.acquisition_elasticity || 1;
+                    } else if (axis === 'engagement') {
+                        // Use churn elasticity multiplier (engagement = churn propensity)
+                        appliedMultiplier = multipliers?.churn || 1;
+                    } else if (axis === 'monetization') {
+                        // Use migration asymmetry multiplier (monetization = tier switching)
+                        appliedMultiplier = multipliers?.migration_asymmetry || 1;
+                    }
+
+                    const segmentElasticity = axisData.elasticity * appliedMultiplier;
+                    return segmentElasticity;
                 }
+
+                console.warn('⚠️ Axis data not found, using fallback:', {
+                    tier,
+                    axis,
+                    axisKey,
+                    compositeKey: compositeKey.substring(0, 50) + '...',
+                    hasSegmentData: !!segmentData,
+                    availableKeys: segmentData ? Object.keys(segmentData) : []
+                });
             }
 
             // Level 2-4: Fallback to existing elasticity calculation
             // This integrates with the existing elasticity-model.js
             const baseElasticity = this.#getBaseFallback(tier);
             const multipliers = this.#getCohortMultipliers();
-            return baseElasticity * (multipliers?.elasticity || 1);
+            // For fallback, assume acquisition context (most common)
+            return baseElasticity * (multipliers?.acquisition_elasticity || 1);
         } catch (error) {
             console.error('Error getting elasticity:', error);
             const baseElasticity = this.#getBaseFallback(tier);
             const multipliers = this.#getCohortMultipliers();
-            return baseElasticity * (multipliers?.elasticity || 1);
+            // For fallback, assume acquisition context (most common)
+            return baseElasticity * (multipliers?.acquisition_elasticity || 1);
         }
     }
 
@@ -342,11 +378,21 @@ class SegmentationEngine {
      */
     getCohortDefinitions() {
         if (!this.cohortCoefficients) return [];
-        return Object.entries(this.cohortCoefficients).map(([id, data]) => ({
-            id,
-            label: data.label,
-            description: data.description || ''
-        }));
+
+        const cohorts = Object.entries(this.cohortCoefficients)
+            .filter(([id]) => id !== 'metadata')  // Exclude metadata key
+            .map(([id, data]) => ({
+                id,
+                label: data.label,
+                description: data.description || ''
+            }));
+
+        // Sort to put baseline first
+        return cohorts.sort((a, b) => {
+            if (a.id === 'baseline') return -1;
+            if (b.id === 'baseline') return 1;
+            return 0;
+        });
     }
 
     /**
@@ -528,13 +574,60 @@ class SegmentationEngine {
     }
 
     /**
-     * Get cohort multipliers
+     * Get cohort multipliers (dynamically calculated from coefficients)
      * @private
      */
     #getCohortMultipliers() {
         if (!this.cohortCoefficients) return null;
-        const cohort = this.cohortCoefficients[this.getActiveCohort()];
-        return cohort?.multipliers || null;
+
+        const activeCohortId = this.getActiveCohort();
+        const cohort = this.cohortCoefficients[activeCohortId];
+        const baseline = this.cohortCoefficients['baseline'];
+
+        if (!cohort || !baseline) return null;
+
+        // If baseline is selected, no adjustments needed
+        if (activeCohortId === 'baseline') {
+            return {
+                churn: 1.0,
+                arpu: 1.0,
+                watch_hours: 1.0,
+                cac: 1.0,
+                subscriber_count: 1.0,
+                acquisition_elasticity: 1.0,
+                migration_asymmetry: 1.0
+            };
+        }
+
+        // Calculate multipliers as ratios relative to baseline
+        const multipliers = {
+            // Churn: ratio of churn elasticity (how much more/less likely to churn)
+            churn: cohort.churn_elasticity / baseline.churn_elasticity,
+
+            // ARPU: infer from engagement and tier preference
+            // Premium seekers have higher ARPU, value-conscious have lower
+            // Using migration_upgrade as proxy: higher upgrade willingness = higher ARPU preference
+            arpu: 0.8 + (cohort.migration_upgrade * 0.3),
+
+            // Watch hours: based on engagement_offset
+            // Higher engagement offset = more watch hours
+            watch_hours: 1.0 + cohort.engagement_offset,
+
+            // CAC: Deal hunters and promo-sensitive have lower CAC (come from cheaper channels)
+            // Using migration_downgrade as proxy: higher downgrade = more price-sensitive = lower CAC
+            cac: Math.max(0.5, 1.5 - (cohort.migration_downgrade * 0.3)),
+
+            // Subscriber count: don't adjust population distribution
+            subscriber_count: 1.0,
+
+            // Acquisition Elasticity: ratio of acquisition elasticity (price sensitivity for NEW customers)
+            acquisition_elasticity: Math.abs(cohort.acquisition_elasticity) / Math.abs(baseline.acquisition_elasticity),
+
+            // Migration Asymmetry: ratio of migration asymmetry factor (tier switching propensity)
+            migration_asymmetry: cohort.migration_asymmetry_factor / baseline.migration_asymmetry_factor
+        };
+
+        return multipliers;
     }
 
     /**
@@ -588,9 +681,13 @@ class SegmentationEngine {
      */
     #applyCohortToKPIs(kpis) {
         const multipliers = this.#getCohortMultipliers();
+
+        // If no multipliers or no KPIs, return original
         if (!multipliers || !kpis) return kpis;
 
+        const original = { ...kpis };
         const adjusted = { ...kpis };
+
         if (adjusted.avg_churn_rate !== undefined) {
             adjusted.avg_churn_rate = Math.min(1, Math.max(0, parseFloat(adjusted.avg_churn_rate) * multipliers.churn));
         }
@@ -606,6 +703,7 @@ class SegmentationEngine {
         if(adjusted.subscriber_count !== undefined && multipliers.subscriber_count !== undefined) {
             adjusted.subscriber_count = Math.round(parseFloat(adjusted.subscriber_count) * multipliers.subscriber_count);
         }
+
         return adjusted;
     }
 }

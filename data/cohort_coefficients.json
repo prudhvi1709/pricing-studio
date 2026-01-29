@@ -6,7 +6,7 @@
     "method": "Profile mixing with non-linear dynamics"
   },
   "ultra_loyal": {
-    "label": "Habitual Streamers, Long-Tenure Loyalists, Content-Anchored High-Engagement",
+    "label": "Ultra Loyal",
     "description": "Habitual Streamers, Long-Tenure Loyalists, Content-Anchored High-Engagement",
     "acquisition_elasticity": -0.65,
     "churn_elasticity": 0.4,
@@ -26,7 +26,7 @@
     }
   },
   "value_conscious": {
-    "label": "Ad-Value Seekers, Value-Perception Buyers",
+    "label": "Value Conscious",
     "description": "Ad-Value Seekers, Value-Perception Buyers",
     "acquisition_elasticity": -1.8,
     "churn_elasticity": 7.5,
@@ -46,7 +46,7 @@
     }
   },
   "deal_hunter": {
-    "label": "Promo-Only Users, Deal-Responsive Acquirers",
+    "label": "Deal Hunter",
     "description": "Promo-Only Users, Deal-Responsive Acquirers",
     "acquisition_elasticity": -3.5,
     "churn_elasticity": 15.0,
@@ -66,7 +66,7 @@
     }
   },
   "content_driven": {
-    "label": "Content-Anchored Viewers, TVOD-to-SVOD Converters",
+    "label": "Content Driven",
     "description": "Content-Anchored Viewers, TVOD-to-SVOD Converters",
     "acquisition_elasticity": -1.2,
     "churn_elasticity": 2.4,
@@ -86,7 +86,7 @@
     }
   },
   "tier_flexible": {
-    "label": "Price-Triggered Downgraders, Tier Switchers",
+    "label": "Tier Flexible",
     "description": "Price-Triggered Downgraders, Tier Switchers",
     "acquisition_elasticity": -1.6,
     "churn_elasticity": 8.5,
@@ -106,7 +106,7 @@
     }
   },
   "premium_seeker": {
-    "label": "Ad-Free Loyalists, Ad-Intolerant Upgraders",
+    "label": "Premium Seeker",
     "description": "Ad-Free Loyalists, Ad-Intolerant Upgraders",
     "acquisition_elasticity": -1.0,
     "churn_elasticity": 0.7,
@@ -126,7 +126,7 @@
     }
   },
   "at_risk": {
-    "label": "At-Risk Lapsers, Dormant Subscribers",
+    "label": "At Risk",
     "description": "At-Risk Lapsers, Dormant Subscribers",
     "acquisition_elasticity": -2.0,
     "churn_elasticity": 12.0,
@@ -146,7 +146,7 @@
     }
   },
   "baseline": {
-    "label": "All Cohorts (Baseline)",
+    "label": "Baseline",
     "description": "Aggregate of all cohorts weighted by population",
     "acquisition_elasticity": -0.82,
     "churn_elasticity": 6.5,

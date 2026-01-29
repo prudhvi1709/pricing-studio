@@ -21,34 +21,40 @@ export function renderSegmentKPICards(containerId, aggregatedKPIs) {
         return;
     }
 
+    // Helper to safely format numbers, replacing NaN/null/undefined with 0
+    const safeNumber = (val, defaultVal = 0) => {
+        if (val === null || val === undefined || isNaN(val)) return defaultVal;
+        return val;
+    };
+
     const kpiData = [
         {
             label: 'Total Subscribers',
-            value: aggregatedKPIs.total_subscribers.toLocaleString(),
+            value: safeNumber(aggregatedKPIs.total_subscribers, 0).toLocaleString(),
             icon: 'bi-people-fill',
             color: '#667eea'
         },
         {
             label: 'Avg Churn Rate',
-            value: `${(aggregatedKPIs.weighted_churn * 100).toFixed(2)}%`,
+            value: `${(safeNumber(aggregatedKPIs.weighted_churn, 0) * 100).toFixed(2)}%`,
             icon: 'bi-graph-down-arrow',
             color: '#f093fb'
         },
         {
             label: 'Avg ARPU',
-            value: `$${aggregatedKPIs.weighted_arpu.toFixed(2)}`,
+            value: `$${safeNumber(aggregatedKPIs.weighted_arpu, 0).toFixed(2)}`,
             icon: 'bi-currency-dollar',
             color: '#4facfe'
         },
         {
             label: 'Avg Watch Hours',
-            value: aggregatedKPIs.weighted_watch_hours.toFixed(1),
+            value: safeNumber(aggregatedKPIs.weighted_watch_hours, 0).toFixed(1),
             icon: 'bi-clock-fill',
             color: '#43e97b'
         },
         {
             label: 'Active Segments',
-            value: aggregatedKPIs.segment_count,
+            value: safeNumber(aggregatedKPIs.segment_count, 0),
             icon: 'bi-diagram-3-fill',
             color: '#fa709a'
         }
@@ -119,22 +125,19 @@ export function renderSegmentElasticityHeatmap(containerId, tier, filters = {}, 
     // Prepare heatmap data
     const heatmapData = [];
     tierSegments.forEach(seg => {
-        const segmentData = window.segmentEngine.getSegmentData(seg.compositeKey, tier);
-        if (!segmentData) return;
-
-        const axisKey = `${axis}_axis`;
-        const axisData = segmentData[axisKey];
-        if (!axisData) return;
+        // Use getElasticity which handles axis mapping and cohort adjustments
+        const elasticity = window.segmentEngine.getElasticity(tier, seg.compositeKey, axis);
 
         heatmapData.push({
             compositeKey: seg.compositeKey,
             acquisition: seg.acquisition,
             engagement: seg.engagement,
             monetization: seg.monetization,
-            elasticity: axisData.elasticity,
-            kpi: axis === 'engagement' ? axisData.churn_rate :
-                 axis === 'monetization' ? axisData.arpu :
-                 axisData.cac_sensitivity,
+            elasticity: elasticity,
+            // Use cohort-adjusted KPIs from segment data
+            kpi: axis === 'engagement' ? seg.avg_churn_rate :
+                 axis === 'monetization' ? seg.avg_arpu :
+                 seg.avg_cac,
             subscribers: parseInt(seg.subscriber_count || 0)
         });
     });
@@ -183,10 +186,26 @@ export function renderSegmentElasticityHeatmap(containerId, tier, filters = {}, 
         .range([0, height])
         .padding(0.05);
 
-    // Color scale (elasticity values are negative)
+    // Color scale - axis-aware direction
     const elasticityExtent = d3.extent(heatmapData, d => d.elasticity);
-    const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
-        .domain([elasticityExtent[0], elasticityExtent[1]]);  // More negative = red, less negative = green
+
+    let colorScale;
+    if (axis === 'engagement') {
+        // Engagement (churn): POSITIVE values, higher = worse
+        // Domain: [low, high] maps to [green, red]
+        colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+            .domain([elasticityExtent[1], elasticityExtent[0]]);  // Reverse: high = red
+    } else if (axis === 'acquisition') {
+        // Acquisition: NEGATIVE values, more negative = worse
+        // Domain: [more negative, less negative] maps to [red, green]
+        colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+            .domain([elasticityExtent[0], elasticityExtent[1]]);  // More negative = red
+    } else {
+        // Monetization (migration): POSITIVE values, higher = more switching
+        // Domain: [low, high] maps to [green, red]
+        colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+            .domain([elasticityExtent[1], elasticityExtent[0]]);  // Reverse: high = red
+    }
 
     // Create tooltip
     const tooltip = container.append('div')

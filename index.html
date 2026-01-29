@@ -1589,33 +1589,27 @@
       <div class="card-body">
         <!-- Control Panel -->
         <div class="row g-3 mb-4">
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Subscription Tier</label>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Tier</label>
             <select id="segment-tier-select" class="form-select">
               <option value="ad_supported">Ad-Lite</option>
               <option value="ad_free" selected>Ad-Free</option>
             </select>
           </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Behavioral Axis</label>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Axis</label>
             <select id="segment-axis-select" class="form-select">
-              <option value="acquisition">Axis 3: Acquisition Price Sensitivity</option>
-              <option value="engagement" selected>Axis 2: Engagement & Churn Propensity</option>
-              <option value="monetization">Axis 1: Monetization & Plan Type</option>
+              <option value="acquisition">Acquisition</option>
+              <option value="engagement" selected>Engagement</option>
+              <option value="monetization">Monetization</option>
             </select>
           </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Visualization Type</label>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Visualization</label>
             <select id="segment-viz-select" class="form-select">
-              <option value="heatmap">Elasticity Heatmap</option>
+              <option value="heatmap">Heatmap</option>
               <option value="3axis" selected>3-Axis Framework</option>
-              <option value="scatter">Scatter Plot (Elasticity vs Subscribers)</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold">Cohort View</label>
-            <select id="segment-cohort-select" class="form-select">
-              <option value="baseline" selected>All Cohorts (Baseline)</option>
+              <option value="scatter">Scatter Plot</option>
             </select>
           </div>
         </div>
@@ -1737,11 +1731,11 @@
         <!-- Controls -->
         <div class="row mb-4">
           <div class="col-md-3">
-            <label class="form-label fw-bold">Compare By</label>
+            <label class="form-label fw-bold">Axis</label>
             <select id="compare-axis-select" class="form-select">
-              <option value="acquisition">Acquisition Price Sensitivity</option>
-              <option value="engagement" selected>Engagement & Churn Propensity</option>
-              <option value="monetization">Monetization & Plan Type</option>
+              <option value="acquisition">Acquisition</option>
+              <option value="engagement" selected>Engagement</option>
+              <option value="monetization">Monetization</option>
             </select>
           </div>
           <div class="col-md-3">
@@ -1754,14 +1748,14 @@
           <div class="col-md-3">
             <label class="form-label fw-bold">Sort By</label>
             <select id="compare-sort-select" class="form-select">
-              <option value="elasticity">Elasticity (Most Elastic First)</option>
-              <option value="subscribers">Subscribers (Largest First)</option>
-              <option value="churn">Churn Rate (Highest First)</option>
-              <option value="arpu">ARPU (Highest First)</option>
+              <option value="elasticity">Elasticity</option>
+              <option value="subscribers">Subscribers</option>
+              <option value="churn">Churn Rate</option>
+              <option value="arpu">ARPU</option>
             </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-bold">Cohort View</label>
+            <label class="form-label fw-bold">Cohort</label>
             <select id="compare-cohort-select" class="form-select">
               <option value="baseline" selected>All Cohorts (Baseline)</option>
             </select>

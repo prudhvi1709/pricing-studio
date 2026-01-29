@@ -1225,8 +1225,6 @@ function initializePopovers() {
  * Initialize the segmentation section
  */
 function initializeSegmentationSection() {
-  populateCohortSelector('segment-cohort-select');
-
   // Populate filter pills for each axis
   populateFilterPills(
     'acquisition-filters',
@@ -1248,18 +1246,11 @@ function initializeSegmentationSection() {
   const tierSelector = document.getElementById('segment-tier-select');
   const axisSelector = document.getElementById('segment-axis-select');
   const vizTypeSelector = document.getElementById('segment-viz-select');
-  const cohortSelector = document.getElementById('segment-cohort-select');
   const clearFiltersBtn = document.getElementById('clear-filters-btn');
 
   tierSelector.addEventListener('change', updateSegmentVisualization);
   axisSelector.addEventListener('change', updateSegmentVisualization);
   vizTypeSelector.addEventListener('change', updateSegmentVisualization);
-  cohortSelector?.addEventListener('change', () => {
-    window.segmentEngine.setActiveCohort(cohortSelector.value);
-    syncCohortSelectors(cohortSelector.value);
-    updateSegmentVisualization();
-    renderSegmentComparisonTable();
-  });
   clearFiltersBtn.addEventListener('click', clearAllFilters);
 
   // 3-axis view buttons
@@ -1308,16 +1299,15 @@ function populateCohortSelector(selectId) {
 }
 
 /**
- * Keep cohort selectors in sync
+ * Keep cohort selectors in sync (only Step 5 now)
  * @param {string} cohortId - Selected cohort id
  */
 function syncCohortSelectors(cohortId) {
-  ['segment-cohort-select', 'compare-cohort-select'].forEach(selectId => {
-    const selector = document.getElementById(selectId);
-    if (selector && selector.value !== cohortId) {
-      selector.value = cohortId;
-    }
-  });
+  // Only Step 5 has cohort selector now
+  const selector = document.getElementById('compare-cohort-select');
+  if (selector && selector.value !== cohortId) {
+    selector.value = cohortId;
+  }
 }
 
 /**
@@ -1364,13 +1354,13 @@ function updateSegmentVisualization() {
     monetization: getActivePillValues('monetization-filters')
   };
 
-  // Get filtered segments
+  // Get filtered segments (with cohort adjustments applied)
   const filteredSegments = window.segmentEngine.filterSegments(filters);
 
   // Filter by selected tier
   const tierSegments = filteredSegments.filter(s => s.tier === tier);
 
-  // Aggregate KPIs
+  // Aggregate KPIs (cohort adjustments already applied in filterSegments)
   const aggregatedKPIs = window.segmentEngine.aggregateKPIs(tierSegments);
 
   // Render KPI cards
@@ -1433,6 +1423,7 @@ function renderSegmentComparisonTable() {
   const tier = document.getElementById('compare-tier-select').value;
   const sortBy = document.getElementById('compare-sort-select').value;
 
+  // Get segments with cohort adjustments already applied
   const segments = window.segmentEngine.getSegmentsForTier(tier);
   const axisSegments = [...new Set(segments.map(s => s[axis]))];
 
@@ -1443,8 +1434,35 @@ function renderSegmentComparisonTable() {
     const avgChurn = matching.reduce((sum, s) => sum + (parseFloat(s.avg_churn_rate) * parseInt(s.subscriber_count)), 0) / totalSubs;
     const avgArpu = matching.reduce((sum, s) => sum + (parseFloat(s.avg_arpu) * parseInt(s.subscriber_count)), 0) / totalSubs;
 
-    // Get elasticity from segment_elasticity.json
+    // Get elasticity from segment_elasticity.json (with cohort multiplier applied)
     const elasticity = window.segmentEngine.getElasticity(tier, matching[0].compositeKey, axis);
+
+    // Calculate axis-aware risk level
+    let risk_level;
+    if (axis === 'engagement') {
+      // Engagement (churn) elasticity is POSITIVE - higher = more risky
+      // Realistic thresholds based on actual business impact:
+      // Low: < 0.7 (churn increases < 70% when price doubles - very sticky)
+      // Medium: 0.7 - 1.5 (70-150% churn increase - moderate risk)
+      // High: > 1.5 (> 150% churn increase - very risky)
+      risk_level = elasticity < 0.7 ? 'Low' : (elasticity < 1.5 ? 'Medium' : 'High');
+    } else if (axis === 'acquisition') {
+      // Acquisition elasticity is NEGATIVE - more negative = more risky
+      // Low: > -1.2 (inelastic)
+      // Medium: -1.8 to -1.2
+      // High: < -1.8 (very elastic)
+      const absElasticity = Math.abs(elasticity);
+      risk_level = absElasticity < 1.2 ? 'Low' : (absElasticity < 1.8 ? 'Medium' : 'High');
+    } else if (axis === 'monetization') {
+      // Monetization (migration) - higher upgrade willingness
+      // Low: < 0.8 (sticky to current tier)
+      // Medium: 0.8 - 1.3
+      // High: > 1.3 (very likely to switch tiers)
+      risk_level = elasticity < 0.8 ? 'Low' : (elasticity < 1.3 ? 'Medium' : 'High');
+    } else {
+      // Fallback for unknown axis
+      risk_level = 'Medium';
+    }
 
     return {
       segment: segmentId,
@@ -1453,11 +1471,7 @@ function renderSegmentComparisonTable() {
       churn_rate: avgChurn,
       arpu: avgArpu,
       elasticity: elasticity || -2.0,
-      // Updated thresholds to match new elasticity range (-2.66 to -0.68)
-      // High: top 33% most elastic (< -1.8)
-      // Medium: middle 33% (-1.8 to -1.2)
-      // Low: bottom 33% least elastic (> -1.2)
-      risk_level: Math.abs(elasticity) > 1.8 ? 'High' : (Math.abs(elasticity) > 1.2 ? 'Medium' : 'Low')
+      risk_level: risk_level
     };
   });
 
@@ -1494,7 +1508,7 @@ function renderSegmentComparisonTable() {
             <td class="text-end">${formatPercent(d.churn_rate, 2)}</td>
             <td class="text-end">${formatCurrency(d.arpu)}</td>
             <td class="text-end">
-              <span class="badge ${Math.abs(d.elasticity) > 2.5 ? 'bg-danger' : (Math.abs(d.elasticity) > 2.0 ? 'bg-warning' : 'bg-success')}">
+              <span class="badge ${d.risk_level === 'High' ? 'bg-danger' : (d.risk_level === 'Medium' ? 'bg-warning' : 'bg-success')}">
                 ${d.elasticity.toFixed(2)}
               </span>
             </td>
@@ -1531,7 +1545,7 @@ function renderSegmentComparisonChart(data) {
         label: 'Price Elasticity',
         data: data.map(d => Math.abs(d.elasticity)),
         backgroundColor: data.map(d =>
-          Math.abs(d.elasticity) > 2.5 ? '#dc3545' : (Math.abs(d.elasticity) > 2.0 ? '#ffc107' : '#28a745')
+          d.risk_level === 'High' ? '#dc3545' : (d.risk_level === 'Medium' ? '#ffc107' : '#28a745')
         ),
         borderColor: '#fff',
         borderWidth: 1
@@ -1574,6 +1588,10 @@ function initializeSegmentComparison() {
   compareSortSelect.addEventListener('change', renderSegmentComparisonTable);
   if (compareCohortSelect) {
     populateCohortSelector('compare-cohort-select');
+
+    // Set initial cohort from dropdown value
+    window.segmentEngine.setActiveCohort(compareCohortSelect.value);
+
     compareCohortSelect.addEventListener('change', () => {
       window.segmentEngine.setActiveCohort(compareCohortSelect.value);
       syncCohortSelectors(compareCohortSelect.value);
